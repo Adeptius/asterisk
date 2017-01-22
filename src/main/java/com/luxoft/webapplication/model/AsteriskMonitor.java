@@ -1,5 +1,6 @@
 package com.luxoft.webapplication.model;
 
+import com.luxoft.webapplication.controllers.DBController;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
 import org.asteriskjava.manager.event.ManagerEvent;
@@ -8,7 +9,14 @@ import org.asteriskjava.manager.event.NewChannelEvent;
 import java.io.IOException;
 
 public class AsteriskMonitor implements ManagerEventListener {
+
     private ManagerConnection managerConnection;
+
+    private DBController dbController;
+
+    public void setDbController(DBController dbController) {
+        this.dbController = dbController;
+    }
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
@@ -36,6 +44,7 @@ public class AsteriskMonitor implements ManagerEventListener {
         if (event instanceof NewChannelEvent){
             String number = ((NewChannelEvent) event).getCallerIdNum();
             System.out.println(number);
+            dbController.savePhone(number);
         }
     }
 }

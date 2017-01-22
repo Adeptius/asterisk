@@ -7,6 +7,7 @@
           <element id="module-output" name="asterisk_dmitriy" />
         </element>
         <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: postgresql:postgresql:9.1-901-1.jdbc4" />
           <element id="library" level="project" name="Maven: org.springframework:spring-webmvc:4.0.5.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework:spring-beans:4.0.5.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework:spring-context:4.0.5.RELEASE" />
@@ -21,6 +22,8 @@
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.9" />
           <element id="library" level="project" name="Maven: com.mchange:c3p0:0.9.5.2" />
           <element id="library" level="project" name="Maven: com.mchange:mchange-commons-java:0.2.11" />
+          <element id="library" level="project" name="Maven: org.springframework:spring-jdbc:4.3.2.RELEASE" />
+          <element id="library" level="project" name="Maven: org.springframework:spring-tx:4.3.2.RELEASE" />
         </element>
       </element>
       <element id="directory" name="META-INF">

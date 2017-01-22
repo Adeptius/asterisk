@@ -13,11 +13,14 @@
           p:location="classpath:jdbc.properties"/>
 
     <bean id="asteriskMonitor" class="com.luxoft.webapplication.model.AsteriskMonitor"
-    init-method="run"/>
+          p:dbController-ref="dbcontroller"
+          init-method="run"/>
 
-    <bean id="dbcontroller" class="com.luxoft.webapplication.controllers.DBController"/>
+    <bean id="dbcontroller" class="com.luxoft.webapplication.controllers.DBController"
+          p:postgreDao-ref="postgreDao"/>
 
-    <bean id="postgreDao" class="com.luxoft.webapplication.dao.PostgreDao"/>
+    <bean id="postgreDao" class="com.luxoft.webapplication.dao.PostgreDao"
+    p:dataSource-ref="dataSource"/>
 
 
     <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
@@ -29,29 +32,32 @@
           p:maxPoolSize="1"
           p:acquireIncrement="1"/>
 
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+          p:dataSource-ref="dataSource"/>
+
     <!--<bean id="main" class="com.luxoft.webapplication.Main"/>-->
     <!--<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"-->
     <!--p:driverClassName="org.sqlite.JDBC"-->
-          <!--p:url="jdbc:sqlite:D:\YandexDisk\Java\Projects\luxoft-test\db\StringsDB.db"/>-->
+    <!--p:url="jdbc:sqlite:D:\YandexDisk\Java\Projects\luxoft-test\db\StringsDB.db"/>-->
     <!--&lt;!&ndash;ЗДЕСЬ УКАЗАТЬ АБСОЛЮТНЫЙ ПУТЬ К ФАЙЛУ DB&ndash;&gt;-->
 
     <!--<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"-->
-          <!--p:dataSource-ref="dataSource"-->
-          <!--p:packagesToScan="com.luxoft.webapplication"-->
-          <!--p:hibernateProperties="hibernate.dialect=com.enigmabridge.hibernate.dialect.SQLiteDialect">-->
+    <!--p:dataSource-ref="dataSource"-->
+    <!--p:packagesToScan="com.luxoft.webapplication"-->
+    <!--p:hibernateProperties="hibernate.dialect=com.enigmabridge.hibernate.dialect.SQLiteDialect">-->
     <!--</bean>-->
 
     <!--<bean id="txManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager"-->
-          <!--p:sessionFactory-ref="sessionFactory"/>-->
+    <!--p:sessionFactory-ref="sessionFactory"/>-->
 
     <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />-->
 
     <!--<tx:annotation-driven transaction-manager="txManager" proxy-target-class="true"/>-->
 
     <!--<bean id="main" class="com.luxoft.webapplication.dao.DbController"-->
-          <!--p:dao-ref="dao"/>-->
+    <!--p:dao-ref="dao"/>-->
 
     <!--<bean id="dao" class="com.luxoft.webapplication.dao.SQLiteHibernateDao"-->
-          <!--p:sessionFactory-ref="sessionFactory"/>-->
+    <!--p:sessionFactory-ref="sessionFactory"/>-->
 
 </beans>
