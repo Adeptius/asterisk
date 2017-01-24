@@ -7,7 +7,9 @@
           <element id="module-output" name="asterisk_dmitriy" />
         </element>
         <element id="directory" name="lib">
-          <element id="library" level="project" name="Maven: postgresql:postgresql:9.1-901-1.jdbc4" />
+          <element id="library" level="project" name="Maven: javax.mail:mail:1.4" />
+          <element id="library" level="project" name="Maven: javax.activation:activation:1.1" />
+          <element id="library" level="project" name="Maven: mysql:mysql-connector-java:5.1.6" />
           <element id="library" level="project" name="Maven: org.springframework:spring-webmvc:4.0.5.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework:spring-beans:4.0.5.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework:spring-context:4.0.5.RELEASE" />

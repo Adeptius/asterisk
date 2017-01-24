@@ -17,9 +17,10 @@
           init-method="run"/>
 
     <bean id="dbcontroller" class="com.luxoft.webapplication.controllers.DBController"
-          p:postgreDao-ref="postgreDao"/>
+          p:mySqlDao-ref="postgreDao"
+          init-method="clearAllDb"/>
 
-    <bean id="postgreDao" class="com.luxoft.webapplication.dao.PostgreDao"
+    <bean id="postgreDao" class="com.luxoft.webapplication.dao.MySqlDao"
     p:dataSource-ref="dataSource"/>
 
 
