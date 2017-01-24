@@ -9,32 +9,36 @@
        http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
-          p:location="classpath:jdbc.properties"/>
 
-    <bean id="asteriskMonitor" class="com.luxoft.webapplication.model.AsteriskMonitor"
-          p:dbController-ref="dbcontroller"
-          init-method="run"/>
+    <bean id="main" class="com.luxoft.webapplication.Main"
+    init-method="init"/>
 
-    <bean id="dbcontroller" class="com.luxoft.webapplication.controllers.DBController"
-          p:mySqlDao-ref="postgreDao"
-          init-method="clearAllDb"/>
+    <!--<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"-->
+          <!--p:location="classpath:jdbc.properties"/>-->
 
-    <bean id="postgreDao" class="com.luxoft.webapplication.dao.MySqlDao"
-    p:dataSource-ref="dataSource"/>
+    <!--<bean id="asteriskMonitor" class="com.luxoft.webapplication.model.AsteriskMonitor"-->
+          <!--p:dbController-ref="dbcontroller"-->
+          <!--init-method="run"/>-->
+
+    <!--<bean id="dbcontroller" class="com.luxoft.webapplication.controllers.DBController"-->
+          <!--p:mySqlDao-ref="postgreDao"-->
+          <!--init-method="clearAllDb"/>-->
+
+    <!--<bean id="postgreDao" class="com.luxoft.webapplication.dao.MySqlDao"-->
+    <!--p:dataSource-ref="dataSource"/>-->
 
 
-    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
-          p:driverClass="${jdbc.driver.class}"
-          p:jdbcUrl="${jdbc.url}"
-          p:user="${jdbc.user}"
-          p:password="${jdbc.password}"
-          p:minPoolSize="1"
-          p:maxPoolSize="1"
-          p:acquireIncrement="1"/>
+    <!--<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"-->
+          <!--p:driverClass="${jdbc.driver.class}"-->
+          <!--p:jdbcUrl="${jdbc.url}"-->
+          <!--p:user="${jdbc.user}"-->
+          <!--p:password="${jdbc.password}"-->
+          <!--p:minPoolSize="1"-->
+          <!--p:maxPoolSize="1"-->
+          <!--p:acquireIncrement="1"/>-->
 
-    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
-          p:dataSource-ref="dataSource"/>
+    <!--<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"-->
+          <!--p:dataSource-ref="dataSource"/>-->
 
     <!--<bean id="main" class="com.luxoft.webapplication.Main"/>-->
     <!--<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"-->

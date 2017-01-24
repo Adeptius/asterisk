@@ -16,9 +16,15 @@ public class GoogleAnalitycs  extends Thread {
 
     private static final String GOOGLE_URL = "http://www.google-analytics.com/collect";
     private String googleId;
+    private String phone;
 
     public GoogleAnalitycs(String googleId) {
         this.googleId = googleId;
+    }
+
+    public GoogleAnalitycs(String googleId, String phone) {
+        this.googleId = googleId;
+        this.phone = phone;
     }
 
     @Override
@@ -33,7 +39,9 @@ public class GoogleAnalitycs  extends Thread {
 //        params.add("dp=/");
         params.add("ec=calltracking");
         params.add("ea=new call");
-        params.add("ea=new call");
+        if (phone != null) {
+            params.add("el="+phone);
+        }
 
         try {
             String url = GOOGLE_URL;
@@ -47,7 +55,7 @@ public class GoogleAnalitycs  extends Thread {
             }
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            System.out.println("Передаю параметры: " + urlParameters);
+//            System.out.println("Передаю параметры: " + urlParameters);
             wr.writeBytes(urlParameters);
             wr.flush();
             wr.close();

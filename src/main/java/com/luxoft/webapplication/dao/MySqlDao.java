@@ -14,6 +14,7 @@ public class MySqlDao {
     public static final String TABLE = "asterisk";
     public static final String USER = "user";
     public static final String PASSWORD = "1234";
+    private Object phoneByGoogleId;
 
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
@@ -122,5 +123,21 @@ public class MySqlDao {
             throw new RuntimeException(e);
         }
         throw new RuntimeException();
+    }
+
+    public String getPhoneByGoogleId(String googleid) {
+        String sql = "SELECT phone FROM "+TABLE+" WHERE googleid = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, googleid);
+            ResultSet set = statement.executeQuery();
+            while (set.next()){
+                return set.getString("phone");
+            }
+            return null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -2,8 +2,8 @@ package com.luxoft.webapplication.controllers;
 
 
 import com.luxoft.webapplication.dao.MySqlDao;
+import com.luxoft.webapplication.utils.GoogleAnalitycs;
 import com.luxoft.webapplication.utils.Mail;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,18 +17,6 @@ public class DBController {
         this.mySqlDao = mySqlDao;
     }
 
-    public void clearAllDb(){
-        mySqlDao.clearAllDb();
-    }
-
-    public void savePhone(String phone){
-        mySqlDao.savePhone(phone,"");
-    }
-
-    public List<String> getFreePhones() {
-        return mySqlDao.getFreePhones();
-    }
-
     public void setPhoneIsBusy(String phone) {
         mySqlDao.setPhoneIsBusy(phone);
     }
@@ -37,8 +25,17 @@ public class DBController {
         mySqlDao.setGoogleId(phone,googleId);
     }
 
+    public String getPhoneByGoogleId(String phone){
+        return mySqlDao.getPhoneByGoogleId(phone);
+    }
+
     public String getFreePhone(String googleId){
-        log("Запрос свободного номера...", this.getClass());
+        log("Запрос свободного номера для пользователя с googleId "+googleId, this.getClass());
+        String currentPhone = getPhoneByGoogleId(googleId);
+        if (currentPhone != null && !currentPhone.equals("")){
+            log("Пользователю уже был выдан номер "+currentPhone, this.getClass());
+            return currentPhone;
+        }
         List<String> phones = mySqlDao.getFreePhones();
         StringBuilder sb = new StringBuilder();
         for (String phone : phones) {
@@ -63,4 +60,13 @@ public class DBController {
         return mySqlDao.getGoogleIdByPhone(phone);
     }
 
+    public void newCall(String phoneReseive){
+        String googleId = getGoogleIdByPhone(phoneReseive);
+        if (googleId == null || googleId.equals("")){
+            log("Для номера "+phoneReseive+" нет зарегистрированного googleId", this.getClass());
+        }else {
+            log("К номеру "+phoneReseive+" привязан googleId "+googleId+" отправляю статистику.", this.getClass());
+            new GoogleAnalitycs(googleId, phoneReseive).start();
+        }
+    }
 }
