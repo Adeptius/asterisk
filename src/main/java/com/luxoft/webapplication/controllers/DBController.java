@@ -11,20 +11,16 @@ import static com.luxoft.webapplication.utils.MyLogger.log;
 
 public class DBController {
 
-
     private MySqlDao mySqlDao;
 
     public void setMySqlDao(MySqlDao mySqlDao) {
         this.mySqlDao = mySqlDao;
     }
 
-    @Transactional
     public void clearAllDb(){
         mySqlDao.clearAllDb();
     }
 
-
-    @Transactional
     public void savePhone(String phone){
         mySqlDao.savePhone(phone,"");
     }
@@ -40,7 +36,6 @@ public class DBController {
     public void setGoogleId(String phone, String googleId){
         mySqlDao.setGoogleId(phone,googleId);
     }
-
 
     public String getFreePhone(String googleId){
         log("Запрос свободного номера...", this.getClass());
@@ -62,6 +57,10 @@ public class DBController {
             new Mail().sendMail(message);
             return"5555555";
         }
+    }
+
+    public String getGoogleIdByPhone(String phone){
+        return mySqlDao.getGoogleIdByPhone(phone);
     }
 
 }

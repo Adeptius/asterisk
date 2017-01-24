@@ -107,4 +107,20 @@ public class MySqlDao {
             throw new RuntimeException(e);
         }
     }
+
+    public String getGoogleIdByPhone(String phone) {
+        String sql = "SELECT googleid FROM "+TABLE+" WHERE phone = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, phone);
+            ResultSet set = statement.executeQuery();
+            while (set.next()){
+                return set.getString("googleid");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        throw new RuntimeException();
+    }
 }

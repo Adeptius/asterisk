@@ -46,7 +46,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
             String phoneReseive = ((NewChannelEvent) event).getExten();
             System.out.println(callerIdNum + "->" + phoneReseive);
-            dbController.savePhone(callerIdNum);
+//            dbController.savePhone(callerIdNum);
         }
     }
 }
