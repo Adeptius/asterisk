@@ -9,7 +9,7 @@ public class MyLogger {
     }
 
     public static void printException(Exception e) {
-        if (Settings.moreErrorsLogs){
+        if (Settings.showDetailedErrorsLogs){
             e.printStackTrace();
         }
     }

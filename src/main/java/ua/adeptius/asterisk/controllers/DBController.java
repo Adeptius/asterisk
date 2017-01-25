@@ -51,7 +51,9 @@ public class DBController {
             sb.append(phone).append(", ");
         }
         if (phones.size()>0){
-            log("Есть свободный номер: " + sb.toString(), this.getClass());
+            if (Settings.showAllListOfFreeNumbers){
+                log("Есть свободный номер: " + sb.toString(), this.getClass());
+            }
             String freePhone = phones.get(0);
             log("Возвращаю свободный номер " + freePhone + " и связываю его с googleId " + googleId, this.getClass());
             setGoogleId(freePhone,googleId);

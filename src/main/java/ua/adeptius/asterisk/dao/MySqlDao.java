@@ -17,6 +17,9 @@ public class MySqlDao {
 
     private ComboPooledDataSource cpds;
     public static String TABLE = Settings.dbTableName;
+    public static String PHONE = Settings.dbColumnPhoneName;
+    public static String GOOGLEID = Settings.dbColumnGoogleIdName;
+    public static String TIMELEFT = Settings.dbColumnTimeToDieName;
 
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
@@ -40,8 +43,7 @@ public class MySqlDao {
     }
 
     public void clearAllDb() {
-        String sql = "UPDATE " + TABLE
-                + " SET googleid = NULL";
+        String sql = "UPDATE " + TABLE + " SET "+GOOGLEID+" = NULL";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             connection.setAutoCommit(true);
@@ -54,7 +56,7 @@ public class MySqlDao {
 
     public List<String> getFreePhones() {
         List<String> freePhones = new ArrayList<>();
-        String sql = "SELECT phone from " + TABLE + " WHERE googleid is NULL or googleid = ''";
+        String sql = "SELECT "+PHONE+" from "+TABLE+" WHERE "+GOOGLEID+" is NULL or "+GOOGLEID+" = ''";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -71,7 +73,7 @@ public class MySqlDao {
     }
 
     public void setGoogleId(String phone, String googleId) {
-        String sql = "UPDATE "+TABLE+" SET googleid = ? WHERE phone = ?";
+        String sql = "UPDATE "+TABLE+" SET "+GOOGLEID+" = ? WHERE "+PHONE+" = ?";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, googleId);
@@ -84,7 +86,7 @@ public class MySqlDao {
     }
 
     public String getGoogleIdByPhone(String phone) {
-        String sql = "SELECT googleid FROM "+TABLE+" WHERE phone = ?";
+        String sql = "SELECT "+GOOGLEID+" FROM "+TABLE+" WHERE "+PHONE+" = ?";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, phone);
@@ -100,7 +102,7 @@ public class MySqlDao {
     }
 
     public String getPhoneByGoogleId(String googleid) {
-        String sql = "SELECT phone FROM "+TABLE+" WHERE googleid = ?";
+        String sql = "SELECT "+PHONE+" FROM "+TABLE+" WHERE "+GOOGLEID+" = ?";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, googleid);
@@ -117,7 +119,7 @@ public class MySqlDao {
     }
 
     public void updateTime(String phone) {
-        String sql = "UPDATE "+TABLE+" SET time_left = ? WHERE phone = ?";
+        String sql = "UPDATE "+TABLE+" SET "+TIMELEFT+" = ? WHERE "+PHONE+" = ?";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, new GregorianCalendar().getTimeInMillis()
@@ -131,7 +133,7 @@ public class MySqlDao {
     }
 
     public void removeOld(long timeNow) {
-        String sql = "UPDATE "+TABLE+" SET googleid = NULL, time_left = NULL WHERE time_left < ?";
+        String sql = "UPDATE "+TABLE+" SET "+GOOGLEID+" = NULL, "+TIMELEFT+" = NULL WHERE "+TIMELEFT+" < ?";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, timeNow);

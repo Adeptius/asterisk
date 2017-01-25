@@ -31,11 +31,11 @@ public class GoogleAnalitycs  extends Thread {
     public void run() {
         List<String> params = new ArrayList<>();
         params.add("v=1");
-        params.add("tid=UA-88866926-1"); // Tracking ID / Property ID.
+        params.add("tid="+Settings.googleAnalyticsTrackingId); // Tracking ID / Property ID.
         params.add("cid="+googleId); // Client ID.
         params.add("t=event"); // Hit Type.
-        params.add("ec=calltracking"); // Category
-        params.add("ea=new call"); // Event
+        params.add("ec="+Settings.googleAnalyticsCategoryName); // Category
+        params.add("ea="+Settings.googleAnalyticsEventName); // Event
         if (phone != null) {
             params.add("el="+phone); // Label
         }

@@ -46,7 +46,9 @@ public class AsteriskMonitor implements ManagerEventListener {
         if (event instanceof NewChannelEvent){
             String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
             String phoneReseive = ((NewChannelEvent) event).getExten();
-            MyLogger.log("Принят звонок с номера " + callerIdNum + " на номер " + phoneReseive, this.getClass());
+            if (Settings.showAllCallsToAsterisk){
+                MyLogger.log("Принят звонок с номера " + callerIdNum + " на номер " + phoneReseive, this.getClass());
+            }
             dbController.newCall(phoneReseive, callerIdNum);
         }
     }
