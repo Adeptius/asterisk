@@ -32,15 +32,12 @@ public class GoogleAnalitycs  extends Thread {
         List<String> params = new ArrayList<>();
         params.add("v=1");
         params.add("tid=UA-88866926-1"); // Tracking ID / Property ID.
-//        params.add("cid=1433766020.1481115478"); // Anonymous Client ID.
-        params.add("cid="+googleId); // Anonymous Client ID.
+        params.add("cid="+googleId); // Client ID.
         params.add("t=event"); // Hit Type.
-//        params.add("dh=/");
-//        params.add("dp=/");
-        params.add("ec=calltracking");
-        params.add("ea=new call");
+        params.add("ec=calltracking"); // Category
+        params.add("ea=new call"); // Event
         if (phone != null) {
-            params.add("el="+phone);
+            params.add("el="+phone); // Label
         }
 
         try {

@@ -1,11 +1,17 @@
 package com.luxoft.webapplication.dao;
 
 
+import com.luxoft.webapplication.utils.MyLogger;
+import com.luxoft.webapplication.utils.Settings;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
+
+import static com.luxoft.webapplication.utils.MyLogger.log;
 
 @SuppressWarnings("Duplicates")
 public class MySqlDao {
@@ -15,6 +21,7 @@ public class MySqlDao {
     public static final String USER = "user";
     public static final String PASSWORD = "1234";
     private Object phoneByGoogleId;
+    private List<Long> timeAllPhones;
 
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
@@ -35,53 +42,52 @@ public class MySqlDao {
 //            return connectionPool.getConnection();
             return cpds.getConnection();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            log("Ошибка подключения к базе...", this.getClass());
+            e.printStackTrace();
+            return null;
         }
     }
 
-    public void savePhone(String phone, String googleId) {
-        String sql = "INSERT INTO "
-                + TABLE
-                + " values('" + phone + "','false','" + googleId + "')";
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            connection.setAutoCommit(true);
-            statement.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
+//    public void savePhone(String phone, String googleId) {
+//        String sql = "INSERT INTO "
+//                + TABLE
+//                + " values('" + phone + "','false','" + googleId + "')";
+//        try (Connection connection = getConnection();
+//             PreparedStatement statement = connection.prepareStatement(sql)) {
+//            connection.setAutoCommit(true);
+//            statement.execute();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public void clearAllDb() {
         String sql = "UPDATE " + TABLE
-                + " SET status = 'free', googleid = NULL";
+                + " SET googleid = NULL";
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             connection.setAutoCommit(true);
             statement.execute();
         } catch (SQLException e) {
+            log("Ошибка очистки базы", this.getClass());
             e.printStackTrace();
-            throw new RuntimeException(e);
         }
     }
 
-    public void setPhoneIsBusy(String phone) {
-        String sql = "UPDATE " + TABLE
-                + " SET status = 'busy' WHERE phone = '" + phone + "'";
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            connection.setAutoCommit(true);
-            statement.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
+//    public void setPhoneIsBusy(String phone) {
+//        String sql = "UPDATE " + TABLE + " SET status = 'busy' WHERE phone = '" + phone + "'";
+//        try (Connection connection = getConnection();
+//             PreparedStatement statement = connection.prepareStatement(sql)) {
+//            connection.setAutoCommit(true);
+//            statement.execute();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public List<String> getFreePhones() {
         List<String> freePhones = new ArrayList<>();
-        String sql = "SELECT phone from " + TABLE + " WHERE status = 'free'";
+        String sql = "SELECT phone from " + TABLE + " WHERE googleid is NULL or googleid = ''";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -90,8 +96,10 @@ public class MySqlDao {
 //                System.out.println(set.getString("phone"));
             }
         } catch (SQLException e) {
+            log("Ошибка получения свободных номеров из базы.", this.getClass());
             e.printStackTrace();
-            throw new RuntimeException(e);
+            List<String> list = new ArrayList<>();
+            list.add(Settings.standartNumber);
         }
         return freePhones;
     }
@@ -104,8 +112,8 @@ public class MySqlDao {
             statement.setString(2, phone);
             statement.executeUpdate();
         } catch (SQLException e) {
+            log("Ошибка связывания номера с googleId", this.getClass());
             e.printStackTrace();
-            throw new RuntimeException(e);
         }
     }
 
@@ -119,8 +127,8 @@ public class MySqlDao {
                 return set.getString("googleid");
             }
         } catch (SQLException e) {
+            log("Ошибка получения googleId из базы", this.getClass());
             e.printStackTrace();
-            throw new RuntimeException(e);
         }
         throw new RuntimeException();
     }
@@ -136,8 +144,47 @@ public class MySqlDao {
             }
             return null;
         } catch (SQLException e) {
+            log("Ошибка получения телефона по googleId. Возвращаю стандартный", this.getClass());
             e.printStackTrace();
-            throw new RuntimeException(e);
+            return Settings.standartNumber;
+        }
+    }
+
+    public void setPhoneIsFree(String phone) {
+        String sql = "UPDATE "+TABLE+" SET googleid = NULL, time = NULL WHERE phone = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, phone);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            log("Ошибка очистки номера", this.getClass());
+            e.printStackTrace();
+        }
+    }
+
+    public void updateTime(String phone) {
+        String sql = "UPDATE "+TABLE+" SET time_left = ? WHERE phone = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, new GregorianCalendar().getTimeInMillis()
+                    + (Settings.phoneTimeToRemoveInSeconds * 1000));
+            statement.setString(2, phone);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            log("Ошибка обновления времени для телефона " + phone, this.getClass());
+            e.printStackTrace();
+        }
+    }
+
+    public void removeOld(long timeNow) {
+        String sql = "UPDATE "+TABLE+" SET googleid = NULL, time_left = NULL WHERE time_left < ?";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, timeNow);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            log("Ошибка проверки времени", this.getClass());
+            MyLogger.printException(e);
         }
     }
 }

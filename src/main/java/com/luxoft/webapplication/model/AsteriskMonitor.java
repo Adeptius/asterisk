@@ -3,6 +3,7 @@ package com.luxoft.webapplication.model;
 import com.luxoft.webapplication.controllers.DBController;
 import com.luxoft.webapplication.utils.GoogleAnalitycs;
 import com.luxoft.webapplication.utils.MyLogger;
+import com.luxoft.webapplication.utils.Settings;
 import com.luxoft.webapplication.utils.Utils;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
@@ -24,7 +25,7 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                "194.44.37.30", "adeptius", "ccb6f130f89de0bab95df361669e32ba");
+                Settings.asteriskIp, Settings.asteriskLogin, Settings.asteriskPassword);
         this.managerConnection = factory.createManagerConnection();
     }
 
@@ -48,8 +49,8 @@ public class AsteriskMonitor implements ManagerEventListener {
         if (event instanceof NewChannelEvent){
             String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
             String phoneReseive = ((NewChannelEvent) event).getExten();
-            MyLogger.log("Принят звонок с номера " +callerIdNum+" на номер "+phoneReseive, this.getClass());
-            dbController.newCall(phoneReseive);
+            MyLogger.log("Принят звонок с номера " + callerIdNum + " на номер " + phoneReseive, this.getClass());
+            dbController.newCall(phoneReseive, callerIdNum);
         }
     }
 }
