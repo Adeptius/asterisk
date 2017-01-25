@@ -1,10 +1,10 @@
-package com.luxoft.webapplication;
+package ua.adeptius.asterisk;
 
 
-import com.luxoft.webapplication.controllers.DBController;
-import com.luxoft.webapplication.dao.MySqlDao;
-import com.luxoft.webapplication.model.AsteriskMonitor;
-import com.luxoft.webapplication.utils.Cleaner;
+import ua.adeptius.asterisk.controllers.DBController;
+import ua.adeptius.asterisk.dao.MySqlDao;
+import ua.adeptius.asterisk.model.AsteriskMonitor;
+import ua.adeptius.asterisk.utils.Cleaner;
 
 
 public class Main {

@@ -1,4 +1,4 @@
-package com.luxoft.webapplication.utils;
+package ua.adeptius.asterisk.utils;
 
 
 
@@ -20,6 +20,8 @@ public class Settings {
     public static boolean showPhoneRepeatedRequest;
     public static boolean showSendingMailLogs;
 
+    public static String accessControlAllowOrigin;
+
 
     static {
         asteriskAdress = "194.44.37.30";
@@ -35,7 +37,9 @@ public class Settings {
         phoneTimeToRemoveInSeconds = 40;
 
         moreErrorsLogs = true;
-        showPhoneRepeatedRequest = true;
+        showPhoneRepeatedRequest = false;
         showSendingMailLogs = false;
+
+        accessControlAllowOrigin = "http://e404.ho.ua";
     }
 }

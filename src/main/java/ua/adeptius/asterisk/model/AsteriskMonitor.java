@@ -1,8 +1,8 @@
-package com.luxoft.webapplication.model;
+package ua.adeptius.asterisk.model;
 
-import com.luxoft.webapplication.controllers.DBController;
-import com.luxoft.webapplication.utils.MyLogger;
-import com.luxoft.webapplication.utils.Settings;
+import ua.adeptius.asterisk.controllers.DBController;
+import ua.adeptius.asterisk.utils.MyLogger;
+import ua.adeptius.asterisk.utils.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
 import org.asteriskjava.manager.event.ManagerEvent;

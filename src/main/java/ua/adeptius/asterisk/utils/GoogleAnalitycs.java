@@ -1,4 +1,4 @@
-package com.luxoft.webapplication.utils;
+package ua.adeptius.asterisk.utils;
 
 
 import java.io.BufferedReader;
@@ -9,7 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.luxoft.webapplication.utils.MyLogger.log;
+import static ua.adeptius.asterisk.utils.MyLogger.log;
 
 @SuppressWarnings("Duplicates")
 public class GoogleAnalitycs  extends Thread {

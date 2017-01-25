@@ -1,68 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:p="http://www.springframework.org/schema/p"
-       xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/tx
-       http://www.springframework.org/schema/tx/spring-tx.xsd">
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-
-
-    <bean id="main" class="com.luxoft.webapplication.Main"
+    <bean id="main" class="ua.adeptius.asterisk.Main"
     init-method="init"/>
-
-    <!--<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"-->
-          <!--p:location="classpath:jdbc.properties"/>-->
-
-    <!--<bean id="asteriskMonitor" class="com.luxoft.webapplication.model.AsteriskMonitor"-->
-          <!--p:dbController-ref="dbcontroller"-->
-          <!--init-method="run"/>-->
-
-    <!--<bean id="dbcontroller" class="com.luxoft.webapplication.controllers.DBController"-->
-          <!--p:mySqlDao-ref="postgreDao"-->
-          <!--init-method="clearAllDb"/>-->
-
-    <!--<bean id="postgreDao" class="com.luxoft.webapplication.dao.MySqlDao"-->
-    <!--p:dataSource-ref="dataSource"/>-->
-
-
-    <!--<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"-->
-          <!--p:driverClass="${jdbc.driver.class}"-->
-          <!--p:jdbcUrl="${jdbc.url}"-->
-          <!--p:user="${jdbc.user}"-->
-          <!--p:password="${jdbc.password}"-->
-          <!--p:minPoolSize="1"-->
-          <!--p:maxPoolSize="1"-->
-          <!--p:acquireIncrement="1"/>-->
-
-    <!--<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"-->
-          <!--p:dataSource-ref="dataSource"/>-->
-
-    <!--<bean id="main" class="com.luxoft.webapplication.Main"/>-->
-    <!--<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"-->
-    <!--p:driverClassName="org.sqlite.JDBC"-->
-    <!--p:url="jdbc:sqlite:D:\YandexDisk\Java\Projects\luxoft-test\db\StringsDB.db"/>-->
-    <!--&lt;!&ndash;ЗДЕСЬ УКАЗАТЬ АБСОЛЮТНЫЙ ПУТЬ К ФАЙЛУ DB&ndash;&gt;-->
-
-    <!--<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"-->
-    <!--p:dataSource-ref="dataSource"-->
-    <!--p:packagesToScan="com.luxoft.webapplication"-->
-    <!--p:hibernateProperties="hibernate.dialect=com.enigmabridge.hibernate.dialect.SQLiteDialect">-->
-    <!--</bean>-->
-
-    <!--<bean id="txManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager"-->
-    <!--p:sessionFactory-ref="sessionFactory"/>-->
-
-    <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />-->
-
-    <!--<tx:annotation-driven transaction-manager="txManager" proxy-target-class="true"/>-->
-
-    <!--<bean id="main" class="com.luxoft.webapplication.dao.DbController"-->
-    <!--p:dao-ref="dao"/>-->
-
-    <!--<bean id="dao" class="com.luxoft.webapplication.dao.SQLiteHibernateDao"-->
-    <!--p:sessionFactory-ref="sessionFactory"/>-->
 
 </beans>

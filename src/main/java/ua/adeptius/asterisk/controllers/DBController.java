@@ -1,15 +1,15 @@
-package com.luxoft.webapplication.controllers;
+package ua.adeptius.asterisk.controllers;
 
 
-import com.luxoft.webapplication.dao.MySqlDao;
-import com.luxoft.webapplication.utils.GoogleAnalitycs;
-import com.luxoft.webapplication.utils.Mail;
-import com.luxoft.webapplication.utils.Settings;
+import ua.adeptius.asterisk.dao.MySqlDao;
+import ua.adeptius.asterisk.utils.GoogleAnalitycs;
+import ua.adeptius.asterisk.utils.Mail;
+import ua.adeptius.asterisk.utils.Settings;
 
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import static com.luxoft.webapplication.utils.MyLogger.log;
+import static ua.adeptius.asterisk.utils.MyLogger.log;
 
 public class DBController {
 

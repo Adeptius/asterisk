@@ -1,7 +1,7 @@
-package com.luxoft.webapplication.dao;
+package ua.adeptius.asterisk.dao;
 
 
-import com.luxoft.webapplication.utils.Settings;
+import ua.adeptius.asterisk.utils.Settings;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import java.sql.*;
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import static com.luxoft.webapplication.utils.MyLogger.log;
-import static com.luxoft.webapplication.utils.MyLogger.printException;
+import static ua.adeptius.asterisk.utils.MyLogger.log;
+import static ua.adeptius.asterisk.utils.MyLogger.printException;
 
 
 public class MySqlDao {

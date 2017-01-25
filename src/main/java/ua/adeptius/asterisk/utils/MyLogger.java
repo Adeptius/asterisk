@@ -1,4 +1,4 @@
-package com.luxoft.webapplication.utils;
+package ua.adeptius.asterisk.utils;
 
 
 public class MyLogger {

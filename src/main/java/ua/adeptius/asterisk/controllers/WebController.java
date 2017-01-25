@@ -1,9 +1,10 @@
-package com.luxoft.webapplication.controllers;
+package ua.adeptius.asterisk.controllers;
 
 
-import com.luxoft.webapplication.Main;
+import ua.adeptius.asterisk.Main;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.utils.Settings;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -16,7 +17,7 @@ public class WebController {
 
     @RequestMapping(value = "/asterisk/getnumber/{googleid}", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
     public @ResponseBody String plaintext(@PathVariable String googleid, HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "http://e404.ho.ua");
+        response.setHeader("Access-Control-Allow-Origin", Settings.accessControlAllowOrigin);
         return dbController.getFreePhone(googleid);
     }
 

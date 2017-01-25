@@ -1,7 +1,7 @@
-package com.luxoft.webapplication.utils;
+package ua.adeptius.asterisk.utils;
 
 
-import com.luxoft.webapplication.controllers.DBController;
+import ua.adeptius.asterisk.controllers.DBController;
 
 public class Cleaner extends Thread {
 
