@@ -1,16 +1,13 @@
 package com.luxoft.webapplication.model;
 
 import com.luxoft.webapplication.controllers.DBController;
-import com.luxoft.webapplication.utils.GoogleAnalitycs;
 import com.luxoft.webapplication.utils.MyLogger;
 import com.luxoft.webapplication.utils.Settings;
-import com.luxoft.webapplication.utils.Utils;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
 import org.asteriskjava.manager.event.ManagerEvent;
 import org.asteriskjava.manager.event.NewChannelEvent;
 
-import javax.swing.text.Utilities;
 import java.io.IOException;
 
 public class AsteriskMonitor implements ManagerEventListener {
@@ -25,7 +22,7 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                Settings.asteriskIp, Settings.asteriskLogin, Settings.asteriskPassword);
+                Settings.asteriskAdress, Settings.asteriskLogin, Settings.asteriskPassword);
         this.managerConnection = factory.createManagerConnection();
     }
 

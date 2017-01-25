@@ -13,7 +13,6 @@ public class Cleaner extends Thread {
         start();
     }
 
-
     @Override
     public void run() {
         while (true){

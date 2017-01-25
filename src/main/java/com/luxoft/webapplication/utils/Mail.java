@@ -22,7 +22,9 @@ public class Mail {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             props.put("mail.smtp.port", port);
             props.put("mail.smtp.auth", "true");
-//            props.put("mail.debug", "true");
+            if (Settings.showSendingMailLogs){
+            props.put("mail.debug", "true");
+            }
             Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
                 // Указываем логин пароль, от почты, с которой будем отправлять сообщение.
                 @Override

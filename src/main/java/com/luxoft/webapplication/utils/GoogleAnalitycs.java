@@ -52,7 +52,6 @@ public class GoogleAnalitycs  extends Thread {
             }
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-//            System.out.println("Передаю параметры: " + urlParameters);
             wr.writeBytes(urlParameters);
             wr.flush();
             wr.close();

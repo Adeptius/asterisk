@@ -4,25 +4,38 @@ package com.luxoft.webapplication.utils;
 
 public class Settings {
 
-    public static String asteriskIp;
+    public static String asteriskAdress;
     public static String asteriskLogin;
     public static String asteriskPassword;
 
+    public static String dbAdress;
+    public static String dbLogin;
+    public static String dbPassword;
+    public static String dbTableName;
 
     public static String standartNumber;
-    public static boolean moreLogs;
     public static int phoneTimeToRemoveInSeconds;
+
+    public static boolean moreErrorsLogs;
+    public static boolean showPhoneRepeatedRequest;
+    public static boolean showSendingMailLogs;
 
 
     static {
-        asteriskIp = "194.44.37.30";
+        asteriskAdress = "194.44.37.30";
         asteriskLogin = "adeptius";
         asteriskPassword = "ccb6f130f89de0bab95df361669e32ba";
 
-
+        dbAdress = "localhost:3306/sys";
+        dbLogin = "user";
+        dbPassword = "1234";
+        dbTableName = "asterisk";
 
         standartNumber = "5555555";
-        moreLogs = true;
         phoneTimeToRemoveInSeconds = 40;
+
+        moreErrorsLogs = true;
+        showPhoneRepeatedRequest = true;
+        showSendingMailLogs = false;
     }
 }

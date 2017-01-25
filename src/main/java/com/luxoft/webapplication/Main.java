@@ -5,11 +5,6 @@ import com.luxoft.webapplication.controllers.DBController;
 import com.luxoft.webapplication.dao.MySqlDao;
 import com.luxoft.webapplication.model.AsteriskMonitor;
 import com.luxoft.webapplication.utils.Cleaner;
-import com.luxoft.webapplication.utils.GoogleAnalitycs;
-import com.luxoft.webapplication.utils.Settings;
-import com.luxoft.webapplication.utils.Utils;
-
-import static com.luxoft.webapplication.utils.MyLogger.*;
 
 
 public class Main {

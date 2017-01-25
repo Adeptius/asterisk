@@ -19,10 +19,6 @@ public class DBController {
         this.mySqlDao = mySqlDao;
     }
 
-//    public void setPhoneIsBusy(String phone) {
-//        mySqlDao.setPhoneIsBusy(phone);
-//    }
-
     public void clearAllDb(){
         mySqlDao.clearAllDb();
     }
@@ -42,7 +38,9 @@ public class DBController {
         }
         String currentPhone = getPhoneByGoogleId(googleId);
         if (currentPhone != null && !currentPhone.equals("")){
-            log("Повторно возвращаю пользователю его номер "+currentPhone, this.getClass());
+            if (Settings.showPhoneRepeatedRequest){
+                log("Повторно возвращаю пользователю его номер "+currentPhone, this.getClass());
+            }
             updateTime(currentPhone);
             return currentPhone;
         }
@@ -55,7 +53,6 @@ public class DBController {
         if (phones.size()>0){
             log("Есть свободный номер: " + sb.toString(), this.getClass());
             String freePhone = phones.get(0);
-//            setPhoneIsBusy(freePhone);
             log("Возвращаю свободный номер " + freePhone + " и связываю его с googleId " + googleId, this.getClass());
             setGoogleId(freePhone,googleId);
             updateTime(freePhone);
@@ -80,10 +77,6 @@ public class DBController {
             log("К номеру "+phoneReseive+" привязан googleId "+googleId+" отправляю статистику.", this.getClass());
             new GoogleAnalitycs(googleId, caller).start();
         }
-    }
-
-    public void setPhoneIsFree(String phone){
-        mySqlDao.setPhoneIsFree(phone);
     }
 
     public void updateTime(String phone){
