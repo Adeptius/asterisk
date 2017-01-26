@@ -5,6 +5,7 @@ import ua.adeptius.asterisk.controllers.DBController;
 import ua.adeptius.asterisk.dao.MySqlDao;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
 import ua.adeptius.asterisk.utils.Cleaner;
+import ua.adeptius.asterisk.utils.Settings;
 
 
 public class Main {
@@ -19,6 +20,7 @@ public class Main {
     }
 
     private void init() throws Exception {
+        Settings.load(this.getClass());
         mySqlDao = new MySqlDao();
         mySqlDao.init();
         dbController = new DBController();

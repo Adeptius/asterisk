@@ -1,6 +1,9 @@
 package ua.adeptius.asterisk.utils;
 
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class Settings {
 
@@ -30,32 +33,50 @@ public class Settings {
     public static String googleAnalyticsCategoryName;
     public static String googleAnalyticsEventName;
 
+    public static void load(Class clazz){
+        try {
+            Properties prop = new Properties();
+            String propFileName = "config.properties";
 
-    static {
-        asteriskAdress = "194.44.37.30";
-        asteriskLogin = "adeptius";
-        asteriskPassword = "ccb6f130f89de0bab95df361669e32ba";
+            InputStream inputStream = clazz.getClassLoader().getResourceAsStream(propFileName);
 
-        dbAdress = "localhost:3306/sys";
-        dbLogin = "user";
-        dbPassword = "1234";
-        dbTableName = "asterisk";
-        dbColumnPhoneName = "phone";
-        dbColumnGoogleIdName = "googleid";
-        dbColumnTimeToDieName = "time_left";
+            if (inputStream != null) {
+                prop.load(inputStream);
+                initSettings(prop);
+            } else {
+                throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+            }
 
-        standartNumber = "5555555";
-        phoneTimeToRemoveInSeconds = 40;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-        showDetailedErrorsLogs = false;
-        showPhoneRepeatedRequest = false;
-        showSendingMailLogs = false;
-        showAllCallsToAsterisk = true;
-        showAllListOfFreeNumbers = true;
+    private static void initSettings(Properties prop) {
+        asteriskAdress = prop.getProperty("asteriskAdress");
+        asteriskLogin = prop.getProperty("asteriskLogin");
+        asteriskPassword = prop.getProperty("asteriskPassword");
 
-        accessControlAllowOrigin = "http://e404.ho.ua";
-        googleAnalyticsTrackingId = "UA-88866926-1";
-        googleAnalyticsCategoryName = "calltracking";
-        googleAnalyticsEventName = "new call";
+        dbAdress = prop.getProperty("dbAdress");
+        dbLogin = prop.getProperty("dbLogin");
+        dbPassword = prop.getProperty("dbPassword");
+        dbTableName = prop.getProperty("dbTableName");
+        dbColumnPhoneName = prop.getProperty("dbColumnPhoneName");
+        dbColumnGoogleIdName = prop.getProperty("dbColumnGoogleIdName");
+        dbColumnTimeToDieName = prop.getProperty("dbColumnTimeToDieName");
+
+        standartNumber = prop.getProperty("standartNumber");
+        phoneTimeToRemoveInSeconds = Integer.parseInt(prop.getProperty("phoneTimeToRemoveInSeconds"));
+
+        showDetailedErrorsLogs = prop.getProperty("showDetailedErrorsLogs").equals("true");
+        showPhoneRepeatedRequest = prop.getProperty("showPhoneRepeatedRequest").equals("true");
+        showSendingMailLogs = prop.getProperty("showSendingMailLogs").equals("true");
+        showAllCallsToAsterisk = prop.getProperty("showAllCallsToAsterisk").equals("true");
+        showAllListOfFreeNumbers = prop.getProperty("showAllListOfFreeNumbers").equals("true");
+
+        accessControlAllowOrigin = prop.getProperty("accessControlAllowOrigin");
+        googleAnalyticsTrackingId = prop.getProperty("googleAnalyticsTrackingId");
+        googleAnalyticsCategoryName = prop.getProperty("googleAnalyticsCategoryName");
+        googleAnalyticsEventName = prop.getProperty("googleAnalyticsEventName");
     }
 }
