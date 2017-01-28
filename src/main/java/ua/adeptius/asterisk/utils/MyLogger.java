@@ -11,7 +11,7 @@ public class MyLogger {
         try{
             Main.gui.guiController.appendLog(message);
         }catch (NullPointerException e){
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 

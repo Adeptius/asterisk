@@ -1,7 +1,10 @@
 package ua.adeptius.asterisk.utils;
 
 
+import ua.adeptius.asterisk.model.Site;
+
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -9,10 +12,21 @@ import javax.mail.internet.MimeMessage;
 
 public class Mail {
 
+    public void checkTimeAndSendEmail(Site site, String message){
+        long lastEmail = site.getLastEmail();
+        long currentTime = new GregorianCalendar().getTimeInMillis();
+        long pastTime = currentTime - lastEmail;
+        int pastMinutes = (int) (pastTime / 1000 / 60);
+        if (pastMinutes < 10){
+            MyLogger.log("Последнее оповещение было отправлено менее 10 мин назад", this.getClass());
+        }else {
+            send(site.getMail(), message);
+            site.setLastEmail(new GregorianCalendar().getTimeInMillis());
+        }
+    }
 
-    public void sendMail(String message) {
+    private void send(String to, String message) {
         new Thread(() -> {
-            String to = Settings.mailingAdress;
             String from = "server-asterisk@mail.ru";
             String host = "smtp.mail.ru";
             int port = 465;

@@ -14,23 +14,28 @@ public class Site {
         this.eMail = eMail;
     }
 
+    //TODO черный список
     private String name;
     private String accessControlAllowOrigin;
     private List<Phone> phones;
     private String standartNumber;
     private String googleAnalyticsTrackingId;
     private String eMail;
+    private long lastEmail;
 
     public String getName() {
         return name;
     }
 
-    public String getAccessControlAllowOrigin() {
-        return accessControlAllowOrigin;
-    }
 
+
+    //TODO что если в базе только один номер? Оно разрежется правильно?
     public List<Phone> getPhones() {
         return phones;
+    }
+
+    public String getAccessControlAllowOrigin() {
+        return accessControlAllowOrigin;
     }
 
     public String getStandartNumber() {
@@ -41,8 +46,16 @@ public class Site {
         return googleAnalyticsTrackingId;
     }
 
-    public String geteMail() {
+    public String getMail() {
         return eMail;
+    }
+
+    public long getLastEmail() {
+        return lastEmail;
+    }
+
+    public void setLastEmail(long lastEmail) {
+        this.lastEmail = lastEmail;
     }
 
     @Override

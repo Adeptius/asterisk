@@ -6,6 +6,7 @@ import ua.adeptius.asterisk.dao.NewMySqlDao;
 import ua.adeptius.asterisk.javafx.Gui;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.utils.Cleaner;
 import ua.adeptius.asterisk.utils.Settings;
 
 
@@ -29,10 +30,11 @@ public class Main {
         monitor = new AsteriskMonitor();
         monitor.run();
 
-        Site site = MainController.getSiteByName("e404");
+        new Thread(() -> {
+            gui = new Gui();
+            gui.startGui();
+        }).start();
 
-        gui = new Gui();
-        gui.startGui();
-
+        new Cleaner();
     }
 }

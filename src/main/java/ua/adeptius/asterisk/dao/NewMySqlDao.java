@@ -78,7 +78,4 @@ public class NewMySqlDao {
         }
         throw new Exception("Ошибка при загрузке данных с БД");
     }
-
-
-
 }
