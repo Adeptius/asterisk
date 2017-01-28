@@ -1,6 +1,5 @@
 package ua.adeptius.asterisk.model;
 
-import ua.adeptius.asterisk.controllers.DBController;
 import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.Settings;
 import org.asteriskjava.manager.*;
@@ -14,11 +13,11 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     private ManagerConnection managerConnection;
 
-    private DBController dbController;
+//    private DBController dbController;
 
-    public void setDbController(DBController dbController) {
-        this.dbController = dbController;
-    }
+//    public void setDbController(DBController dbController) {
+//        this.dbController = dbController;
+//    }
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
@@ -46,10 +45,10 @@ public class AsteriskMonitor implements ManagerEventListener {
         if (event instanceof NewChannelEvent){
             String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
             String phoneReseive = ((NewChannelEvent) event).getExten();
-            if (Settings.showAllCallsToAsterisk){
+//            if (Settings.showAllCallsToAsterisk){
                 MyLogger.log("Принят звонок с номера " + callerIdNum + " на номер " + phoneReseive, this.getClass());
-            }
-            dbController.newCall(phoneReseive, callerIdNum);
+//            }
+//            dbController.newCall(phoneReseive, callerIdNum);
         }
     }
 }

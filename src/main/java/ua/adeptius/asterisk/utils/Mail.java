@@ -12,7 +12,7 @@ public class Mail {
 
     public void sendMail(String message) {
         new Thread(() -> {
-            String to = "adeptius@gmail.com";
+            String to = Settings.mailingAdress;
             String from = "server-asterisk@mail.ru";
             String host = "smtp.mail.ru";
             int port = 465;

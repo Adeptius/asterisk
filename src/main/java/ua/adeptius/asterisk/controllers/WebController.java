@@ -13,16 +13,14 @@ import javax.servlet.http.HttpServletResponse;
 public class WebController {
 
 
-    private DBController dbController = Main.dbController;
+//    private DBController dbController = Main.dbController;
 
-    @RequestMapping(value = "/asterisk/getnumber/{googleid}", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
-    public @ResponseBody String plaintext(@PathVariable String googleid, HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", Settings.accessControlAllowOrigin);
-        return dbController.getFreePhone(googleid);
-    }
+    @RequestMapping(value = "/{sitename}/getnumber/{googleid}", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
+    public @ResponseBody String plaintext(@PathVariable String sitename, @PathVariable String googleid, HttpServletResponse response) {
 
-    @RequestMapping(value = "/asterisk/getnumber", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
-    public @ResponseBody String plaintext2(@RequestParam("id") String id) {
-        return dbController.getFreePhone(id);
+        String phone = MainController.getFreeNumberFromSite(sitename);
+
+        response.setHeader("Access-Control-Allow-Origin", MainController.getSiteByName(sitename).getAccessControlAllowOrigin());
+        return phone;
     }
 }

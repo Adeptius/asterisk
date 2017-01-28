@@ -1,14 +1,9 @@
 package ua.adeptius.asterisk.utils;
 
 
-import ua.adeptius.asterisk.controllers.DBController;
-
 public class Cleaner extends Thread {
 
-    private DBController dbController;
-
-    public Cleaner(DBController dbController) {
-        this.dbController = dbController;
+    public Cleaner() {
         setDaemon(true);
         start();
     }
@@ -18,7 +13,6 @@ public class Cleaner extends Thread {
         while (true){
             try {
                 Thread.sleep(5000);
-                dbController.removeOld();
             } catch (Exception ignored) {}
         }
     }

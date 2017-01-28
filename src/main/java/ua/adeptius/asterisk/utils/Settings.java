@@ -32,6 +32,7 @@ public class Settings {
     public static String googleAnalyticsTrackingId;
     public static String googleAnalyticsCategoryName;
     public static String googleAnalyticsEventName;
+    public static String mailingAdress;
 
     public static void load(Class clazz){
         try {
@@ -67,6 +68,7 @@ public class Settings {
 
         standartNumber = prop.getProperty("standartNumber");
         phoneTimeToRemoveInSeconds = Integer.parseInt(prop.getProperty("phoneTimeToRemoveInSeconds"));
+        mailingAdress = prop.getProperty("mailingAdress");
 
         showDetailedErrorsLogs = prop.getProperty("showDetailedErrorsLogs").equals("true");
         showPhoneRepeatedRequest = prop.getProperty("showPhoneRepeatedRequest").equals("true");
