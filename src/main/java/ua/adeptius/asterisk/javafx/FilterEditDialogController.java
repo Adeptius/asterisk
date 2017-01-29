@@ -47,6 +47,9 @@ public class FilterEditDialogController implements Initializable {
     @FXML
     private CheckBox REPEATED_REQUEST;
 
+    @FXML
+    private CheckBox ONLY_ACTIVE_SITE;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         MAIL_ANTISPAM.setSelected(Settings.getSettingBoolean("MAIL_ANTISPAM"));
@@ -60,6 +63,7 @@ public class FilterEditDialogController implements Initializable {
         SENDING_NUMBER.setSelected(Settings.getSettingBoolean("SENDING_NUMBER"));
         NO_NUMBERS_LEFT.setSelected(Settings.getSettingBoolean("NO_NUMBERS_LEFT"));
         REPEATED_REQUEST.setSelected(Settings.getSettingBoolean("REPEATED_REQUEST"));
+        ONLY_ACTIVE_SITE.setSelected(Settings.getSettingBoolean("ONLY_ACTIVE_SITE"));
     }
 
     public void actionClose(ActionEvent actionEvent) {
@@ -76,8 +80,6 @@ public class FilterEditDialogController implements Initializable {
         }
 
         CheckBox clickedCheckBox = (CheckBox) source;
-
-//        Window parentWindow = ((Node) actionEvent.getSource()).getScene().getWindow();
 
         String id = clickedCheckBox.getId();
         boolean state = clickedCheckBox.isSelected();

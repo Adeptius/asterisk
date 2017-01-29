@@ -58,6 +58,7 @@ public class GuiController implements Initializable{
     private FXMLLoader fxmlLoader = new FXMLLoader();
     private FilterEditDialogController editDialogController;
     private Stage editDialogStage;
+    public static String selectedSiteString;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -66,13 +67,10 @@ public class GuiController implements Initializable{
         siteList.setItems(sites);
         siteList.setOnMouseClicked(event -> {
             String siteSelected = siteList.getSelectionModel().getSelectedItem();
-            List<Phone> newList = MainController.getSiteByName(siteSelected).getPhones();
-            phones = FXCollections.observableArrayList(newList);
-            phoneTable.setItems(phones);
+            setPhones(siteSelected);
         });
         setPhones("e404");
         siteList.getSelectionModel().select(1);
-
 
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("number"));
         phoneGoogleId.setCellValueFactory(new PropertyValueFactory<>("googleId"));
@@ -88,12 +86,11 @@ public class GuiController implements Initializable{
         }
     }
 
-
-
     private void setPhones(String sitename){
         Site site = MainController.getSiteByName(sitename);
         phones = FXCollections.observableArrayList(site.getPhones());
         phoneTable.setItems(phones);
+        selectedSiteString = sitename;
     }
 
 
@@ -107,22 +104,17 @@ public class GuiController implements Initializable{
         if (!(source instanceof Button)) {
             return;
         }
-
         Button clickedButton = (Button) source;
-
         Window parentWindow = ((Node) actionEvent.getSource()).getScene().getWindow();
-
         if (clickedButton.getId().equals("btnSettings")){
-            showDialog(parentWindow);
+            showFilters(parentWindow);
         }
-
     }
 
-    private void showDialog(Window parentWindow) {
-
+    private void showFilters(Window parentWindow) {
         if (editDialogStage==null) {
             editDialogStage = new Stage();
-            editDialogStage.setTitle("Редактирование настроек");
+            editDialogStage.setTitle("Настройка фильтров");
             editDialogStage.setMinHeight(150);
             editDialogStage.setMinWidth(300);
             editDialogStage.setResizable(false);

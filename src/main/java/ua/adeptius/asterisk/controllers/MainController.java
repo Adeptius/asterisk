@@ -87,7 +87,7 @@ public class MainController {
             } else if (category == ENDED_CALL) {
                 MyLogger.log(ANSWER_CALL, site.getName()+": разговор окончен " + phoneFrom);
             }
-        } else {
+        } else if (category == INCOMING_CALL){
             MyLogger.log(INCOMING_CALL_NOT_REGISTER, "Не зарегистрировано: входящий звонок с " + phoneFrom + " на " + phoneTo);
         }
     }

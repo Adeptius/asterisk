@@ -2,6 +2,8 @@ package ua.adeptius.asterisk.utils;
 
 
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.javafx.Gui;
+import ua.adeptius.asterisk.javafx.GuiController;
 import ua.adeptius.asterisk.model.LogCategory;
 
 public class MyLogger {
@@ -9,6 +11,9 @@ public class MyLogger {
 
     public static void log(LogCategory category, String message) {
         if (Settings.getSettingBoolean(category.toString())){
+            if (Settings.getSettingBoolean("ONLY_ACTIVE_SITE") && !message.contains(GuiController.selectedSiteString)){
+                return;
+            }
             System.out.println(message);
             try{
                 Main.gui.guiController.appendLog(message);
@@ -16,10 +21,6 @@ public class MyLogger {
 //            e.printStackTrace();
             }
         }
-
-
-
-
     }
 
     public static void printException(Exception e) {
