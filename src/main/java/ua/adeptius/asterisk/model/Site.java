@@ -5,31 +5,30 @@ import java.util.List;
 
 public class Site {
 
-    public Site(String name, String accessControlAllowOrigin, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail) {
+    public Site(String name, String accessControlAllowOrigin, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail, List<String> blackIps) {
         this.name = name;
         this.accessControlAllowOrigin = accessControlAllowOrigin;
         this.phones = phones;
         this.standartNumber = standartNumber;
         this.googleAnalyticsTrackingId = googleAnalyticsTrackingId;
         this.eMail = eMail;
+        this.blackIps = blackIps;
     }
 
-    //TODO черный список
+
+    private List<String> blackIps;
     private String name;
     private String accessControlAllowOrigin;
     private List<Phone> phones;
     private String standartNumber;
     private String googleAnalyticsTrackingId;
     private String eMail;
-    private long lastEmail;
+    private long lastEmailTime;
 
     public String getName() {
         return name;
     }
 
-
-
-    //TODO что если в базе только один номер? Оно разрежется правильно?
     public List<Phone> getPhones() {
         return phones;
     }
@@ -50,23 +49,29 @@ public class Site {
         return eMail;
     }
 
-    public long getLastEmail() {
-        return lastEmail;
+    public long getLastEmailTime() {
+        return lastEmailTime;
     }
 
-    public void setLastEmail(long lastEmail) {
-        this.lastEmail = lastEmail;
+    public void setLastEmailTime(long lastEmailTime) {
+        this.lastEmailTime = lastEmailTime;
+    }
+
+    public List<String> getBlackIps() {
+        return blackIps;
     }
 
     @Override
     public String toString() {
         return "Site{" +
-                "name='" + name + '\'' +
+                "blackIps=" + blackIps +
+                ", name='" + name + '\'' +
                 ", accessControlAllowOrigin='" + accessControlAllowOrigin + '\'' +
                 ", phones=" + phones +
                 ", standartNumber='" + standartNumber + '\'' +
                 ", googleAnalyticsTrackingId='" + googleAnalyticsTrackingId + '\'' +
                 ", eMail='" + eMail + '\'' +
+                ", lastEmailTime=" + lastEmailTime +
                 '}';
     }
 }

@@ -10,18 +10,22 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import static ua.adeptius.asterisk.model.LogCategory.MAIL_ANTISPAM;
+import static ua.adeptius.asterisk.model.LogCategory.MAIL_SENDING_ERRORS;
+import static ua.adeptius.asterisk.model.LogCategory.MAIL_SENDING_LOG;
+
 public class Mail {
 
     public void checkTimeAndSendEmail(Site site, String message){
-        long lastEmail = site.getLastEmail();
+        long lastEmail = site.getLastEmailTime();
         long currentTime = new GregorianCalendar().getTimeInMillis();
         long pastTime = currentTime - lastEmail;
         int pastMinutes = (int) (pastTime / 1000 / 60);
         if (pastMinutes < 10){
-            MyLogger.log("Последнее оповещение было отправлено менее 10 мин назад", this.getClass());
+            MyLogger.log(MAIL_ANTISPAM, "Последнее оповещение было отправлено менее 10 мин назад");
         }else {
             send(site.getMail(), message);
-            site.setLastEmail(new GregorianCalendar().getTimeInMillis());
+            site.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
         }
     }
 
@@ -36,7 +40,7 @@ public class Mail {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             props.put("mail.smtp.port", port);
             props.put("mail.smtp.auth", "true");
-            if (Settings.showSendingMailLogs){
+            if (Settings.checkCategoryLogging(MAIL_SENDING_LOG)){
             props.put("mail.debug", "true");
             }
             Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
@@ -58,7 +62,7 @@ public class Mail {
                 Transport.send(msg);
             } catch (MessagingException mex) {
                 mex.printStackTrace();
-                MyLogger.log("Ошибка при отправке письма" + mex, Mail.this.getClass());
+                MyLogger.log(MAIL_SENDING_ERRORS, "Ошибка при отправке письма" + mex);
             }
         }).start();
     }

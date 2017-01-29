@@ -1,5 +1,7 @@
 package ua.adeptius.asterisk.model;
 
+import org.asteriskjava.manager.event.HangupEvent;
+import org.asteriskjava.manager.event.NewStateEvent;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.Settings;
@@ -22,7 +24,9 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                Settings.asteriskAdress, Settings.asteriskLogin, Settings.asteriskPassword);
+                Settings.getSetting("asteriskAdress"),
+                Settings.getSetting("asteriskLogin"),
+                Settings.getSetting("asteriskPassword"));
         this.managerConnection = factory.createManagerConnection();
     }
 
@@ -43,10 +47,25 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
     public void onManagerEvent(ManagerEvent event) {
-        if (event instanceof NewChannelEvent){
-            String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
-            String phoneReseive = ((NewChannelEvent) event).getExten();
-            MainController.onNewCall(callerIdNum, phoneReseive);
+//        System.out.println(event);
+//        if (event instanceof NewChannelEvent){
+//            String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
+//            String phoneReseive = ((NewChannelEvent) event).getExten();
+//            MainController.onNewCall(callerIdNum, phoneReseive);
+//        }
+
+
+        if (event instanceof HangupEvent){
+            System.out.println("Звонок завершен: "+ ((HangupEvent) event).getCallerIdNum());
+
+        }
+        if (event instanceof NewStateEvent){
+            int code = ((NewStateEvent) event).getChannelState();
+            if (code == 4){
+                System.out.println("Звонит: "+((NewStateEvent) event).getCallerIdNum());
+            }else if (code == 6){
+                System.out.println("Отвечено: " + ((NewStateEvent) event).getCallerIdNum());
+            }
         }
     }
 }

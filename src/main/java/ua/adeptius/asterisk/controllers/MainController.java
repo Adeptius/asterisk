@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.GoogleAnalitycs;
@@ -9,6 +10,8 @@ import ua.adeptius.asterisk.utils.MyLogger;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import static ua.adeptius.asterisk.model.LogCategory.*;
 
 public class MainController {
 
@@ -19,38 +22,45 @@ public class MainController {
     }
 
     public static String getFreeNumberFromSite(Site site, String googleId, String ip) throws NoSuchElementException{
+        MyLogger.log(REQUEST_NUMBER,site.getName()+": запрос номера googleId: " + googleId);
+
+        //Проверка не находится ли пользователь в черном списке
+        if (site.getBlackIps().stream().anyMatch(s -> s.equals(ip))){
+            MyLogger.log(BLOCKED_BY_IP, site.getName()+": пользователь с ip " + ip + " исключен. Выдан стандартный номер.");
+            return site.getStandartNumber();
+        }
 
         List<Phone> phones = site.getPhones();
-
+        // проверка: выдан ли номер пользователю по googleID
         for (Phone phone : phones) {
             if (phone.getGoogleId().equals(googleId)){
-//                MyLogger.log(site.getName()+": пользователю "+googleId+" уже выдан номер " + phone.getNumber(), MainController.class);
+                MyLogger.log(REPEATED_REQUEST,site.getName()+": пользователю "+googleId+" уже выдан номер " + phone.getNumber());
                 phone.extendTime();
                 return phone.getNumber();
             }
         }
 
-//        for (Phone phone : phones) {
-//            if (phone.getIp().equals(ip)){
-//                MyLogger.log(site.getName()+": пользователю c ip "+ip+" уже выдан номер " + phone.getNumber(), MainController.class);
-//                phone.extendTime();
-//                return phone.getNumber();
-//            }
-//        }
+//         проверка: выдан ли номер пользователю по ip
+        for (Phone phone : phones) {
+            if (phone.getIp().equals(ip)){
+                MyLogger.log(REPEATED_REQUEST,site.getName()+": пользователю c ip "+ip+" уже выдан номер " + phone.getNumber());
+                phone.extendTime();
+                return phone.getNumber();
+            }
+        }
 
-//        MyLogger.log(site.getName()+": запрос номера googleId: " + googleId, MainController.class);
         for (Phone phone : phones) {
             if (phone.isFree()){
                 phone.setGoogleId(googleId);
                 phone.setIp(ip);
-                MyLogger.log(site.getName()+": новому пользователю выдан номер: " + phone.getNumber(), MainController.class);
+                MyLogger.log(SENDING_NUMBER, site.getName()+": новому пользователю выдан номер: " + phone.getNumber());
                 phone.extendTime();
                 return phone.getNumber();
             }
         }
 
 
-        MyLogger.log(site.getName()+": нет свободных номеров.", MainController.class);
+        MyLogger.log(NO_NUMBERS_LEFT, site.getName()+": нет свободных номеров.");
         new Mail().checkTimeAndSendEmail(site, "Закончились свободные номера");
 
         return site.getStandartNumber();
@@ -68,11 +78,11 @@ public class MainController {
     public static void onNewCall(String phoneFrom, String phoneTo){
         Site site = whosePhone(phoneTo);
         if (site != null){
-            MyLogger.log(site.getName()+": входящий звонок с "+phoneFrom+" на "+phoneTo, MainController.class);
+            MyLogger.log(INCOMING_CALL, site.getName()+": входящий звонок с "+phoneFrom+" на "+phoneTo);
             String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
             new GoogleAnalitycs(site, googleId ,phoneFrom).start();
         }else {
-            MyLogger.log("Не зарегистрировано: входящий звонок с "+phoneFrom+" на "+phoneTo, MainController.class);
+            MyLogger.log(INCOMING_CALL_NOT_REGISTER,"Не зарегистрировано: входящий звонок с "+phoneFrom+" на "+phoneTo);
         }
     }
 }

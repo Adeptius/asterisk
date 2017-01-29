@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.utils;
 
 
+import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Site;
 
 import java.io.BufferedReader;
@@ -34,8 +35,8 @@ public class GoogleAnalitycs extends Thread {
         params.add("tid=" + site.getGoogleAnalyticsTrackingId()); // Tracking ID / Property ID.
         params.add("cid=" + clientGoogleId); // Client ID.
         params.add("t=event"); // Hit Type.
-        params.add("ec=" + Settings.googleAnalyticsCategoryName); // Category
-        params.add("ea=" + Settings.googleAnalyticsEventName); // Event
+        params.add("ec=" + Settings.getSetting("googleAnalyticsCategoryName")); // Category
+        params.add("ea=" + Settings.getSetting("Settings.googleAnalyticsEventName")); // Event
         params.add("el=" + phone); // Label
 
         try {
@@ -57,7 +58,7 @@ public class GoogleAnalitycs extends Thread {
             String response = in.readLine();
             if (!response.startsWith("GIF")) System.out.println(response);
         } catch (Exception e) {
-            log("Не удалось отправить данные в Google Analitycs " + e, this.getClass());
+            log(LogCategory.ERROR_SENDING_ANALYTICS, "Не удалось отправить данные в Google Analitycs " + e);
         }
     }
 }

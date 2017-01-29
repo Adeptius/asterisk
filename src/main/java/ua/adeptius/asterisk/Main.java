@@ -5,8 +5,7 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.NewMySqlDao;
 import ua.adeptius.asterisk.javafx.Gui;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
-import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.Cleaner;
+import ua.adeptius.asterisk.utils.PhonesWatcher;
 import ua.adeptius.asterisk.utils.Settings;
 
 
@@ -35,6 +34,6 @@ public class Main {
             gui.startGui();
         }).start();
 
-        new Cleaner();
+        new PhonesWatcher();
     }
 }
