@@ -4,13 +4,11 @@ package ua.adeptius.asterisk.utils;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.LogCategory;
 
-import static ua.adeptius.asterisk.model.LogCategory.*;
-
 public class MyLogger {
 
 
     public static void log(LogCategory category, String message) {
-        if (Settings.checkCategoryLogging(category)){
+        if (Settings.getSettingBoolean(category.toString())){
             System.out.println(message);
             try{
                 Main.gui.guiController.appendLog(message);

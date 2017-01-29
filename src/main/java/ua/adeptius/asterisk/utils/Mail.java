@@ -40,7 +40,7 @@ public class Mail {
             props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             props.put("mail.smtp.port", port);
             props.put("mail.smtp.auth", "true");
-            if (Settings.checkCategoryLogging(MAIL_SENDING_LOG)){
+            if (Settings.getSettingBoolean(MAIL_SENDING_LOG.toString())){
             props.put("mail.debug", "true");
             }
             Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {

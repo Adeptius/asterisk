@@ -12,6 +12,10 @@ import org.asteriskjava.manager.event.NewChannelEvent;
 
 import java.io.IOException;
 
+import static ua.adeptius.asterisk.model.LogCategory.ANSWER_CALL;
+import static ua.adeptius.asterisk.model.LogCategory.ENDED_CALL;
+import static ua.adeptius.asterisk.model.LogCategory.INCOMING_CALL;
+
 public class AsteriskMonitor implements ManagerEventListener {
 
     private ManagerConnection managerConnection;
@@ -24,9 +28,9 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                Settings.getSetting("asteriskAdress"),
-                Settings.getSetting("asteriskLogin"),
-                Settings.getSetting("asteriskPassword"));
+                Settings.getSetting("___asteriskAdress"),
+                Settings.getSetting("___asteriskLogin"),
+                Settings.getSetting("___asteriskPassword"));
         this.managerConnection = factory.createManagerConnection();
     }
 
@@ -47,24 +51,20 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
     public void onManagerEvent(ManagerEvent event) {
-//        System.out.println(event);
-//        if (event instanceof NewChannelEvent){
-//            String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
-//            String phoneReseive = ((NewChannelEvent) event).getExten();
-//            MainController.onNewCall(callerIdNum, phoneReseive);
-//        }
 
+        if (event instanceof NewChannelEvent){
+            String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
+            String phoneReseive = ((NewChannelEvent) event).getExten();
+            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive);
+        }else if (event instanceof HangupEvent){
+            String callerIdNum = ((HangupEvent) event).getCallerIdNum();
+            MainController.onNewCall(ENDED_CALL, callerIdNum, "");
 
-        if (event instanceof HangupEvent){
-            System.out.println("Звонок завершен: "+ ((HangupEvent) event).getCallerIdNum());
-
-        }
-        if (event instanceof NewStateEvent){
+        }else if (event instanceof NewStateEvent){
             int code = ((NewStateEvent) event).getChannelState();
-            if (code == 4){
-                System.out.println("Звонит: "+((NewStateEvent) event).getCallerIdNum());
-            }else if (code == 6){
-                System.out.println("Отвечено: " + ((NewStateEvent) event).getCallerIdNum());
+            String callerIdNum = ((NewStateEvent) event).getCallerIdNum();
+            if (code == 6){
+                MainController.onNewCall(ANSWER_CALL, callerIdNum, "");
             }
         }
     }

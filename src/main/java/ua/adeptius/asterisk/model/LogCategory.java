@@ -18,9 +18,4 @@ public enum LogCategory {
     MAIL_ANTISPAM,
     MAIL_SENDING_LOG,
     MAIL_SENDING_ERRORS
-
-
-
-
-
 }

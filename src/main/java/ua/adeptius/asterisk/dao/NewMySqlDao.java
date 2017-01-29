@@ -21,7 +21,7 @@ import static ua.adeptius.asterisk.utils.MyLogger.printException;
 public class NewMySqlDao {
 
     private ComboPooledDataSource cpds;
-    public static String TABLE = Settings.getSetting("dbTableName");
+    public static String TABLE = Settings.getSetting("___dbTableName");
 //    public static String PHONE = Settings.dbColumnPhoneName;
 //    public static String GOOGLEID = Settings.dbColumnGoogleIdName;
 //    public static String TIMELEFT = Settings.dbColumnTimeToDieName;
@@ -29,9 +29,9 @@ public class NewMySqlDao {
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
         cpds.setDriverClass("com.mysql.jdbc.Driver");
-        cpds.setJdbcUrl("jdbc:mysql://"+Settings.getSetting("dbAdress"));
-        cpds.setUser(Settings.getSetting("dbLogin"));
-        cpds.setPassword(Settings.getSetting("dbPassword"));
+        cpds.setJdbcUrl("jdbc:mysql://"+Settings.getSetting("___dbAdress"));
+        cpds.setUser(Settings.getSetting("___dbLogin"));
+        cpds.setPassword(Settings.getSetting("___dbPassword"));
         cpds.setMinPoolSize(1);
         cpds.setMaxPoolSize(5);
         cpds.setAcquireIncrement(0);
