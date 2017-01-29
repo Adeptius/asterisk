@@ -12,9 +12,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
@@ -25,7 +27,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-public class GuiController implements Initializable{
+public class GuiController implements Initializable {
 
     ObservableList<Phone> phones;
     ObservableList<String> sites;
@@ -54,10 +56,10 @@ public class GuiController implements Initializable{
     @FXML
     private Button btnSettings;
 
-    private Parent fxmlEdit;
-    private FXMLLoader fxmlLoader = new FXMLLoader();
-    private FilterEditDialogController editDialogController;
-    private Stage editDialogStage;
+//    private Parent fxmlEdit;
+//    private FXMLLoader fxmlLoader = new FXMLLoader();
+//    private FilterEditDialogController editDialogController;
+//    private Stage editDialogStage;
     public static String selectedSiteString;
 
     @Override
@@ -77,16 +79,16 @@ public class GuiController implements Initializable{
         phoneTime.setCellValueFactory(new PropertyValueFactory<>("busyTime"));
         phoneIp.setCellValueFactory(new PropertyValueFactory<>("ip"));
 
-        try {
-            fxmlLoader.setLocation(getClass().getResource("../../../../filteredit.fxml"));
-            fxmlEdit = fxmlLoader.load();
-            editDialogController = fxmlLoader.getController();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            fxmlLoader.setLocation(getClass().getResource("../../../../filteredit.fxml"));
+//            fxmlEdit = fxmlLoader.load();
+//            editDialogController = fxmlLoader.getController();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
-    private void setPhones(String sitename){
+    private void setPhones(String sitename) {
         Site site = MainController.getSiteByName(sitename);
         phones = FXCollections.observableArrayList(site.getPhones());
         phoneTable.setItems(phones);
@@ -106,26 +108,45 @@ public class GuiController implements Initializable{
         }
         Button clickedButton = (Button) source;
         Window parentWindow = ((Node) actionEvent.getSource()).getScene().getWindow();
-        if (clickedButton.getId().equals("btnSettings")){
-            showFilters(parentWindow);
+        if (clickedButton.getId().equals("btnSettings")) {
+            showFilters();
+        } else if (clickedButton.getId().equals("btnDelete")) {
+            showDelete();
         }
     }
 
-    private void showFilters(Window parentWindow) {
-        if (editDialogStage==null) {
-            editDialogStage = new Stage();
-            editDialogStage.setTitle("Настройка фильтров");
-            editDialogStage.setMinHeight(150);
-            editDialogStage.setMinWidth(300);
-            editDialogStage.setResizable(false);
-            editDialogStage.setScene(new Scene(fxmlEdit));
-            editDialogStage.initModality(Modality.WINDOW_MODAL);
-            editDialogStage.initOwner(parentWindow);
+    private void showDelete() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../dbdelete.fxml"));
+            loader.setController(new DeleteController(selectedSiteString));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = new Stage();
+            stage.setTitle("Удаление сайта");
+            stage.setResizable(false);
+            stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно
+            stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-//      editDialogStage.showAndWait(); // для ожидания закрытия окна
-
-        editDialogStage.show();
-
+    private void showFilters() {
+        try{
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../filteredit.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = new Stage();
+            stage.setTitle("Настройка фильтров");
+            stage.setResizable(false);
+            stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно
+            stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
+            stage.setScene(scene);
+            stage.show();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

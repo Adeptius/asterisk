@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="128.0" prefWidth="195.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" >
+   <children>
+      <Button fx:id="btn" layoutX="72.0" layoutY="89.0" mnemonicParsing="false" text="Button" />
+      <Label fx:id="label" layoutX="84.0" layoutY="28.0" text="Label" />
+   </children>
+</Pane>
+
+        <!--fx:controller="ua.adeptius.asterisk.javafx.DeleteController"-->

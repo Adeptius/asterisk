@@ -19,6 +19,8 @@ public class Gui  extends Application {
         Parent root = fxmlLoader.load();
         primaryStage.setTitle("Астериск монитор");
         primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setMinHeight(600);
+        primaryStage.setMinWidth(800);
         primaryStage.show();
         guiController = fxmlLoader.getController();
     }

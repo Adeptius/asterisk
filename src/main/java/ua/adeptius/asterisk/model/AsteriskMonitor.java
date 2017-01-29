@@ -39,15 +39,15 @@ public class AsteriskMonitor implements ManagerEventListener {
         managerConnection.addEventListener(this);
         managerConnection.login();
         managerConnection.sendAction(new StatusAction());
-        new Thread(() -> {
-            try {
-                while (true) {
-                    Thread.sleep(100);
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
+//        new Thread(() -> {
+//            try {
+//                while (true) {
+//                    Thread.sleep(100);
+//                }
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }).start();
     }
 
     public void onManagerEvent(ManagerEvent event) {
