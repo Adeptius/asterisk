@@ -96,6 +96,13 @@ public class GuiController implements Initializable {
     }
 
 
+    public void updateList(String siteToRemove){
+        sites.remove(siteToRemove);
+        siteList.setItems(sites);
+        siteList.getSelectionModel().select(0);
+        setPhones(siteList.getSelectionModel().getSelectedItem());
+    }
+
     public void appendLog(String message) {
         logArea.appendText(message + "\n");
         logArea.setScrollTop(Double.MAX_VALUE);
@@ -118,10 +125,10 @@ public class GuiController implements Initializable {
     private void showDelete() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../dbdelete.fxml"));
-            loader.setController(new DeleteController(selectedSiteString));
+            Stage stage = new Stage();
+            loader.setController(new DeleteController(this, stage, selectedSiteString));
             Parent root = loader.load();
             Scene scene = new Scene(root);
-            Stage stage = new Stage();
             stage.setTitle("Удаление сайта");
             stage.setResizable(false);
             stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно

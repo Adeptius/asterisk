@@ -2,7 +2,7 @@ package ua.adeptius.asterisk;
 
 
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.dao.NewMySqlDao;
+import ua.adeptius.asterisk.dao.MySqlDao;
 import ua.adeptius.asterisk.javafx.Gui;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
 import ua.adeptius.asterisk.utils.PhonesWatcher;
@@ -12,7 +12,7 @@ import ua.adeptius.asterisk.utils.Settings;
 public class Main {
 
     public static AsteriskMonitor monitor;
-    public static NewMySqlDao newMySqlDao;
+    public static MySqlDao mySqlDao;
     public static Gui gui;
 
     public static void main(String[] args) throws Exception {
@@ -22,9 +22,9 @@ public class Main {
 
     private void init() throws Exception {
         Settings.load(this.getClass());
-        newMySqlDao = new NewMySqlDao();
-        newMySqlDao.init();
-        MainController.sites = newMySqlDao.getSites();
+        mySqlDao = new MySqlDao();
+        mySqlDao.init();
+        MainController.sites = mySqlDao.getSites();
 
         monitor = new AsteriskMonitor();
         monitor.run();

@@ -18,7 +18,7 @@ import static ua.adeptius.asterisk.utils.MyLogger.log;
 import static ua.adeptius.asterisk.utils.MyLogger.printException;
 
 
-public class NewMySqlDao {
+public class MySqlDao {
 
     private ComboPooledDataSource cpds;
     public static String TABLE = Settings.getSetting("___dbTableName");
@@ -29,7 +29,7 @@ public class NewMySqlDao {
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
         cpds.setDriverClass("com.mysql.jdbc.Driver");
-        cpds.setJdbcUrl("jdbc:mysql://"+Settings.getSetting("___dbAdress"));
+        cpds.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("___dbAdress"));
         cpds.setUser(Settings.getSetting("___dbLogin"));
         cpds.setPassword(Settings.getSetting("___dbPassword"));
         cpds.setMinPoolSize(1);
@@ -50,7 +50,7 @@ public class NewMySqlDao {
 
     public List<Site> getSites() throws Exception {
         List<Site> sites = new ArrayList<>();
-        String sql = "SELECT * from "+TABLE;
+        String sql = "SELECT * from " + TABLE;
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -61,7 +61,7 @@ public class NewMySqlDao {
                 List<Phone> phones = new ArrayList<>();
                 int start = 0;
                 if (p[0].equals("")) {
-                    start=1;
+                    start = 1;
                 }
                 for (int i = start; i < p.length; i++) {
                     phones.add(new Phone(p[i]));
@@ -70,11 +70,11 @@ public class NewMySqlDao {
                 // парсим черный список
                 List<String> ips = new ArrayList<>();
                 String s = set.getString("black_list_ip");
-                if (s != null){
+                if (s != null) {
                     String[] ip = s.split(",");
                     start = 0;
                     if (ip[0].equals("")) {
-                        start=1;
+                        start = 1;
                     }
                     for (int i = start; i < ip.length; i++) {
                         ips.add(ip[i]);
@@ -96,5 +96,18 @@ public class NewMySqlDao {
             e.printStackTrace();
         }
         throw new Exception("Ошибка при загрузке данных с БД");
+    }
+
+
+    public boolean deleteSite(String name) throws Exception {
+        String sql = "DELETE from " + TABLE + " WHERE name = '"+name+"'";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        throw new Exception("Ошибка при удалении данных с БД");
     }
 }
