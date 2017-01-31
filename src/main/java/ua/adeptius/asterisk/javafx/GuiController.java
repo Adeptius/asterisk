@@ -103,7 +103,14 @@ public class GuiController implements Initializable {
         setPhones(siteList.getSelectionModel().getSelectedItem());
     }
 
+    private static int logCounter = 0;
+
     public void appendLog(String message) {
+        logCounter++;
+        if (logCounter>100){
+            logArea.setText("");
+            logCounter = 0;
+        }
         logArea.appendText(message + "\n");
         logArea.setScrollTop(Double.MAX_VALUE);
     }

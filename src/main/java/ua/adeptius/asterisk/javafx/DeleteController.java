@@ -56,13 +56,12 @@ public class DeleteController implements Initializable{
 
     }
 
-
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        label.setText("Внимание! Сайт + " + sitename + " будет удалён!");
+        label.setText("Внимание!\nСайт " + sitename + "\nбудет удалён!");
         btnDelete.setOnAction(event ->  delete());
         btnCancel.setOnAction(event ->  cancel());
+        btnCancel.setFocusTraversable(true);
     }
 
 
