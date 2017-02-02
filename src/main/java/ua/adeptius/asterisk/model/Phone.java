@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.model;
 
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
+import ua.adeptius.asterisk.utils.StringUtils;
 
 import java.util.GregorianCalendar;
 
@@ -54,10 +55,7 @@ public class Phone {
     }
 
     public void setBusyTime(long busyTime) {
-        int minutes = (int) (busyTime/60);
-        int seconds = (int) (busyTime%60);
-        String stringedTime = minutes+"м "+seconds+"с" ;
-        this.busyTime.set(stringedTime);
+        this.busyTime.set(StringUtils.getStringedTime(busyTime));
     }
 
     public void setTimeToDie(long timeToDie) {

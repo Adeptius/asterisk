@@ -57,8 +57,6 @@ public class PhonesWatcher extends Thread {
         if (phone.getUpdatedTime() != 0) {
             // считаем сколько времени номер занят
             past = currentTime - phone.getStartedBusy();
-            // высчитываем секунды
-            past = past / 1000;
             phone.setBusyTime(past);
         }
     }

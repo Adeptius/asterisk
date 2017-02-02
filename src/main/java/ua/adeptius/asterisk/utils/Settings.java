@@ -55,7 +55,7 @@ public class Settings {
 //            File file = new File(url.toURI().getPath());
 //            System.out.println(file.getAbsolutePath());
             String filename = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()+"config.properties";
-            System.out.println(filename);
+//            System.out.println(filename);
             OutputStream output = new FileOutputStream(filename);
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 prop.setProperty(entry.getKey(), entry.getValue());

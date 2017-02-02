@@ -3,11 +3,14 @@ package ua.adeptius.asterisk.controllers;
 
 import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
+import ua.adeptius.asterisk.model.PhoneStatistic;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.GoogleAnalitycs;
 import ua.adeptius.asterisk.utils.Mail;
 import ua.adeptius.asterisk.utils.MyLogger;
 
+import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -25,10 +28,10 @@ public class MainController {
         MyLogger.log(REQUEST_NUMBER, site.getName() + ": запрос номера googleId: " + googleId);
 
         //Проверка не находится ли пользователь в черном списке
-//        if (site.getBlackIps().stream().anyMatch(s -> s.equals(ip))){
-//            MyLogger.log(BLOCKED_BY_IP, site.getName()+": пользователь с ip " + ip + " исключен. Выдан стандартный номер.");
-//            return site.getStandartNumber();
-//        }
+        if (site.getBlackIps().stream().anyMatch(s -> s.equals(ip))){
+            MyLogger.log(BLOCKED_BY_IP, site.getName()+": пользователь с ip " + ip + " исключен. Выдан стандартный номер.");
+            return site.getStandartNumber();
+        }
 
         List<Phone> phones = site.getPhones();
         // проверка: выдан ли номер пользователю по googleID
@@ -75,17 +78,58 @@ public class MainController {
         return null;
     }
 
+    private static HashMap<String, PhoneStatistic> phonesTime = new HashMap<>();
+
     public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo) {
-        Site site = whosePhone(phoneTo);
+//        Site site = whosePhone(phoneTo);
+        Site site = MainController.sites.get(1);
         if (site != null) {
             if (category == INCOMING_CALL) {
-                String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
-                new GoogleAnalitycs(site, googleId, phoneFrom).start();
+//                String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
+                MyLogger.log(INCOMING_CALL, site.getName()+": входящий звонок c "+phoneFrom+" на " + phoneTo);
+//                new GoogleAnalitycs(site, googleId, phoneFrom).start();
+
+                PhoneStatistic phoneStatistic = new PhoneStatistic();
+                phoneStatistic.setFrom(phoneFrom);
+                phoneStatistic.setTo(phoneTo);
+                phoneStatistic.setCalled(new GregorianCalendar().getTimeInMillis());
+                phoneStatistic.setSite(site);
+                phonesTime.put(phoneFrom, phoneStatistic);
+
+
+
             } else if (category == ANSWER_CALL) {
-                MyLogger.log(ANSWER_CALL, site.getName()+": ответ на звонок " + phoneFrom);
+                MyLogger.log(ANSWER_CALL, site.getName()+": "+phoneTo+" ответил на звонок " + phoneFrom);
+                try{
+                    PhoneStatistic phoneStatistic = phonesTime.get(phoneFrom);
+                    phoneStatistic.setAnswered(new GregorianCalendar().getTimeInMillis());
+                }catch (NullPointerException ignored){
+                    // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки
+                }
+
 
             } else if (category == ENDED_CALL) {
-                MyLogger.log(ANSWER_CALL, site.getName()+": разговор окончен " + phoneFrom);
+                MyLogger.log(ENDED_CALL, site.getName()+": "+phoneTo+" закончил разговор " + phoneFrom);
+
+                try{
+                    PhoneStatistic phoneStatistic = phonesTime.get(phoneFrom);
+                    phoneStatistic.setEnded(new GregorianCalendar().getTimeInMillis());
+
+                    String report = phoneStatistic.getSite().getName()
+                            + ": Закончен разговор "
+                            + phoneStatistic.getFrom()
+                            + " с "
+                            + phoneStatistic.getTo()
+                            + " ответил за: "
+                            + phoneStatistic.getTimeToAnswer()
+                            + ", время разговора: "
+                            + phoneStatistic.getSpeakTime();
+                    MyLogger.log(PHONE_TIME_REPORT, report);
+
+                }catch (NullPointerException ignored){
+                    // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки
+                }
+
             }
         } else if (category == INCOMING_CALL){
             MyLogger.log(INCOMING_CALL_NOT_REGISTER, "Не зарегистрировано: входящий звонок с " + phoneFrom + " на " + phoneTo);

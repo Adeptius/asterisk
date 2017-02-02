@@ -155,10 +155,6 @@ public class MySqlDao {
     }
 
 
-
-
-
-
     public String createSqlQueryForDeleteSite(String site) {
         return "DELETE from " + TABLE + " WHERE name = '"+site+"'";
     }
@@ -199,4 +195,41 @@ public class MySqlDao {
         return sql;
     }
 
+
+
+    public List<String> getListOfTables() throws Exception {
+        String sql = "show tables like 'statistic_%'";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+             ResultSet set = statement.executeQuery(sql);
+            List<String> listOfTables = new ArrayList<>();
+            String columnName = Settings.getSetting("___dbAdress");
+            columnName = columnName.substring(columnName.lastIndexOf("/")+1);
+            columnName = "Tables_in_"+columnName+" (statistic_%)";
+            while (set.next()){
+                listOfTables.add(set.getString(columnName));
+            }
+            return listOfTables;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        throw new Exception("Ошибка при загрузке данных с БД");
+    }
+
+
+    public void deleteTables(List<String> tablesToDelete)  {
+        for (String s : tablesToDelete) {
+            String sql = "DROP TABLE "+s;
+
+            try (Connection connection = getConnection();
+                 Statement statement = connection.createStatement()) {
+                statement.execute(sql);
+
+            } catch (Exception e) {
+                System.out.println("ОШИБКА УДАЛЕНИЯ НЕНУЖНОЙ ТАБЛИЦЫ С БД " + s);
+                e.printStackTrace();
+            }
+//            throw new Exception("Ошибка при удалении таблицы с БД");
+        }
+    }
 }

@@ -1,5 +1,8 @@
 package ua.adeptius.asterisk.model;
 
+import org.asteriskjava.live.AsteriskChannel;
+import org.asteriskjava.live.AsteriskServer;
+import org.asteriskjava.live.DefaultAsteriskServer;
 import org.asteriskjava.manager.event.HangupEvent;
 import org.asteriskjava.manager.event.NewStateEvent;
 import ua.adeptius.asterisk.controllers.MainController;
@@ -11,6 +14,7 @@ import org.asteriskjava.manager.event.ManagerEvent;
 import org.asteriskjava.manager.event.NewChannelEvent;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import static ua.adeptius.asterisk.model.LogCategory.ANSWER_CALL;
 import static ua.adeptius.asterisk.model.LogCategory.ENDED_CALL;
@@ -19,12 +23,7 @@ import static ua.adeptius.asterisk.model.LogCategory.INCOMING_CALL;
 public class AsteriskMonitor implements ManagerEventListener {
 
     private ManagerConnection managerConnection;
-
-//    private DBController dbController;
-
-//    public void setDbController(DBController dbController) {
-//        this.dbController = dbController;
-//    }
+//    private AsteriskServer asteriskServer;
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
@@ -32,6 +31,7 @@ public class AsteriskMonitor implements ManagerEventListener {
                 Settings.getSetting("___asteriskLogin"),
                 Settings.getSetting("___asteriskPassword"));
         this.managerConnection = factory.createManagerConnection();
+//        asteriskServer = new DefaultAsteriskServer(managerConnection);
     }
 
     public void run() throws IOException, AuthenticationFailedException,
@@ -50,21 +50,31 @@ public class AsteriskMonitor implements ManagerEventListener {
 //        }).start();
     }
 
-    public void onManagerEvent(ManagerEvent event) {
+    private HashMap<String, String> phonesFromAndPhonesTo = new HashMap<>();
 
-        if (event instanceof NewChannelEvent){
+    public void onManagerEvent(ManagerEvent event) {
+//        System.out.println(event);
+        if (event instanceof NewChannelEvent) {
+//            System.out.println(event);
             String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
             String phoneReseive = ((NewChannelEvent) event).getExten();
+            phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
             MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive);
-        }else if (event instanceof HangupEvent){
-            String callerIdNum = ((HangupEvent) event).getCallerIdNum();
-            MainController.onNewCall(ENDED_CALL, callerIdNum, "");
 
-        }else if (event instanceof NewStateEvent){
+        } else if (event instanceof HangupEvent) {
+//            System.out.println(event);
+            String callerIdNum = ((HangupEvent) event).getCallerIdNum();
+            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
+            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive);
+            phonesFromAndPhonesTo.remove(callerIdNum);
+
+        } else if (event instanceof NewStateEvent) {
+//            System.out.println(event);
             int code = ((NewStateEvent) event).getChannelState();
             String callerIdNum = ((NewStateEvent) event).getCallerIdNum();
-            if (code == 6){
-                MainController.onNewCall(ANSWER_CALL, callerIdNum, "");
+            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
+            if (code == 6) {
+                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive);
             }
         }
     }

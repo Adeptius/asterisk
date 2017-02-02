@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.javafx;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,6 +22,7 @@ public class Gui  extends Application {
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.setMinHeight(600);
         primaryStage.setMinWidth(800);
+        primaryStage.setOnCloseRequest(e -> Platform.exit());
         primaryStage.show();
         guiController = fxmlLoader.getController();
     }
