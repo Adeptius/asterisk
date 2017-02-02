@@ -37,6 +37,16 @@
       <HBox prefWidth="200.0">
          <children>
             <Button fx:id="btnSettings" mnemonicParsing="false" onAction="#actionButtonPressed" text="Фильтр логов" />
+            <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#actionButtonPressed" text="Добавить сайт">
+               <HBox.margin>
+                  <Insets left="10.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#actionButtonPressed" text="Изменить сайт">
+               <HBox.margin>
+                  <Insets left="10.0" />
+               </HBox.margin>
+            </Button>
             <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#actionButtonPressed" text="Удалить сайт">
                <HBox.margin>
                   <Insets left="10.0" right="10.0" />

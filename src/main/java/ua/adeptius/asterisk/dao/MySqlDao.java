@@ -33,7 +33,7 @@ public class MySqlDao {
         cpds.setUser(Settings.getSetting("___dbLogin"));
         cpds.setPassword(Settings.getSetting("___dbPassword"));
         cpds.setMinPoolSize(1);
-        cpds.setMaxPoolSize(5);
+        cpds.setMaxPoolSize(2);
         cpds.setAcquireIncrement(0);
     }
 
@@ -100,7 +100,7 @@ public class MySqlDao {
 
 
     public boolean deleteSite(String name) throws Exception {
-        String sql = "DELETE from " + TABLE + " WHERE name = '"+name+"'";
+        String sql = createSqlQueryForDeleteSite(name);
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
@@ -113,8 +113,90 @@ public class MySqlDao {
 
 
 
+    public boolean saveSite(Site site) throws Exception {
+       String sql = createSqlQueryForSaveSite(site);
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        throw new Exception("Ошибка при загрузке данных с БД");
+    }
+
+    public boolean editSite(Site site) throws Exception {
+        Connection connection = getConnection();
+
+        String sqlDelete = createSqlQueryForDeleteSite(site.getName());
+        String sqlSave = createSqlQueryForSaveSite(site);
+
+        try (Statement deleteStatement = connection.createStatement();
+             Statement addStatement = connection.createStatement()){
+
+            connection.setAutoCommit(false);
+
+            deleteStatement.execute(sqlDelete);
+            addStatement.execute(sqlSave);
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (connection != null) {
+                connection.rollback();
+            }
+        }finally {
+            if (connection != null) {
+                connection.setAutoCommit(true);
+                connection.close();
+            }
+        }
+        throw new Exception("Ошибка изменения сайта " + site.getName());
+    }
 
 
 
+
+
+
+    public String createSqlQueryForDeleteSite(String site) {
+        return "DELETE from " + TABLE + " WHERE name = '"+site+"'";
+    }
+
+    public String createSqlQueryForSaveSite(Site site){
+        String name = site.getName();
+        String url = site.getAccessControlAllowOrigin();
+        String email = site.getMail();
+        String standartNumber = site.getStandartNumber();
+        String googleId = site.getGoogleAnalyticsTrackingId();
+        String phones = "";
+        String blackList = "";
+        List<Phone> phoneList = site.getPhones();
+        for (Phone phone : phoneList) {
+            phones += "," + phone.getNumber();
+        }
+        if (phones.startsWith(",")){
+            phones = phones.substring(1);
+        }
+
+        List<String> blackIPList = site.getBlackIps();
+        for (String s : blackIPList) {
+            blackList += "," + s;
+        }
+        if (blackList.startsWith(",")){
+            blackList = blackList.substring(1);
+        }
+
+        String sql = "INSERT INTO "+TABLE+" VALUES("
+                + "'"+name+"',"
+                + "'"+url+"',"
+                + "'"+googleId+"',"
+                + "'"+email+"',"
+                + "'"+phones+"',"
+                + "'"+standartNumber+"',"
+                + "'"+blackList+"')";
+
+        return sql;
+    }
 
 }

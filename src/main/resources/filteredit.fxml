@@ -27,7 +27,7 @@
       <CheckBox fx:id="MAIL_ANTISPAM" mnemonicParsing="false" onAction="#checkBoxPressed" text="Отправка писем" />
       <AnchorPane prefHeight="88.0" prefWidth="204.0">
          <children>
-            <Button mnemonicParsing="false" onAction="#actionClose" prefHeight="25.0" prefWidth="85.0" text="OK" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+            <Button mnemonicParsing="false" onAction="#actionClose" prefHeight="25.0" prefWidth="85.0" text="Закрыть" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />
          </children>
       </AnchorPane>
    </children>

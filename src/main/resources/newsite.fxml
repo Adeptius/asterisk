@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="471.0" prefWidth="401.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <GridPane layoutX="8.0" layoutY="7.0" prefHeight="179.0" prefWidth="385.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Label prefHeight="83.0" prefWidth="193.0" text="Название сайта">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Label prefHeight="50.0" prefWidth="193.0" text="Адрес URL" GridPane.rowIndex="1">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Label prefHeight="60.0" prefWidth="193.0" text="Google ID" GridPane.rowIndex="3">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Label prefHeight="90.0" prefWidth="193.0" text="Email для рассылки" GridPane.rowIndex="2">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Label prefHeight="62.0" prefWidth="193.0" text="Номер по умолчанию" GridPane.rowIndex="4">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <TextField fx:id="textName" GridPane.columnIndex="1" />
+            <TextField fx:id="textURL" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField fx:id="textEmail" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <TextField fx:id="textGoogleId" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <TextField fx:id="textNumber" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+         </children>
+      </GridPane>
+      <Button fx:id="btnCancel" layoutX="317.0" layoutY="434.0" mnemonicParsing="false" text="Отменить" />
+      <Button fx:id="btnSave" layoutX="238.0" layoutY="434.0" mnemonicParsing="false" text="Добавить" />
+      <GridPane layoutX="8.0" layoutY="186.0" prefHeight="224.0" prefWidth="385.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints maxHeight="105.0" minHeight="10.0" prefHeight="34.0" vgrow="SOMETIMES" />
+          <RowConstraints maxHeight="190.0" minHeight="10.0" prefHeight="190.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <TextArea fx:id="textPhones" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
+            <TextArea fx:id="textBlackList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label alignment="CENTER" prefHeight="75.0" prefWidth="193.0" text="Номера телефонов">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Label alignment="CENTER" prefHeight="63.0" prefWidth="192.0" text="Черный список IP" GridPane.columnIndex="1">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+         </children>
+      </GridPane>
+   </children>
+</Pane>

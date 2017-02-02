@@ -1,18 +1,13 @@
 package ua.adeptius.asterisk.javafx;
 
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.dao.MySqlDao;
 import ua.adeptius.asterisk.model.Site;
 
 import java.net.URL;
@@ -31,7 +26,6 @@ public class DeleteController implements Initializable{
         this.guiController = guiController;
     }
 
-
     @FXML
     private Label label;
 
@@ -48,7 +42,7 @@ public class DeleteController implements Initializable{
                 stage.hide();
                 Site site = MainController.getSiteByName(sitename);
                 MainController.sites.remove(site);
-                guiController.updateList(sitename);
+                guiController.removeAndUpdateList(sitename);
             }
         }catch (Exception e){
             e.printStackTrace();

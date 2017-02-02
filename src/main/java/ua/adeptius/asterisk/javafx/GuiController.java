@@ -88,7 +88,7 @@ public class GuiController implements Initializable {
 //        }
     }
 
-    private void setPhones(String sitename) {
+    public void setPhones(String sitename) {
         Site site = MainController.getSiteByName(sitename);
         phones = FXCollections.observableArrayList(site.getPhones());
         phoneTable.setItems(phones);
@@ -96,15 +96,21 @@ public class GuiController implements Initializable {
     }
 
 
-    public void updateList(String siteToRemove){
+    public void removeAndUpdateList(String siteToRemove){
         sites.remove(siteToRemove);
         siteList.setItems(sites);
         siteList.getSelectionModel().select(0);
         setPhones(siteList.getSelectionModel().getSelectedItem());
     }
 
-    private static int logCounter = 0;
+    public void addAndUpdateList(String siteToRemove){
+        sites.add(siteToRemove);
+        siteList.setItems(sites);
+        siteList.getSelectionModel().select(0);
+        setPhones(siteList.getSelectionModel().getSelectedItem());
+    }
 
+    private static int logCounter = 0;
     public void appendLog(String message) {
         logCounter++;
         if (logCounter>100){
@@ -126,6 +132,10 @@ public class GuiController implements Initializable {
             showFilters();
         } else if (clickedButton.getId().equals("btnDelete")) {
             showDelete();
+        }else if (clickedButton.getId().equals("btnAdd")){
+            showAdd();
+        }else if (clickedButton.getId().equals("btnEdit")){
+            showEdit();
         }
     }
 
@@ -146,6 +156,45 @@ public class GuiController implements Initializable {
             e.printStackTrace();
         }
     }
+
+    private void showAdd() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../newsite.fxml"));
+            Stage stage = new Stage();
+            loader.setController(new NewSiteController(this, stage, null));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setTitle("Добавление сайта");
+            stage.setResizable(false);
+            stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно
+            stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+  private void showEdit() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../newsite.fxml"));
+            Stage stage = new Stage();
+            loader.setController(new NewSiteController(this, stage, selectedSiteString));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setTitle("Изменение сайта");
+            stage.setResizable(false);
+            stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно
+            stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     private void showFilters() {
         try{
