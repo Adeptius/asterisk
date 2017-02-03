@@ -26,4 +26,10 @@ public class StringUtils {
 
         return stringedTime;
     }
+
+    public static String doTwoSymb(int i) {
+        String s = String.valueOf(i);
+        if (s.length() == 1) s = "0" + s;
+        return s;
+    }
 }

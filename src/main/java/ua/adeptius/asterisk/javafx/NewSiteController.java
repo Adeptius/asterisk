@@ -138,6 +138,9 @@ public class NewSiteController implements Initializable{
 
             }else {// если мы добавляем сайт
                 if (Main.mySqlDao.saveSite(site)){
+                    List<String> l = new ArrayList<>();
+                    l.add(site.getName());
+                    Main.mySqlDao.createStatisticTables(l);
                     stage.hide();
                     MainController.sites.add(site);
                     guiController.addAndUpdateList(site.getName());

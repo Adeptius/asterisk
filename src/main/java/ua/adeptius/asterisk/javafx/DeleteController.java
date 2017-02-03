@@ -11,6 +11,8 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Site;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class DeleteController implements Initializable{
@@ -39,6 +41,9 @@ public class DeleteController implements Initializable{
     private void delete() {
         try{
             if (Main.mySqlDao.deleteSite(sitename)){
+                List<String> l = new ArrayList<>();
+                l.add("statistic_"+sitename);
+                Main.mySqlDao.deleteTables(l);
                 stage.hide();
                 Site site = MainController.getSiteByName(sitename);
                 MainController.sites.remove(site);

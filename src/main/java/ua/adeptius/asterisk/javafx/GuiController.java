@@ -18,14 +18,18 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.utils.MyLogger;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
+import static ua.adeptius.asterisk.model.LogCategory.ELSE;
 
 public class GuiController implements Initializable {
 
@@ -56,7 +60,7 @@ public class GuiController implements Initializable {
     @FXML
     private Button btnSettings;
 
-//    private Parent fxmlEdit;
+    //    private Parent fxmlEdit;
 //    private FXMLLoader fxmlLoader = new FXMLLoader();
 //    private FilterEditDialogController editDialogController;
 //    private Stage editDialogStage;
@@ -96,14 +100,14 @@ public class GuiController implements Initializable {
     }
 
 
-    public void removeAndUpdateList(String siteToRemove){
+    public void removeAndUpdateList(String siteToRemove) {
         sites.remove(siteToRemove);
         siteList.setItems(sites);
         siteList.getSelectionModel().select(0);
         setPhones(siteList.getSelectionModel().getSelectedItem());
     }
 
-    public void addAndUpdateList(String siteToRemove){
+    public void addAndUpdateList(String siteToRemove) {
         sites.add(siteToRemove);
         siteList.setItems(sites);
         siteList.getSelectionModel().select(0);
@@ -111,14 +115,25 @@ public class GuiController implements Initializable {
     }
 
     private static int logCounter = 0;
+
     public void appendLog(String message) {
+        try{
+
+
         logCounter++;
-        if (logCounter>100){
-            logArea.setText("");
+        if (logCounter > 100) {
+//            logArea.setText("");
+            javafx.application.Platform.runLater(() -> logArea.setText(""));
             logCounter = 0;
         }
-        logArea.appendText(message + "\n");
+        javafx.application.Platform.runLater(() -> logArea.appendText(message + "\n"));
+//        logArea.appendText(message + "\n");
         logArea.setScrollTop(Double.MAX_VALUE);
+
+
+        }catch (IndexOutOfBoundsException e){
+            MyLogger.log(ELSE, "СЛОВЛЕН IndexOutOfBoundsException В ЛОГЕ!!!!!!!!!!!!!!!");
+        }
     }
 
     public void actionButtonPressed(ActionEvent actionEvent) {
@@ -132,9 +147,9 @@ public class GuiController implements Initializable {
             showFilters();
         } else if (clickedButton.getId().equals("btnDelete")) {
             showDelete();
-        }else if (clickedButton.getId().equals("btnAdd")){
+        } else if (clickedButton.getId().equals("btnAdd")) {
             showAdd();
-        }else if (clickedButton.getId().equals("btnEdit")){
+        } else if (clickedButton.getId().equals("btnEdit")) {
             showEdit();
         }
     }
@@ -176,7 +191,7 @@ public class GuiController implements Initializable {
     }
 
 
-  private void showEdit() {
+    private void showEdit() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../newsite.fxml"));
             Stage stage = new Stage();
@@ -195,9 +210,8 @@ public class GuiController implements Initializable {
     }
 
 
-
     private void showFilters() {
-        try{
+        try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../filteredit.fxml"));
             Parent root = loader.load();
             Scene scene = new Scene(root);
@@ -208,7 +222,7 @@ public class GuiController implements Initializable {
             stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
             stage.setScene(scene);
             stage.show();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

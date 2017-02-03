@@ -6,6 +6,7 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.MySqlDao;
 import ua.adeptius.asterisk.javafx.Gui;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
+import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.utils.PhonesWatcher;
 import ua.adeptius.asterisk.utils.Settings;
 import ua.adeptius.asterisk.utils.Utils;
@@ -49,9 +50,29 @@ public class Main {
 
         mySqlDao.deleteTables(tablesToDelete);
 
+        List<String> tablesToCreate = Utils.findTablesThatNeedToCreate(MainController.sites, tables);
+
+        mySqlDao.createStatisticTables(tablesToCreate);
 
 
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                    MainController.onNewCall(LogCategory.INCOMING_CALL, "555", "333");
+                    Thread.sleep(50);
+                    MainController.onNewCall(LogCategory.ANSWER_CALL, "555", "333");
+                    Thread.sleep(50);
+                    MainController.onNewCall(LogCategory.ENDED_CALL, "555", "333");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
+
+            }
+
+
+        }).start();
 
 
 //        new Thread(() -> {

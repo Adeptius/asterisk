@@ -26,5 +26,15 @@ public class Utils {
     }
 
 
+    public static List<String> findTablesThatNeedToCreate(List<Site> sites, List<String> tables) {
+        List<String> sitesAlreadyHave = sites.stream().map(Site::getName).collect(Collectors.toList());
+        List<String> sitesNeedToCreate = new ArrayList<>();
 
+        for (String s : sitesAlreadyHave) {
+            if (!tables.contains("statistic_"+s)){
+                sitesNeedToCreate.add(s);
+            }
+        }
+        return sitesNeedToCreate;
+    }
 }

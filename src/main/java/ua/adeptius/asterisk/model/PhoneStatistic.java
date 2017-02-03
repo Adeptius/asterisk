@@ -3,6 +3,12 @@ package ua.adeptius.asterisk.model;
 
 import ua.adeptius.asterisk.utils.StringUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+import static ua.adeptius.asterisk.utils.StringUtils.doTwoSymb;
+
 public class PhoneStatistic {
 
     private long called;
@@ -13,7 +19,6 @@ public class PhoneStatistic {
     private String from;
 
     private Site site;
-
 
 
     public String getTimeToAnswer(){
@@ -27,9 +32,23 @@ public class PhoneStatistic {
     }
 
 
+    public int getTimeToAnswerInSeconds(){
+        long time = answered - called;
+        return (int) (time/1000);
+    }
 
+    public int getSpeakTimeInSeconds(){
+        long time = ended - answered;
+        return (int) (time / 1000);
+    }
 
-
+    public String getDateForDb() {
+        long time = called;
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(time);
+        SimpleDateFormat format1 = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+        return format1.format(calendar.getTime());
+    }
 
     public Site getSite() {
         return site;
@@ -78,4 +97,6 @@ public class PhoneStatistic {
     public void setFrom(String from) {
         this.from = from;
     }
+
+
 }

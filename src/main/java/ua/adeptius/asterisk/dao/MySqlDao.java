@@ -2,8 +2,13 @@ package ua.adeptius.asterisk.dao;
 
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+import java.sql.PreparedStatement;
+
 import ua.adeptius.asterisk.model.Phone;
+import ua.adeptius.asterisk.model.PhoneStatistic;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.Settings;
 
 import java.sql.Connection;
@@ -14,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ua.adeptius.asterisk.model.LogCategory.DB_ERROR_CONNECTING;
+import static ua.adeptius.asterisk.model.LogCategory.DB_OPERATIONS;
 import static ua.adeptius.asterisk.utils.MyLogger.log;
 import static ua.adeptius.asterisk.utils.MyLogger.printException;
 
@@ -95,6 +101,7 @@ public class MySqlDao {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
         throw new Exception("Ошибка при загрузке данных с БД");
     }
 
@@ -108,21 +115,23 @@ public class MySqlDao {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        log(DB_OPERATIONS, "Ошибка при удалении данных с БД");
         throw new Exception("Ошибка при удалении данных с БД");
     }
 
 
-
     public boolean saveSite(Site site) throws Exception {
-       String sql = createSqlQueryForSaveSite(site);
+        String sql = createSqlQueryForSaveSite(site);
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
+            log(DB_OPERATIONS, site.getName() + " сохранён");
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        throw new Exception("Ошибка при загрузке данных с БД");
+        log(DB_OPERATIONS, "Ошибка сохранения данных в БД");
+        throw new Exception("Ошибка сохранения данных в БД");
     }
 
     public boolean editSite(Site site) throws Exception {
@@ -132,7 +141,7 @@ public class MySqlDao {
         String sqlSave = createSqlQueryForSaveSite(site);
 
         try (Statement deleteStatement = connection.createStatement();
-             Statement addStatement = connection.createStatement()){
+             Statement addStatement = connection.createStatement()) {
 
             connection.setAutoCommit(false);
 
@@ -145,21 +154,33 @@ public class MySqlDao {
             if (connection != null) {
                 connection.rollback();
             }
-        }finally {
+        } finally {
             if (connection != null) {
                 connection.setAutoCommit(true);
                 connection.close();
             }
         }
+        log(DB_OPERATIONS, "Ошибка изменения сайта " + site.getName());
         throw new Exception("Ошибка изменения сайта " + site.getName());
     }
 
 
-    public String createSqlQueryForDeleteSite(String site) {
-        return "DELETE from " + TABLE + " WHERE name = '"+site+"'";
+    public String createSqlQueryForCtreatingStatisticTable(String name) {
+        String sql = "CREATE TABLE `" + name + "` (  " +
+                "`date` VARCHAR(20) NOT NULL,  " +
+                "`to` VARCHAR(45) NULL,  " +
+                "`from` VARCHAR(45) NULL,  " +
+                "`time_to_answer` INT NULL,  " +
+                "`talking_time` INT NULL,  " +
+                "PRIMARY KEY (`date`));";
+        return sql;
     }
 
-    public String createSqlQueryForSaveSite(Site site){
+    public String createSqlQueryForDeleteSite(String site) {
+        return "DELETE from " + TABLE + " WHERE name = '" + site + "'";
+    }
+
+    public String createSqlQueryForSaveSite(Site site) {
         String name = site.getName();
         String url = site.getAccessControlAllowOrigin();
         String email = site.getMail();
@@ -171,7 +192,7 @@ public class MySqlDao {
         for (Phone phone : phoneList) {
             phones += "," + phone.getNumber();
         }
-        if (phones.startsWith(",")){
+        if (phones.startsWith(",")) {
             phones = phones.substring(1);
         }
 
@@ -179,57 +200,88 @@ public class MySqlDao {
         for (String s : blackIPList) {
             blackList += "," + s;
         }
-        if (blackList.startsWith(",")){
+        if (blackList.startsWith(",")) {
             blackList = blackList.substring(1);
         }
 
-        String sql = "INSERT INTO "+TABLE+" VALUES("
-                + "'"+name+"',"
-                + "'"+url+"',"
-                + "'"+googleId+"',"
-                + "'"+email+"',"
-                + "'"+phones+"',"
-                + "'"+standartNumber+"',"
-                + "'"+blackList+"')";
+        String sql = "INSERT INTO " + TABLE + " VALUES("
+                + "'" + name + "',"
+                + "'" + url + "',"
+                + "'" + googleId + "',"
+                + "'" + email + "',"
+                + "'" + phones + "',"
+                + "'" + standartNumber + "',"
+                + "'" + blackList + "')";
 
         return sql;
     }
-
-
 
     public List<String> getListOfTables() throws Exception {
         String sql = "show tables like 'statistic_%'";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
-             ResultSet set = statement.executeQuery(sql);
+            ResultSet set = statement.executeQuery(sql);
             List<String> listOfTables = new ArrayList<>();
             String columnName = Settings.getSetting("___dbAdress");
-            columnName = columnName.substring(columnName.lastIndexOf("/")+1);
-            columnName = "Tables_in_"+columnName+" (statistic_%)";
-            while (set.next()){
+            columnName = columnName.substring(columnName.lastIndexOf("/") + 1);
+            columnName = "Tables_in_" + columnName + " (statistic_%)";
+            while (set.next()) {
                 listOfTables.add(set.getString(columnName));
             }
             return listOfTables;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
+
         throw new Exception("Ошибка при загрузке данных с БД");
     }
 
 
-    public void deleteTables(List<String> tablesToDelete)  {
+    public void deleteTables(List<String> tablesToDelete) {
         for (String s : tablesToDelete) {
-            String sql = "DROP TABLE "+s;
-
+            String sql = "DROP TABLE " + s;
             try (Connection connection = getConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
-
+                log(DB_OPERATIONS, "Таблица " + s + " была удалена.");
             } catch (Exception e) {
-                System.out.println("ОШИБКА УДАЛЕНИЯ НЕНУЖНОЙ ТАБЛИЦЫ С БД " + s);
                 e.printStackTrace();
+                log(DB_OPERATIONS, "ОШИБКА УДАЛЕНИЯ НЕНУЖНОЙ ТАБЛИЦЫ С БД " + s);
             }
-//            throw new Exception("Ошибка при удалении таблицы с БД");
+        }
+    }
+
+
+    public void createStatisticTables(List<String> tablesToCreate) {
+        for (String s : tablesToCreate) {
+            s = "statistic_" + s;
+            String sql = createSqlQueryForCtreatingStatisticTable(s);
+            try (Connection connection = getConnection();
+                 Statement statement = connection.createStatement()) {
+                statement.execute(sql);
+                log(DB_OPERATIONS, "Таблица " + s + " была создана.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                log(DB_OPERATIONS, "Ошибка при создании таблицы в БД " + s);
+            }
+        }
+    }
+
+
+    public void saveStatisticToTable(Site site, PhoneStatistic statistic) {
+        String insertTableSQL = "INSERT INTO ? VALUES(?,?,?,?,?)";
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(insertTableSQL)) {
+            statement.setString(1, "statistic_" + site.getName());
+            statement.setString(2, statistic.getDateForDb());
+            statement.setString(3, statistic.getTo());
+            statement.setString(4, statistic.getFrom());
+            statement.setInt(5, statistic.getTimeToAnswerInSeconds());
+            statement.setInt(6, statistic.getSpeakTimeInSeconds());
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, site.getName() + ": Ошибка при сохранении отчета в БД ");
         }
     }
 }
