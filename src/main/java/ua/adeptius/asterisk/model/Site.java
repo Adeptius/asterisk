@@ -5,9 +5,8 @@ import java.util.List;
 
 public class Site {
 
-    public Site(String name, String accessControlAllowOrigin, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail, List<String> blackIps) {
+    public Site(String name, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail, List<String> blackIps) {
         this.name = name;
-        this.accessControlAllowOrigin = accessControlAllowOrigin;
         this.phones = phones;
         this.standartNumber = standartNumber;
         this.googleAnalyticsTrackingId = googleAnalyticsTrackingId;
@@ -15,10 +14,8 @@ public class Site {
         this.blackIps = blackIps;
     }
 
-
     private List<String> blackIps;
     private String name;
-    private String accessControlAllowOrigin;
     private List<Phone> phones;
     private String standartNumber;
     private String googleAnalyticsTrackingId;
@@ -31,10 +28,6 @@ public class Site {
 
     public List<Phone> getPhones() {
         return phones;
-    }
-
-    public String getAccessControlAllowOrigin() {
-        return accessControlAllowOrigin;
     }
 
     public String getStandartNumber() {
@@ -66,7 +59,6 @@ public class Site {
         return "Site{" +
                 "blackIps=" + blackIps +
                 ", name='" + name + '\'' +
-                ", accessControlAllowOrigin='" + accessControlAllowOrigin + '\'' +
                 ", phones=" + phones +
                 ", standartNumber='" + standartNumber + '\'' +
                 ", googleAnalyticsTrackingId='" + googleAnalyticsTrackingId + '\'' +

@@ -17,9 +17,29 @@ public class PhoneStatistic {
 
     private String to;
     private String from;
+    String googleId;
+    String reques;
+
+
 
     private Site site;
 
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getRequest() {
+        return reques;
+    }
+
+    public void setRequest(String reques) {
+        this.reques = reques;
+    }
 
     public String getTimeToAnswer(){
         long time = answered - called;

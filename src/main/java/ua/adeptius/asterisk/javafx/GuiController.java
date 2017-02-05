@@ -35,6 +35,7 @@ public class GuiController implements Initializable {
 
     ObservableList<Phone> phones;
     ObservableList<String> sites;
+    ObservableList<String> logs = FXCollections.observableArrayList();
 
     @FXML
     private ListView<String> siteList;
@@ -42,8 +43,11 @@ public class GuiController implements Initializable {
     @FXML
     private TableView<Phone> phoneTable;
 
+//    @FXML
+//    private TextArea logArea;
+
     @FXML
-    private TextArea logArea;
+    private ListView<String> logList;
 
     @FXML
     private TableColumn<Phone, String> phoneNumber;
@@ -68,6 +72,7 @@ public class GuiController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        logList.setItems(logs);
         List<String> sitesNames = MainController.sites.stream().map(Site::getName).collect(Collectors.toList());
         sites = FXCollections.observableArrayList(sitesNames);
         siteList.setItems(sites);
@@ -116,24 +121,34 @@ public class GuiController implements Initializable {
 
     private static int logCounter = 0;
 
+    private static volatile boolean allowToCut = true;
+
     public void appendLog(String message) {
-        try{
+        javafx.application.Platform.runLater(() -> logs.add(0,message));
 
-
-        logCounter++;
-        if (logCounter > 100) {
-//            logArea.setText("");
-            javafx.application.Platform.runLater(() -> logArea.setText(""));
-            logCounter = 0;
+        if (logs.size() > 100 && allowToCut){
+            allowToCut= false;
+            javafx.application.Platform.runLater(() -> {
+                logs.remove(90,logs.size()-1);
+                allowToCut = true;
+            });
         }
-        javafx.application.Platform.runLater(() -> logArea.appendText(message + "\n"));
-//        logArea.appendText(message + "\n");
-        logArea.setScrollTop(Double.MAX_VALUE);
 
-
-        }catch (IndexOutOfBoundsException e){
-            MyLogger.log(ELSE, "СЛОВЛЕН IndexOutOfBoundsException В ЛОГЕ!!!!!!!!!!!!!!!");
-        }
+//        try{
+//        logCounter++;
+//        if (logCounter > 100) {
+////            logArea.setText("");
+//            javafx.application.Platform.runLater(() -> logArea.setText(""));
+//            logCounter = 0;
+//        }
+//        javafx.application.Platform.runLater(() -> logArea.appendText(message + "\n"));
+////        logArea.appendText(message + "\n");
+//        logArea.setScrollTop(Double.MAX_VALUE);
+//
+//
+//        }catch (IndexOutOfBoundsException e){
+//            MyLogger.log(ELSE, "СЛОВЛЕН IndexOutOfBoundsException В ЛОГЕ!!!!!!!!!!!!!!!");
+//        }
     }
 
     public void actionButtonPressed(ActionEvent actionEvent) {
@@ -143,7 +158,7 @@ public class GuiController implements Initializable {
         }
         Button clickedButton = (Button) source;
         Window parentWindow = ((Node) actionEvent.getSource()).getScene().getWindow();
-        if (clickedButton.getId().equals("btnSettings")) {
+        if (clickedButton.getId().equals("btnFilter")) {
             showFilters();
         } else if (clickedButton.getId().equals("btnDelete")) {
             showDelete();
@@ -151,6 +166,28 @@ public class GuiController implements Initializable {
             showAdd();
         } else if (clickedButton.getId().equals("btnEdit")) {
             showEdit();
+        }else if (clickedButton.getId().equals("btnScript")) {
+            showScript();
+        }else if (clickedButton.getId().equals("btnSettings")) {
+            showSettings();
+        }
+    }
+
+    private void showSettings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../settings.fxml"));
+            Stage stage = new Stage();
+            loader.setController(new SettingsController(stage));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setTitle("Настройки");
+            stage.setResizable(false);
+            stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно
+            stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -226,4 +263,25 @@ public class GuiController implements Initializable {
             e.printStackTrace();
         }
     }
+
+    private void showScript() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../script.fxml"));
+            Stage stage = new Stage();
+            loader.setController(new ScriptController(MainController.getSiteByName(selectedSiteString), stage));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setTitle("Генератор скрипта");
+            stage.setResizable(false);
+            stage.initModality(Modality.WINDOW_MODAL); // Перекрывающее окно
+            stage.initOwner(siteList.getScene().getWindow()); // Указание кого оно перекрывает
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 }

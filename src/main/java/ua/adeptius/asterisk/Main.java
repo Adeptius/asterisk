@@ -1,19 +1,13 @@
 package ua.adeptius.asterisk;
 
 
-import javafx.application.Platform;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.MySqlDao;
 import ua.adeptius.asterisk.javafx.Gui;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
-import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.utils.PhonesWatcher;
 import ua.adeptius.asterisk.utils.Settings;
 import ua.adeptius.asterisk.utils.Utils;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 
@@ -25,7 +19,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
-        main.init();
+//        main.init();
     }
 
     private void init() throws Exception {
@@ -55,24 +49,20 @@ public class Main {
         mySqlDao.createStatisticTables(tablesToCreate);
 
 
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(50);
-                    MainController.onNewCall(LogCategory.INCOMING_CALL, "555", "333");
-                    Thread.sleep(50);
-                    MainController.onNewCall(LogCategory.ANSWER_CALL, "555", "333");
-                    Thread.sleep(50);
-                    MainController.onNewCall(LogCategory.ENDED_CALL, "555", "333");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-
-
-        }).start();
+//        new Thread(() -> {
+//            while (true) {
+//                try {
+//                    Thread.sleep(30000);
+//                    MainController.onNewCall(LogCategory.INCOMING_CALL, "555", "333");
+//                    Thread.sleep(50000);
+//                    MainController.onNewCall(LogCategory.ANSWER_CALL, "555", "333");
+//                    Thread.sleep(20000);
+//                    MainController.onNewCall(LogCategory.ENDED_CALL, "555", "333");
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
 
 
 //        new Thread(() -> {

@@ -3,12 +3,9 @@ package ua.adeptius.asterisk.dao;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import java.sql.PreparedStatement;
-
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.PhoneStatistic;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.Settings;
 
 import java.sql.Connection;
@@ -89,7 +86,6 @@ public class MySqlDao {
 
                 sites.add(new Site(
                         set.getString("name"),
-                        set.getString("adress"),
                         phones,
                         set.getString("standart_number"),
                         set.getString("tracking_id"),
@@ -172,6 +168,8 @@ public class MySqlDao {
                 "`from` VARCHAR(45) NULL,  " +
                 "`time_to_answer` INT NULL,  " +
                 "`talking_time` INT NULL,  " +
+                "`google_id` VARCHAR(45) NULL,  " +
+                "`utm` VARCHAR(600) NULL,  " +
                 "PRIMARY KEY (`date`));";
         return sql;
     }
@@ -182,7 +180,6 @@ public class MySqlDao {
 
     public String createSqlQueryForSaveSite(Site site) {
         String name = site.getName();
-        String url = site.getAccessControlAllowOrigin();
         String email = site.getMail();
         String standartNumber = site.getStandartNumber();
         String googleId = site.getGoogleAnalyticsTrackingId();
@@ -206,13 +203,11 @@ public class MySqlDao {
 
         String sql = "INSERT INTO " + TABLE + " VALUES("
                 + "'" + name + "',"
-                + "'" + url + "',"
                 + "'" + googleId + "',"
                 + "'" + email + "',"
                 + "'" + phones + "',"
                 + "'" + standartNumber + "',"
                 + "'" + blackList + "')";
-
         return sql;
     }
 
@@ -270,15 +265,27 @@ public class MySqlDao {
 
 
     public void saveStatisticToTable(Site site, PhoneStatistic statistic) {
-        String insertTableSQL = "INSERT INTO ? VALUES(?,?,?,?,?)";
+
+        String sql = "INSERT INTO `statistic_"+site.getName()+"` VALUES ('"
+                +statistic.getDateForDb()+"', '"
+                +statistic.getTo()+"', '"
+                +statistic.getFrom()+"', '"
+                +statistic.getTimeToAnswerInSeconds()+"', '"
+                +statistic.getSpeakTimeInSeconds()+"', '"
+                +statistic.getGoogleId()+"', '"
+                +statistic.getRequest()+"');";
+
+
+//        String insertTableSQL = "INSERT INTO ? (`date`,`to`,`from`,`time_to_answer`,`talking_time`) VALUES(?,?,?,?,?)";
         try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(insertTableSQL)) {
-            statement.setString(1, "statistic_" + site.getName());
-            statement.setString(2, statistic.getDateForDb());
-            statement.setString(3, statistic.getTo());
-            statement.setString(4, statistic.getFrom());
-            statement.setInt(5, statistic.getTimeToAnswerInSeconds());
-            statement.setInt(6, statistic.getSpeakTimeInSeconds());
+             Statement statement = connection.createStatement()) {
+//            statement.setString(1, "statistic_" + site.getName());
+//            statement.setString(2, statistic.getDateForDb());
+//            statement.setString(3, statistic.getTo());
+//            statement.setString(4, statistic.getFrom());
+//            statement.setInt(5, statistic.getTimeToAnswerInSeconds());
+//            statement.setInt(6, statistic.getSpeakTimeInSeconds());
+            statement.execute(sql);
         } catch (Exception e) {
             e.printStackTrace();
             log(DB_OPERATIONS, site.getName() + ": Ошибка при сохранении отчета в БД ");

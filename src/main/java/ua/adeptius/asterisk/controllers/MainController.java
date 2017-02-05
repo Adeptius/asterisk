@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.PhoneStatistic;
@@ -24,7 +25,7 @@ public class MainController {
         return sites.stream().filter(site -> site.getName().equals(name)).findFirst().get();
     }
 
-    public static String getFreeNumberFromSite(Site site, String googleId, String ip) throws NoSuchElementException {
+    public static String getFreeNumberFromSite(Site site, String googleId, String ip, String pageRequest) throws NoSuchElementException {
         MyLogger.log(REQUEST_NUMBER, site.getName() + ": запрос номера googleId: " + googleId);
 
         //Проверка не находится ли пользователь в черном списке
@@ -58,6 +59,7 @@ public class MainController {
                 phone.setIp(ip);
                 MyLogger.log(SENDING_NUMBER, site.getName() + ": новому пользователю выдан номер: " + phone.getNumber());
                 phone.extendTime();
+                phone.setPageRequest(pageRequest);
                 return phone.getNumber();
             }
         }
@@ -78,6 +80,18 @@ public class MainController {
         return null;
     }
 
+    public static Phone getPhoneByNumber(String number){
+        for (Site site : sites) {
+            List<Phone> phones = site.getPhones();
+            for (Phone phone : phones) {
+                if (phone.getNumber().equals(number)){
+                    return phone;
+                }
+            }
+        }
+        throw new RuntimeException("Телефон " + number + " не найден");
+    }
+
     private static HashMap<String, PhoneStatistic> phonesTime = new HashMap<>();
 
     public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo) {
@@ -85,9 +99,9 @@ public class MainController {
         Site site = MainController.sites.get(1);
         if (site != null) {
             if (category == INCOMING_CALL) {
-//                String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
+                String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
                 MyLogger.log(INCOMING_CALL, site.getName()+": входящий звонок c "+phoneFrom+" на " + phoneTo);
-//                new GoogleAnalitycs(site, googleId, phoneFrom).start();
+                new GoogleAnalitycs(site, googleId, phoneFrom).start();
 
                 PhoneStatistic phoneStatistic = new PhoneStatistic();
                 phoneStatistic.setFrom(phoneFrom);
@@ -112,8 +126,13 @@ public class MainController {
                 MyLogger.log(ENDED_CALL, site.getName()+": "+phoneTo+" закончил разговор " + phoneFrom);
 
                 try{
+                    Phone phone = getPhoneByNumber(phoneTo);
+                    String googleId = phone.getGoogleId();
+                    String request = phone.getPageRequest();
                     PhoneStatistic phoneStatistic = phonesTime.get(phoneFrom);
                     phoneStatistic.setEnded(new GregorianCalendar().getTimeInMillis());
+                    phoneStatistic.setGoogleId(googleId);
+                    phoneStatistic.setRequest(request);
 
                     String report = phoneStatistic.getSite().getName()
                             + ": Закончен разговор "
@@ -125,8 +144,10 @@ public class MainController {
                             + ", время разговора: "
                             + phoneStatistic.getSpeakTime();
                     MyLogger.log(PHONE_TIME_REPORT, report);
+                    Main.mySqlDao.saveStatisticToTable(site, phoneStatistic);
 
-                }catch (NullPointerException ignored){
+                }catch (NullPointerException e){
+                    e.printStackTrace();
                     // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки
                 }
 

@@ -1,7 +1,6 @@
 package ua.adeptius.asterisk.model;
 
 
-import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import ua.adeptius.asterisk.utils.StringUtils;
 
@@ -22,6 +21,15 @@ public class Phone {
     private SimpleStringProperty busyTime; // время которое телефон занят. Отображается в гуи. Вычисляется наблюдателем относительно времени startedBusy
     private long timeToDie;   // время аренды. Обновляется при вызове extendTime. Если это значение+12000 больше текущего времени - наблюдатель освобождает телефон
     private long startedBusy; // время мс когда был занят телефон. устанавливается при установке айди
+    private String pageRequest;
+
+    public String getPageRequest() {
+        return pageRequest;
+    }
+
+    public void setPageRequest(String pageRequest) {
+        this.pageRequest = pageRequest;
+    }
 
     public void markFree() {
         this.setGoogleId("");

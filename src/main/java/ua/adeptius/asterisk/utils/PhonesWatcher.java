@@ -24,7 +24,7 @@ public class PhonesWatcher extends Thread {
     public void run() {
         while (true){
             try {
-                Thread.sleep(5000);
+                Thread.sleep(3000);
                 checkAllPhones();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -49,7 +49,8 @@ public class PhonesWatcher extends Thread {
 
         // продливаем время аренды номера
         long past = currentTime - phoneTime;
-        if (past > 12000) {
+        int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
+        if (past > timeToDeleteOldPhones) {
             MyLogger.log(NUMBER_FREE, site.getName()+": номер " + phone.getNumber() + " освободился. Был занят " + phone.getBusyTimeText());
             phone.markFree();
         }

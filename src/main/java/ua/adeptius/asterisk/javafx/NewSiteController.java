@@ -53,9 +53,6 @@ public class NewSiteController implements Initializable{
     @FXML
     private TextArea textPhones;
 
-    @FXML
-    private TextField textURL;
-
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -66,7 +63,6 @@ public class NewSiteController implements Initializable{
 
             Site site = MainController.getSiteByName(selectedSiteString);
             textName.setText(site.getName());
-            textURL.setText(site.getAccessControlAllowOrigin());
             textEmail.setText(site.getMail());
             textNumber.setText(site.getStandartNumber());
             textGoogleId.setText(site.getGoogleAnalyticsTrackingId());
@@ -100,7 +96,6 @@ public class NewSiteController implements Initializable{
 
     private void save(){
         String name = textName.getText().trim();
-        String url = textURL.getText().trim();
         String email = textEmail.getText().trim();
         String standartNumber = textNumber.getText().trim();
         String googleId = textGoogleId.getText().trim();
@@ -122,7 +117,7 @@ public class NewSiteController implements Initializable{
             blackIps.add(s);
         }
 
-        Site site = new Site(name,url, phoneList,standartNumber,googleId,email, blackIps);
+        Site site = new Site(name, phoneList,standartNumber,googleId,email, blackIps);
 
         try {
             if (selectedSiteString != null){// если мы меняем сайт

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<!--fx:controller="ua.adeptius.asterisk.javafx.DeleteController"-->
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="341.0" prefWidth="544.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Button fx:id="btnClose" layoutX="468.0" layoutY="302.0" mnemonicParsing="false" text="Закрыть" />
+      <TextArea fx:id="textForScript" layoutX="14.0" layoutY="35.0" prefHeight="259.0" prefWidth="516.0" />
+      <Label layoutX="14.0" layoutY="14.0" prefHeight="17.0" prefWidth="516.0" text="На странице необходимо пометить тэг, куда будет вставлятся телефон, айдишником #phone" />
+   </children>
+</Pane>

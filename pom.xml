@@ -23,6 +23,16 @@
                     <source>1.8</source>
                 </configuration>
             </plugin>
+            <!--<plugin>-->
+                <!--<artifactId>tomcat-maven-plugin</artifactId>-->
+                <!--<groupId>org.codehaus.mojo</groupId>-->
+                <!--<configuration>-->
+                    <!--<username>user</username>-->
+                    <!--<password>123456</password>-->
+                    <!--<url>http://194.44.37.30:8080/manager</url>-->
+                    <!--<path>/mywebapp</path>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
         </plugins>
         <resources>
             <resource>
