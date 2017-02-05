@@ -10,15 +10,15 @@ public class Phone {
 
     public Phone(String number) {
         this.number = number;
-        googleId = new SimpleStringProperty("");
-        ip = new SimpleStringProperty("");
-        busyTime = new SimpleStringProperty("");
+        googleId = new String("");
+        ip       = new String("");
+        busyTime = new String("");
     }
 
     private String number;
-    private SimpleStringProperty googleId;
-    private SimpleStringProperty ip;
-    private SimpleStringProperty busyTime; // время которое телефон занят. Отображается в гуи. Вычисляется наблюдателем относительно времени startedBusy
+    private String googleId;
+    private String ip;
+    private String busyTime; // время которое телефон занят. Отображается в гуи. Вычисляется наблюдателем относительно времени startedBusy
     private long timeToDie;   // время аренды. Обновляется при вызове extendTime. Если это значение+12000 больше текущего времени - наблюдатель освобождает телефон
     private long startedBusy; // время мс когда был занят телефон. устанавливается при установке айди
     private String pageRequest;
@@ -37,7 +37,7 @@ public class Phone {
 //        this.busyTime = new SimpleLongProperty();
         this.timeToDie = 0;
         this.startedBusy = 0;
-        this.busyTime = new SimpleStringProperty("");
+        this.busyTime = new String("");
     }
 
     public void extendTime(){
@@ -51,7 +51,7 @@ public class Phone {
     public void setGoogleId(String googleId) {// если записывается айди - значит он теперь кем-то занят
         this.startedBusy = new GregorianCalendar().getTimeInMillis();
         setBusyTime(0);
-        this.googleId.set(googleId);
+        this.googleId = googleId;
     }
 
     public long getStartedBusy() {
@@ -59,11 +59,11 @@ public class Phone {
     }
 
     public void setIp(String ip) {
-        this.ip.set(ip);
+        this.ip = ip;
     }
 
     public void setBusyTime(long busyTime) {
-        this.busyTime.set(StringUtils.getStringedTime(busyTime));
+        this.busyTime = StringUtils.getStringedTime(busyTime);
     }
 
     public void setTimeToDie(long timeToDie) {
@@ -75,31 +75,31 @@ public class Phone {
     }
 
     public String getGoogleId() {
-        return googleId.get();
-    }
-
-    public SimpleStringProperty googleIdProperty() {
         return googleId;
     }
 
-    public String getIp() {
-        return ip.get();
-    }
+//    public SimpleStringProperty googleIdProperty() {
+//        return googleId;
+//    }
 
-    public SimpleStringProperty ipProperty() {
+    public String getIp() {
         return ip;
     }
 
-    public String getBusyTimeText() {
-        return busyTime.get();
-    }
+//    public SimpleStringProperty ipProperty() {
+//        return ip;
+//    }
 
-    public SimpleStringProperty busyTimeProperty() {
+    public String getBusyTimeText() {
         return busyTime;
     }
 
+//    public SimpleStringProperty busyTimeProperty() {
+//        return busyTime;
+//    }
+
     public boolean isFree() {// так понятно что телефон ничей
-        return googleId.get().equals("");
+        return googleId.equals("");
     }
 
     public long getUpdatedTime() {

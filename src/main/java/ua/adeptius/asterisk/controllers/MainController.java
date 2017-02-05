@@ -26,7 +26,6 @@ public class MainController {
     }
 
     public static String getFreeNumberFromSite(Site site, String googleId, String ip, String pageRequest) throws NoSuchElementException {
-        MyLogger.log(REQUEST_NUMBER, site.getName() + ": запрос номера googleId: " + googleId);
 
         //Проверка не находится ли пользователь в черном списке
         if (site.getBlackIps().stream().anyMatch(s -> s.equals(ip))){
@@ -53,6 +52,7 @@ public class MainController {
             }
         }
 
+        MyLogger.log(REQUEST_NUMBER, site.getName() + ": запрос номера googleId: " + googleId);
         for (Phone phone : phones) {
             if (phone.isFree()) {
                 phone.setGoogleId(googleId);
@@ -95,8 +95,8 @@ public class MainController {
     private static HashMap<String, PhoneStatistic> phonesTime = new HashMap<>();
 
     public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo) {
-//        Site site = whosePhone(phoneTo);
-        Site site = MainController.sites.get(1);
+        Site site = whosePhone(phoneTo);
+//        Site site = MainController.sites.get(1);
         if (site != null) {
             if (category == INCOMING_CALL) {
                 String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();

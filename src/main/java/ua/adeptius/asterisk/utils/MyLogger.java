@@ -15,11 +15,11 @@ public class MyLogger {
                 return;
             }
             System.out.println(message);
-            try{
-                Main.gui.guiController.appendLog(message);
-            }catch (NullPointerException e){
-//            e.printStackTrace();
-            }
+//            try{
+//                Main.gui.guiController.appendLog(message);
+//            }catch (NullPointerException e){
+////            e.printStackTrace();
+//            }
         }
     }
 

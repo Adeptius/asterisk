@@ -33,7 +33,7 @@ public class WebController {
 
     @RequestMapping(value = "/", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
     public @ResponseBody String test() {
-        return "It works!";
+        return "It works!!";
     }
 
 

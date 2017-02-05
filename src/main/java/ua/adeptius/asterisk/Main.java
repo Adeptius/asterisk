@@ -19,10 +19,18 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
-//        main.init();
+        main.init();
     }
 
     private void init() throws Exception {
+
+        Thread.sleep(1000);
+
+
+        System.out.println("Запуск!");
+
+
+
         Settings.load(this.getClass());
         mySqlDao = new MySqlDao();
         mySqlDao.init();
@@ -31,10 +39,10 @@ public class Main {
         monitor = new AsteriskMonitor();
         monitor.run();
 
-        new Thread(() -> {
-            gui = new Gui();
-            gui.startGui();
-        }).start();
+//        new Thread(() -> {
+//            gui = new Gui();
+//            gui.startGui();
+//        }).start();
 
         new PhonesWatcher();
 

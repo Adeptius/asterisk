@@ -22,7 +22,7 @@ public class PhonesWatcher extends Thread {
 
     @Override
     public void run() {
-        while (true){
+        while (!isInterrupted()){
             try {
                 Thread.sleep(3000);
                 checkAllPhones();
