@@ -59,13 +59,14 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
             String phoneReseive = ((NewChannelEvent) event).getExten();
             phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
-            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive);
+            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
 
         } else if (event instanceof HangupEvent) {
 //            System.out.println(event);
+            String callUniqueId = ((HangupEvent) event).getUniqueId();
             String callerIdNum = ((HangupEvent) event).getCallerIdNum();
             String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive);
+            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
             phonesFromAndPhonesTo.remove(callerIdNum);
 
         } else if (event instanceof NewStateEvent) {
@@ -74,7 +75,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum = ((NewStateEvent) event).getCallerIdNum();
             String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
             if (code == 6) {
-                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive);
+                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
             }
         }
     }

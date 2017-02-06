@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.model;
 
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.utils.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -9,20 +10,54 @@ import java.util.GregorianCalendar;
 
 import static ua.adeptius.asterisk.utils.StringUtils.doTwoSymb;
 
-public class PhoneStatistic {
+public class Statistic {
 
+    @JsonIgnore
     private long called;
+    @JsonIgnore
     private long answered;
+    @JsonIgnore
     private long ended;
+    @JsonIgnore
+    private int timeToAnswer;
+    @JsonIgnore
+    private Site site;
+    @JsonIgnore
+    private int speakTimeInSeconds;
+    @JsonIgnore
+    private int speakTime;
+    @JsonIgnore
+    private int dateForDb;
 
-    private String to;
     private String from;
+    private String to;
+    private String date;
+    private int timeToAnswerInSeconds;
+    private int talkingTime;
     String googleId;
     String reques;
+    private String callUniqueId;
 
 
+    public void setTimeToAnswer(int timeToAnswer) {
+        this.timeToAnswer = timeToAnswer;
+    }
 
-    private Site site;
+    public int getTalkingTime() {
+        return talkingTime;
+    }
+
+    public void setTalkingTime(int talkingTime) {
+        this.talkingTime = talkingTime;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 
 
     public String getGoogleId() {
@@ -66,7 +101,7 @@ public class PhoneStatistic {
         long time = called;
         GregorianCalendar calendar = new GregorianCalendar();
         calendar.setTimeInMillis(time);
-        SimpleDateFormat format1 = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return format1.format(calendar.getTime());
     }
 
@@ -118,5 +153,11 @@ public class PhoneStatistic {
         this.from = from;
     }
 
+    public String getCallUniqueId() {
+        return callUniqueId;
+    }
 
+    public void setCallUniqueId(String callUniqueId) {
+        this.callUniqueId = callUniqueId;
+    }
 }

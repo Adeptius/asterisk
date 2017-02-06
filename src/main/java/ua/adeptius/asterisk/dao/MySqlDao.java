@@ -3,10 +3,12 @@ package ua.adeptius.asterisk.dao;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
+import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.PhoneStatistic;
+import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.Settings;
+import ua.adeptius.asterisk.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,7 +26,7 @@ import static ua.adeptius.asterisk.utils.MyLogger.printException;
 public class MySqlDao {
 
     private ComboPooledDataSource cpds;
-    public static String TABLE = Settings.getSetting("___dbTableName");
+//    public static String TABLE = Settings.getSetting("___dbTableName");
 //    public static String PHONE = Settings.dbColumnPhoneName;
 //    public static String GOOGLEID = Settings.dbColumnGoogleIdName;
 //    public static String TIMELEFT = Settings.dbColumnTimeToDieName;
@@ -53,7 +55,7 @@ public class MySqlDao {
 
     public List<Site> getSites() throws Exception {
         List<Site> sites = new ArrayList<>();
-        String sql = "SELECT * from " + TABLE;
+        String sql = "SELECT * from sites";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -125,9 +127,9 @@ public class MySqlDao {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
+            log(DB_OPERATIONS, "Ошибка сохранения данных в БД: " + e.getMessage());
+            throw new Exception("Ошибка сохранения данных в БД: " + e.getMessage());
         }
-        log(DB_OPERATIONS, "Ошибка сохранения данных в БД");
-        throw new Exception("Ошибка сохранения данных в БД");
     }
 
     public boolean editSite(Site site) throws Exception {
@@ -150,14 +152,15 @@ public class MySqlDao {
             if (connection != null) {
                 connection.rollback();
             }
+            log(DB_OPERATIONS, "Ошибка изменения сайта " + site.getName());
+            throw new Exception("Ошибка изменения сайта " + site.getName() + ": " + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.setAutoCommit(true);
                 connection.close();
             }
         }
-        log(DB_OPERATIONS, "Ошибка изменения сайта " + site.getName());
-        throw new Exception("Ошибка изменения сайта " + site.getName());
+
     }
 
 
@@ -169,13 +172,14 @@ public class MySqlDao {
                 "`time_to_answer` INT NULL,  " +
                 "`talking_time` INT NULL,  " +
                 "`google_id` VARCHAR(45) NULL,  " +
+                "`call_id` VARCHAR(45) NULL,  " +
                 "`utm` VARCHAR(600) NULL,  " +
                 "PRIMARY KEY (`date`));";
         return sql;
     }
 
     public String createSqlQueryForDeleteSite(String site) {
-        return "DELETE from " + TABLE + " WHERE name = '" + site + "'";
+        return "DELETE from sites WHERE name = '" + site + "'";
     }
 
     public String createSqlQueryForSaveSite(Site site) {
@@ -201,7 +205,7 @@ public class MySqlDao {
             blackList = blackList.substring(1);
         }
 
-        String sql = "INSERT INTO " + TABLE + " VALUES("
+        String sql = "INSERT INTO sites VALUES("
                 + "'" + name + "',"
                 + "'" + googleId + "',"
                 + "'" + email + "',"
@@ -224,6 +228,40 @@ public class MySqlDao {
                 listOfTables.add(set.getString(columnName));
             }
             return listOfTables;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
+
+        throw new Exception("Ошибка при загрузке данных с БД");
+    }
+
+
+    public List<Statistic> getStatisticOfRange(String sitename, String startDate, String endDate) throws Exception {
+        String sql = "SELECT * FROM calltrackdb.statistic_" +
+                sitename +
+                " WHERE call_date BETWEEN STR_TO_DATE('" +
+                startDate +
+                "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" +
+                endDate +
+                "', '%Y-%m-%d %H:%i:%s')";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery(sql);
+            List<Statistic> statisticList = new ArrayList<>();
+            while (set.next()) {
+                Statistic statistic = new Statistic();
+                statistic.setDate(set.getString("call_date"));
+                statistic.setTo(set.getString("to"));
+                statistic.setFrom(set.getString("from"));
+                statistic.setTimeToAnswer(set.getInt("time_to_answer"));
+                statistic.setTalkingTime(set.getInt("talking_time"));
+                statistic.setGoogleId(set.getString("google_id"));
+                statistic.setCallUniqueId(set.getString("call_id"));
+                statistic.setRequest(set.getString("utm"));
+                statisticList.add(statistic);
+            }
+            return statisticList;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -264,8 +302,7 @@ public class MySqlDao {
     }
 
 
-    public void saveStatisticToTable(Site site, PhoneStatistic statistic) {
-
+    public void saveStatisticToTable(Site site, Statistic statistic) {
         String sql = "INSERT INTO `statistic_"+site.getName()+"` VALUES ('"
                 +statistic.getDateForDb()+"', '"
                 +statistic.getTo()+"', '"
@@ -273,22 +310,23 @@ public class MySqlDao {
                 +statistic.getTimeToAnswerInSeconds()+"', '"
                 +statistic.getSpeakTimeInSeconds()+"', '"
                 +statistic.getGoogleId()+"', '"
+                +statistic.getCallUniqueId()+"', '"
                 +statistic.getRequest()+"');";
 
-
-//        String insertTableSQL = "INSERT INTO ? (`date`,`to`,`from`,`time_to_answer`,`talking_time`) VALUES(?,?,?,?,?)";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
-//            statement.setString(1, "statistic_" + site.getName());
-//            statement.setString(2, statistic.getDateForDb());
-//            statement.setString(3, statistic.getTo());
-//            statement.setString(4, statistic.getFrom());
-//            statement.setInt(5, statistic.getTimeToAnswerInSeconds());
-//            statement.setInt(6, statistic.getSpeakTimeInSeconds());
             statement.execute(sql);
         } catch (Exception e) {
             e.printStackTrace();
             log(DB_OPERATIONS, site.getName() + ": Ошибка при сохранении отчета в БД ");
         }
+    }
+
+    public void createOrCleanStatisticsTables() throws Exception{
+        List<String> tables = getListOfTables();
+        List<String> tablesToDelete = Utils.findTablesThatNeedToDelete(MainController.sites, tables);
+        deleteTables(tablesToDelete);
+        List<String> tablesToCreate = Utils.findTablesThatNeedToCreate(MainController.sites, tables);
+        createStatisticTables(tablesToCreate);
     }
 }

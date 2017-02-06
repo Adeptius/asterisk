@@ -24,16 +24,6 @@
                     <source>1.8</source>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-                <!--<artifactId>tomcat-maven-plugin</artifactId>-->
-                <!--<groupId>org.codehaus.mojo</groupId>-->
-                <!--<configuration>-->
-                    <!--<username>user</username>-->
-                    <!--<password>123456</password>-->
-                    <!--<url>http://194.44.37.30:8080/manager</url>-->
-                    <!--<path>/mywebapp</path>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
         </plugins>
         <resources>
             <resource>
@@ -44,19 +34,11 @@
 
 
     <dependencies>
-
-        <!--<dependency>-->
-            <!--<groupId>log4j</groupId>-->
-            <!--<artifactId>log4j</artifactId>-->
-            <!--<version>1.2.16</version>-->
-        <!--</dependency>-->
-
-        <!--<dependency>-->
-            <!--<groupId>org.slf4j</groupId>-->
-            <!--<artifactId>slf4j-api</artifactId>-->
-            <!--<version>1.7.21</version>-->
-        <!--</dependency>-->
-
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
@@ -99,6 +81,5 @@
             <version>2.5</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 </project>

@@ -4,7 +4,7 @@ package ua.adeptius.asterisk.controllers;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.PhoneStatistic;
+import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.GoogleAnalitycs;
 import ua.adeptius.asterisk.utils.Mail;
@@ -59,7 +59,7 @@ public class MainController {
                 phone.setIp(ip);
                 MyLogger.log(SENDING_NUMBER, site.getName() + ": новому пользователю выдан номер: " + phone.getNumber());
                 phone.extendTime();
-                phone.setPageRequest(pageRequest);
+                phone.setUtmRequest(pageRequest);
                 return phone.getNumber();
             }
         }
@@ -92,31 +92,30 @@ public class MainController {
         throw new RuntimeException("Телефон " + number + " не найден");
     }
 
-    private static HashMap<String, PhoneStatistic> phonesTime = new HashMap<>();
+    private static HashMap<String, Statistic> phonesTime = new HashMap<>();
 
-    public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo) {
+    public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo, String callUniqueId) {
         Site site = whosePhone(phoneTo);
-//        Site site = MainController.sites.get(1);
         if (site != null) {
             if (category == INCOMING_CALL) {
                 String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
                 MyLogger.log(INCOMING_CALL, site.getName()+": входящий звонок c "+phoneFrom+" на " + phoneTo);
                 new GoogleAnalitycs(site, googleId, phoneFrom).start();
 
-                PhoneStatistic phoneStatistic = new PhoneStatistic();
-                phoneStatistic.setFrom(phoneFrom);
-                phoneStatistic.setTo(phoneTo);
-                phoneStatistic.setCalled(new GregorianCalendar().getTimeInMillis());
-                phoneStatistic.setSite(site);
-                phonesTime.put(phoneFrom, phoneStatistic);
+                Statistic statistic = new Statistic();
+                statistic.setFrom(phoneFrom);
+                statistic.setTo(phoneTo);
+                statistic.setCalled(new GregorianCalendar().getTimeInMillis());
+                statistic.setSite(site);
+                phonesTime.put(phoneFrom, statistic);
 
 
 
             } else if (category == ANSWER_CALL) {
                 MyLogger.log(ANSWER_CALL, site.getName()+": "+phoneTo+" ответил на звонок " + phoneFrom);
                 try{
-                    PhoneStatistic phoneStatistic = phonesTime.get(phoneFrom);
-                    phoneStatistic.setAnswered(new GregorianCalendar().getTimeInMillis());
+                    Statistic statistic = phonesTime.get(phoneFrom);
+                    statistic.setAnswered(new GregorianCalendar().getTimeInMillis());
                 }catch (NullPointerException ignored){
                     // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки
                 }
@@ -128,23 +127,24 @@ public class MainController {
                 try{
                     Phone phone = getPhoneByNumber(phoneTo);
                     String googleId = phone.getGoogleId();
-                    String request = phone.getPageRequest();
-                    PhoneStatistic phoneStatistic = phonesTime.get(phoneFrom);
-                    phoneStatistic.setEnded(new GregorianCalendar().getTimeInMillis());
-                    phoneStatistic.setGoogleId(googleId);
-                    phoneStatistic.setRequest(request);
+                    String request = phone.getUtmRequest();
+                    Statistic statistic = phonesTime.get(phoneFrom);
+                    statistic.setEnded(new GregorianCalendar().getTimeInMillis());
+                    statistic.setGoogleId(googleId);
+                    statistic.setRequest(request);
+                    statistic.setCallUniqueId(callUniqueId);
 
-                    String report = phoneStatistic.getSite().getName()
+                    String report = statistic.getSite().getName()
                             + ": Закончен разговор "
-                            + phoneStatistic.getFrom()
+                            + statistic.getFrom()
                             + " с "
-                            + phoneStatistic.getTo()
+                            + statistic.getTo()
                             + " ответил за: "
-                            + phoneStatistic.getTimeToAnswer()
+                            + statistic.getTimeToAnswer()
                             + ", время разговора: "
-                            + phoneStatistic.getSpeakTime();
+                            + statistic.getSpeakTime();
                     MyLogger.log(PHONE_TIME_REPORT, report);
-                    Main.mySqlDao.saveStatisticToTable(site, phoneStatistic);
+                    Main.mySqlDao.saveStatisticToTable(site, statistic);
 
                 }catch (NullPointerException e){
                     e.printStackTrace();

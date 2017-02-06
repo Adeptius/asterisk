@@ -23,7 +23,6 @@ public class WebController {
 
         Site site = MainController.getSiteByName(sitename);
         String phone = MainController.getFreeNumberFromSite(site, googleid, ip, pagerequest);
-//        System.out.println(pagerequest);
 
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
