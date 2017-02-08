@@ -31,7 +31,7 @@ public class Main {
             mySqlDao.init();
         } catch (Exception e) {
             e.printStackTrace();
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
+            MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
             throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
         }
 

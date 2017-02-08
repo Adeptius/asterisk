@@ -46,7 +46,7 @@ public class Utils {
                 "ga('send','pageview');$(document).ready(function(){$.getJSON(\"http://jsonip.com/?callback=?\",function(data){var ip=''+data.ip;var match=" +
                 "document.cookie.match('(?:^|;)\\\\s*_ga=([^;]*)');var raw=(match)?decodeURIComponent(match[1]):null;if(raw){match=raw.match(/(\\d+\\.\\d+)$/)}var gacid=" +
                 "(match)?match[1]:null;var sPageURL=decodeURIComponent(window.location.search.substring(1));if(sPageURL==''){sPageURL='null'}someRequest();function " +
-                "someRequest(){var url='http://SERVERADDRESS/SITENAME/getnumber/'+gacid+'/'+ip+'/'+sPageURL+'/';$.get(url,function(phone){$('#phone').html(phone)});" +
+                "someRequest(){var url='http://SERVERADDRESS/tracking/SITENAME/getnumber/'+gacid+'/'+ip+'/'+sPageURL+'/';$.get(url,function(phone){$('#phone').html(phone)});" +
                 "setTimeout(someRequest,TIMETOUPDATE000)}})});</script>";
 
         s = s.replaceAll("SERVERADDRESS",Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT"));
