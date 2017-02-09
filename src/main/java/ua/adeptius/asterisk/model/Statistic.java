@@ -73,7 +73,7 @@ public class Statistic {
     }
 
     public void setRequest(String reques) {
-        this.reques = reques;
+        this.reques = filterUtmMarks(reques);
     }
 
     public String getTimeToAnswer(){
@@ -159,5 +159,24 @@ public class Statistic {
 
     public void setCallUniqueId(String callUniqueId) {
         this.callUniqueId = callUniqueId;
+    }
+
+
+    private static String filterUtmMarks(String s){
+        String[] splitted = s.split("&");
+        String result = "";
+        String[] keys = new String[]{"utm_source","utm_medium","utm_campaign","utm_content","utm_term","pm_source","pm_block","pm_position"};
+        for (int i = 0; i < splitted.length; i++) {
+            String temp = splitted[i].substring(0,splitted[i].indexOf("="));
+            for (int j = 0; j < keys.length; j++) {
+                if (temp.equals(keys[j])){
+                    if (!result.equals("")){
+                        result += "&";
+                    }
+                    result += splitted[i];
+                }
+            }
+        }
+        return result;
     }
 }

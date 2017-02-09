@@ -9,6 +9,7 @@ import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.GoogleAnalitycs;
 import ua.adeptius.asterisk.utils.Mail;
 import ua.adeptius.asterisk.utils.MyLogger;
+import ua.adeptius.asterisk.utils.Utils;
 
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -52,6 +53,8 @@ public class MainController {
             }
         }
 
+
+        Utils.check();
         MyLogger.log(REQUEST_NUMBER, site.getName() + ": запрос номера googleId: " + googleId);
         for (Phone phone : phones) {
             if (phone.isFree()) {

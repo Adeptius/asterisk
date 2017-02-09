@@ -312,11 +312,10 @@ public class MySqlDao {
                 +statistic.getGoogleId()+"', '"
                 +statistic.getCallUniqueId()+"', '"
                 +statistic.getRequest()+"');";
-
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
-        } catch (Exception e) {
+        } catch (Exception  e) {
             e.printStackTrace();
             log(DB_OPERATIONS, site.getName() + ": Ошибка при сохранении отчета в БД ");
         }

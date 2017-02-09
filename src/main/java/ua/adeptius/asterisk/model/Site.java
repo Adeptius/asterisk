@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.model;
 
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import java.util.List;
 
 public class Site {
@@ -20,6 +22,7 @@ public class Site {
     private String standartNumber;
     private String googleAnalyticsTrackingId;
     private String eMail;
+    @JsonIgnore
     private long lastEmailTime;
 
     public String getName() {

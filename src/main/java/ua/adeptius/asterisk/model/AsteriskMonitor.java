@@ -1,12 +1,8 @@
 package ua.adeptius.asterisk.model;
 
-import org.asteriskjava.live.AsteriskChannel;
-import org.asteriskjava.live.AsteriskServer;
-import org.asteriskjava.live.DefaultAsteriskServer;
 import org.asteriskjava.manager.event.HangupEvent;
 import org.asteriskjava.manager.event.NewStateEvent;
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
@@ -23,7 +19,6 @@ import static ua.adeptius.asterisk.model.LogCategory.INCOMING_CALL;
 public class AsteriskMonitor implements ManagerEventListener {
 
     private ManagerConnection managerConnection;
-//    private AsteriskServer asteriskServer;
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
@@ -31,7 +26,6 @@ public class AsteriskMonitor implements ManagerEventListener {
                 Settings.getSetting("___asteriskLogin"),
                 Settings.getSetting("___asteriskPassword"));
         this.managerConnection = factory.createManagerConnection();
-//        asteriskServer = new DefaultAsteriskServer(managerConnection);
     }
 
     public void run() throws IOException, AuthenticationFailedException,
@@ -39,20 +33,16 @@ public class AsteriskMonitor implements ManagerEventListener {
         managerConnection.addEventListener(this);
         managerConnection.login();
         managerConnection.sendAction(new StatusAction());
-//        new Thread(() -> {
-//            try {
-//                while (true) {
-//                    Thread.sleep(100);
-//                }
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }).start();
     }
 
     private HashMap<String, String> phonesFromAndPhonesTo = new HashMap<>();
 
+    private ManagerEvent previousEvent;
+
     public void onManagerEvent(ManagerEvent event) {
+//        if (event.equals(previousEvent)){
+//            return;
+//        }
 //        System.out.println(event);
         if (event instanceof NewChannelEvent) {
 //            System.out.println(event);
@@ -78,5 +68,6 @@ public class AsteriskMonitor implements ManagerEventListener {
                 MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
             }
         }
+//        previousEvent = event;
     }
 }

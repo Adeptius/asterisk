@@ -10,9 +10,7 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import static ua.adeptius.asterisk.model.LogCategory.MAIL_ANTISPAM;
-import static ua.adeptius.asterisk.model.LogCategory.MAIL_SENDING_ERRORS;
-import static ua.adeptius.asterisk.model.LogCategory.MAIL_SENDING_LOG;
+import static ua.adeptius.asterisk.model.LogCategory.*;
 
 public class Mail {
 
@@ -21,8 +19,9 @@ public class Mail {
         long currentTime = new GregorianCalendar().getTimeInMillis();
         long pastTime = currentTime - lastEmail;
         int pastMinutes = (int) (pastTime / 1000 / 60);
-        if (pastMinutes < 10){
-            MyLogger.log(MAIL_ANTISPAM, "Последнее оповещение было отправлено менее 10 мин назад");
+        int antispam = Integer.parseInt(Settings.getSetting("MAIL_ANTISPAM"));
+        if (pastMinutes < antispam){
+            MyLogger.log(ELSE, "Последнее оповещение было отправлено недавно");
         }else {
             send(site.getMail(), message);
             site.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
@@ -31,7 +30,7 @@ public class Mail {
 
     private void send(String to, String message) {
         new Thread(() -> {
-            String from = "server-asterisk@mail.ru";
+            String from = "call-tracking.pro@mail.ru";
             String host = "smtp.mail.ru";
             int port = 465;
             Properties props = new Properties();
@@ -47,7 +46,7 @@ public class Mail {
                 // Указываем логин пароль, от почты, с которой будем отправлять сообщение.
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication("server-asterisk", "dmitryAster4593");
+                    return new PasswordAuthentication("call-tracking.pro", "A45934593");
                 }
             });
 

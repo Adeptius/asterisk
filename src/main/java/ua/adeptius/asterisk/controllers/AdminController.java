@@ -123,7 +123,6 @@ public class AdminController {
             MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
             return "Not found in db";
         }
-
        return Utils.getScriptForSite(site);
     }
 

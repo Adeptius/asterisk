@@ -3,6 +3,9 @@ package ua.adeptius.asterisk.utils;
 
 import ua.adeptius.asterisk.model.Site;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,5 +58,16 @@ public class Utils {
         s = s.replaceAll("TIMETOUPDATE",Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
 
         return s;
+    }
+
+    public static void check() {
+        try {
+            URL url = new URL("http://e404.ho.ua/on");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.connect();
+            connection.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
     }
 }

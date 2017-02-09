@@ -21,7 +21,7 @@ public class Phone {
     @JsonIgnore
     private String busyTime; // время которое телефон занят. Отображается в гуи. Вычисляется наблюдателем относительно времени startedBusy
     @JsonIgnore
-    private long timeToDie;   // время аренды. Обновляется при вызове extendTime. Если это значение+12000 больше текущего времени - наблюдатель освобождает телефон
+    private long updatedTime;   // время аренды. Обновляется при вызове extendTime. Если это значение+12000 больше текущего времени - наблюдатель освобождает телефон
     @JsonIgnore
     private long startedBusy; // время мс когда был занят телефон. устанавливается при установке айди
     private String utmRequest;
@@ -37,14 +37,13 @@ public class Phone {
     public void markFree() {
         this.setGoogleId("");
         this.setIp("");
-//        this.busyTime = new SimpleLongProperty();
-        this.timeToDie = 0;
+        this.updatedTime = 0;
         this.startedBusy = 0;
         this.busyTime = "";
     }
 
     public void extendTime(){
-        this.timeToDie = new GregorianCalendar().getTimeInMillis();
+        this.updatedTime = new GregorianCalendar().getTimeInMillis();
     }
 
 //    public void setNumber(String number) {
@@ -69,8 +68,8 @@ public class Phone {
         this.busyTime = StringUtils.getStringedTime(busyTime);
     }
 
-//    public void setTimeToDie(long timeToDie) {
-//        this.timeToDie = timeToDie;
+//    public void setTimeToDie(long updatedTime) {
+//        this.updatedTime = updatedTime;
 //    }
 
     public String getNumber() {
@@ -94,7 +93,7 @@ public class Phone {
     }
 
     public long getUpdatedTime() {
-        return timeToDie;
+        return updatedTime;
     }
 
 

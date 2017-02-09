@@ -19,7 +19,6 @@ public class WebController {
                                           @PathVariable String pagerequest,
                                           HttpServletResponse response,
                                           HttpServletRequest request) {
-//                                          ,
 
         Site site = MainController.getSiteByName(sitename);
         String phone = MainController.getFreeNumberFromSite(site, googleid, ip, pagerequest);
