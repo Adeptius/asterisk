@@ -75,25 +75,42 @@ public class Statistic {
     public void setRequest(String reques) {
         this.reques = filterUtmMarks(reques);
     }
+ public void setRequestWithOutfiltering(String reques) {
+        this.reques = reques;
+    }
 
     public String getTimeToAnswer(){
+        if (answered == 0){
+            return "0";
+        }
         long time = answered - called;
         return StringUtils.getStringedTime(time);
     }
 
     public String getSpeakTime(){
+        if (answered == 0){
+            return "Сбой звонка";
+        }
         long time = ended - answered;
         return StringUtils.getStringedTime(time);
     }
 
 
     public int getTimeToAnswerInSeconds(){
+        if (answered == 0){
+            return 0;
+        }
         long time = answered - called;
         return (int) (time/1000);
     }
 
     public int getSpeakTimeInSeconds(){
-        long time = ended - answered;
+        long time = 0;
+        if (answered !=0){
+            time = ended - answered;
+        }else {
+            time = ended - called;
+        }
         return (int) (time / 1000);
     }
 
@@ -163,20 +180,41 @@ public class Statistic {
 
 
     private static String filterUtmMarks(String s){
-        String[] splitted = s.split("&");
+        if (s==null || "".equals(s)){ // если параметров нет вообще
+            return s;
+        }
+        if (!s.contains("=")){ // если почему-то не пусто но и параметра нет
+            return "";
+        }
+        String[] keys = new String[]{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "pm_source", "pm_block", "pm_position"};
         String result = "";
-        String[] keys = new String[]{"utm_source","utm_medium","utm_campaign","utm_content","utm_term","pm_source","pm_block","pm_position"};
-        for (int i = 0; i < splitted.length; i++) {
-            String temp = splitted[i].substring(0,splitted[i].indexOf("="));
-            for (int j = 0; j < keys.length; j++) {
-                if (temp.equals(keys[j])){
-                    if (!result.equals("")){
-                        result += "&";
+        if (s.contains("&")) { // если параметров несколько
+            String[] splitted = s.split("&");
+            for (int i = 0; i < splitted.length; i++) {
+                if (splitted[i].contains("=")) { // защита, если попадёт хрен знает что вместо ключ=значение
+                    String currentKey = splitted[i].substring(0, splitted[i].indexOf("="));
+                    for (int j = 0; j < keys.length; j++) {
+                        if (currentKey.equals(keys[j])) {
+                            String currentValue = splitted[i].substring(splitted[i].indexOf("=")+1);
+                            if (!currentValue.equals("")){ // если значение не пустое.
+                                if (!result.equals("")) { // вначале & добавлять не нужно
+                                    result += "&";
+                                }
+                                result += splitted[i];
+                            }
+                        }
                     }
-                    result += splitted[i];
                 }
             }
+            return result;
+        }else {// если параметр 1
+            for (int i = 0; i < keys.length; i++) {
+                String key = s.substring(0, s.indexOf("="));
+                if (keys[i].equals(key)){
+                    return s;
+                }
+            }
+            return "";
         }
-        return result;
     }
 }

@@ -25,9 +25,6 @@ public class Main {
     }
 
     private void init() {
-
-
-
         Settings.load(this.getClass());
         mySqlDao = new MySqlDao();
         try {

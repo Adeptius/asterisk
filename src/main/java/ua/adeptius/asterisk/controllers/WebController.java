@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.controllers;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.View;
 import ua.adeptius.asterisk.model.Site;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,13 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 public class WebController {
 
-    @RequestMapping(value = "/{sitename}/getnumber/{googleid}/{ip}/{pagerequest}", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
-    public @ResponseBody String plaintext(@PathVariable String sitename,
-                                          @PathVariable String googleid,
-                                          @PathVariable String ip,
-                                          @PathVariable String pagerequest,
-                                          HttpServletResponse response,
-                                          HttpServletRequest request) {
+    @RequestMapping(value = "/{sitename}/getnumber/{googleid}/{ip}/{pagerequest}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    public
+    @ResponseBody
+    String plaintext(@PathVariable String sitename,
+                     @PathVariable String googleid,
+                     @PathVariable String ip,
+                     @PathVariable String pagerequest,
+                     HttpServletResponse response,
+                     HttpServletRequest request) {
 
         Site site = MainController.getSiteByName(sitename);
         String phone = MainController.getFreeNumberFromSite(site, googleid, ip, pagerequest);
@@ -29,11 +32,16 @@ public class WebController {
     }
 
 
-    @RequestMapping(value = "/", method = RequestMethod.GET, produces = { "text/html; charset=UTF-8" })
-    public @ResponseBody String test() {
-        return "It works!!";
+    @RequestMapping(value = "/", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    public String main() {
+        return "main";
     }
 
+
+    @RequestMapping(value = "/login", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    public String login() {
+        return "login";
+    }
 
 
 }

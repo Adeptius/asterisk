@@ -23,34 +23,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/status")
 public class StatusController {
 
-    @RequestMapping(value = "/site/{name}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Site getSiteByName(@PathVariable String name,
+    public Site getSiteByName(@RequestParam String name,
+                              @RequestParam String password,
                               HttpServletResponse response,
                               HttpServletRequest request) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+        if (isPasswordWrong(name,password)){
+            return new Site("Wrong password",null,"Wrong password","Wrong password","Wrong password",null,"Wrong password");
+        }
+
         Site site = MainController.getSiteByName(name);
         return site;
-    }
-
-    @RequestMapping(value = "/site/getall", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
-    public String[] getAllNameOfSites(HttpServletResponse response, HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-        List<String> list = MainController.sites.stream().map(Site::getName).collect(Collectors.toList());
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
-    }
-
-    @RequestMapping(value = "/logs", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
-    public LinkedList<String> getLogs(HttpServletResponse response, HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-        return MyLogger.logs;
     }
 
     @RequestMapping(value = "/history", method = RequestMethod.POST, produces = "application/json")
@@ -58,11 +44,18 @@ public class StatusController {
     public List<Statistic> getSiteByName(@RequestParam String name,
                                          @RequestParam String dateFrom,
                                          @RequestParam String dateTo,
+                                         @RequestParam String password,
                                          HttpServletResponse response,
                                          HttpServletRequest request) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-
+        if (isPasswordWrong(name,password)){
+            ArrayList<Statistic> list = new ArrayList<>();
+            Statistic statistic = new Statistic();
+            statistic.setDate("Wrong password");
+            list.add(statistic);
+            return list;
+        }
         try {
             if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
                 List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo);
@@ -74,13 +67,15 @@ public class StatusController {
         return new ArrayList<>();
     }
 
-    @RequestMapping(value = "/record/{id}/{year}/{month}/{day}", method = RequestMethod.GET)
+    @RequestMapping(value = "/record/{id}/{date}", method = RequestMethod.GET)
     public void getFile(
             @PathVariable String id,
-            @PathVariable String year,
-            @PathVariable String month,
-            @PathVariable String day,
+            @PathVariable String date,
             HttpServletResponse response) {
+
+        String year = date.substring(0,4);
+        String month = date.substring(5,7);
+        String day = date.substring(8,10);
 
         try {
             File  file = findFile(year, month, day, id);
@@ -109,5 +104,18 @@ public class StatusController {
             }
         }
         throw new FileNotFoundException();
+    }
+
+
+
+    private static boolean isPasswordWrong(String sitename, String password){
+        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
+        if (password.equals(currentSitePass)){
+            return false;
+        }
+        if (password.equals("pthy0eds")){
+            return false;
+        }
+        return true;
     }
 }

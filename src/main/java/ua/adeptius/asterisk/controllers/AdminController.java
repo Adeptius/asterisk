@@ -9,17 +9,52 @@ import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.Settings;
-import ua.adeptius.asterisk.utils.Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+    public static final String ADMIN_PASS = "pthy0eds";
+
+
+    @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public LinkedList<String> getLogs(HttpServletResponse response,
+                                      HttpServletRequest request,
+                                      @RequestParam String adminPassword) {
+        String accessControlAllowOrigin = request.getHeader("Origin");
+        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+        if (isAdminPasswordWrong(adminPassword)){
+            LinkedList<String> list = new LinkedList<>();
+            list.add("Wrong password");
+            return list;
+        }
+        return MyLogger.logs;
+    }
+
+    @RequestMapping(value = "/getallsites", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String[] getAllNameOfSites(
+            @RequestParam String password,
+            HttpServletResponse response,
+            HttpServletRequest request) {
+        String accessControlAllowOrigin = request.getHeader("Origin");
+        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+        if (isAdminPasswordWrong(password)){
+            return new String[]{"Wrong password"};
+        }
+        List<String> list = MainController.sites.stream().map(Site::getName).collect(Collectors.toList());
+        String[] array = new String[list.size()];
+        list.toArray(array);
+        return array;
+    }
 
 
     @RequestMapping(value = "/site/add", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
@@ -30,12 +65,17 @@ public class AdminController {
                                 @RequestParam String googleAnalyticsTrackingId,
                                 @RequestParam String email,
                                 @RequestParam String blackIps,
+                                @RequestParam String password,
+                                @RequestParam String adminPassword,
                                 HttpServletResponse response,
                                 HttpServletRequest request
     ) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
 
+        if (isAdminPasswordWrong(adminPassword)){
+            return "Wrong password";
+        }
         List<Phone> phoneList = new ArrayList<>();
         for (String s : phones.split(",")) {
             phoneList.add(new Phone(s));
@@ -45,7 +85,7 @@ public class AdminController {
             blackList.add(s);
         }
 
-        Site newSite = new Site(name, phoneList, standartNumber, googleAnalyticsTrackingId, email, blackList);
+        Site newSite = new Site(name, phoneList, standartNumber, googleAnalyticsTrackingId, email, blackList, password);
 
 
         Site site = null;
@@ -81,10 +121,14 @@ public class AdminController {
     @RequestMapping(value = "/site/remove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getSiteByName(@RequestParam String name,
+                                @RequestParam String adminPassword,
                                 HttpServletResponse response,
                                 HttpServletRequest request) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+        if (isAdminPasswordWrong(adminPassword)){
+            return "Wrong password";
+        }
 
         Site site = null;
         try {
@@ -115,42 +159,45 @@ public class AdminController {
                             HttpServletRequest request) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-
-        Site site = null;
-        try {
-            site = MainController.getSiteByName(name);
-        } catch (NoSuchElementException e) {
-            MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
-            return "Not found in db";
-        }
-       return Utils.getScriptForSite(site);
+        return "<script src=\"http://194.44.37.30:8080/tracking/script/" + name + "\"></script>";
     }
 
 
-
-    @RequestMapping(value = "/getsetting/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    @RequestMapping(value = "/getsetting", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String getSetting(@PathVariable String name,
+    public String getSetting(@RequestParam String name,
+                             @RequestParam String adminPassword,
                              HttpServletResponse response,
                              HttpServletRequest request) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-       return Settings.getSetting(name);
+        if (isAdminPasswordWrong(adminPassword)){
+            return "Wrong password";
+        }
+        return Settings.getSetting(name);
     }
-
 
 
     @RequestMapping(value = "/setsetting", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String getSetting(@RequestParam String name,
+    public String setSetting(@RequestParam String name,
                              @RequestParam String value,
+                             @RequestParam String adminPassword,
                              HttpServletResponse response,
                              HttpServletRequest request) {
         String accessControlAllowOrigin = request.getHeader("Origin");
         response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-       Settings.setSetting(name,value);
-       String result = "Сохранено значение " + value + " для " + name;
-        MyLogger.log(LogCategory.ELSE,result);
-       return result;
+        if (isAdminPasswordWrong(adminPassword)){
+            return "Wrong password";
+        }
+        Settings.setSetting(name, value);
+        String result = "Сохранено значение " + value + " для " + name;
+        MyLogger.log(LogCategory.ELSE, result);
+        return result;
     }
+
+    private boolean isAdminPasswordWrong(String password){
+        return !password.equals(ADMIN_PASS);
+    }
+
 }

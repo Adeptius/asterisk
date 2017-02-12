@@ -92,7 +92,8 @@ public class MySqlDao {
                         set.getString("standart_number"),
                         set.getString("tracking_id"),
                         set.getString("email"),
-                        ips
+                        ips,
+                        set.getString("password")
                 ));
             }
             return sites;
@@ -189,6 +190,7 @@ public class MySqlDao {
         String googleId = site.getGoogleAnalyticsTrackingId();
         String phones = "";
         String blackList = "";
+        String password = site.getPassword();
         List<Phone> phoneList = site.getPhones();
         for (Phone phone : phoneList) {
             phones += "," + phone.getNumber();
@@ -211,7 +213,8 @@ public class MySqlDao {
                 + "'" + email + "',"
                 + "'" + phones + "',"
                 + "'" + standartNumber + "',"
-                + "'" + blackList + "')";
+                + "'" + blackList + "',"
+                + "'" + password + "')";
         return sql;
     }
 
@@ -258,7 +261,7 @@ public class MySqlDao {
                 statistic.setTalkingTime(set.getInt("talking_time"));
                 statistic.setGoogleId(set.getString("google_id"));
                 statistic.setCallUniqueId(set.getString("call_id"));
-                statistic.setRequest(set.getString("utm"));
+                statistic.setRequestWithOutfiltering(set.getString("utm"));
                 statisticList.add(statistic);
             }
             return statisticList;
@@ -328,4 +331,59 @@ public class MySqlDao {
         List<String> tablesToCreate = Utils.findTablesThatNeedToCreate(MainController.sites, tables);
         createStatisticTables(tablesToCreate);
     }
+
+    public void addIpToBlackList(String name, String ip) throws Exception {
+        String s = getBlackList(name);
+        s += "," + ip;
+        setBlackList(name, s);
+    }
+
+    public String deleteFromBlackList(String name, String ip) throws Exception {
+        String s = getBlackList(name);
+        if (s.contains(","+ip)){
+            s = s.replaceAll(","+ip, "");
+            setBlackList(name, s);
+            Site site = MainController.getSiteByName(name);
+            site.getBlackIps().remove(ip);
+            return "IP " + ip + " удалён";
+        }else if (s.contains(ip)){
+            s = s.replaceAll(ip, "");
+            setBlackList(name, s);
+            Site site = MainController.getSiteByName(name);
+            site.getBlackIps().remove(ip);
+            return "IP " + ip + " удалён";
+        }
+        return "IP " + ip + " не заблокирован";
+    }
+
+    private void setBlackList(String sitename, String ip) throws Exception {
+        String sql = "UPDATE `sites` SET `black_list_ip`='"+ip+"' WHERE `name`='"+sitename+"';";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception  e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, sitename + ": Ошибка при сохранении отчета в БД ");
+            throw new Exception(sitename + ": Ошибка при сохранении отчета в БД ");
+        }
+    }
+
+    private String getBlackList(String sitename) throws Exception{
+        String sql = "SELECT `black_list_ip` FROM `sites` WHERE `name` like \""+sitename+"\"";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery(sql);
+            if (set.next()){
+                return set.getString("black_list_ip");
+            }
+            throw new RuntimeException();
+        } catch (Exception  e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, sitename + ": Ошибка при загрузке черного списка из БД ");
+            throw new Exception(sitename + ": Ошибка при загрузке черного списка из БД ");
+        }
+    }
+
+
+
 }

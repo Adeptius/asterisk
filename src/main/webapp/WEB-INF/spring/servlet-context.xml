@@ -10,4 +10,15 @@
     <annotation-driven />
     <context:component-scan base-package="ua.adeptius.asterisk.controllers" />
 
+    <beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <beans:property name="prefix" value="/WEB-INF/views/" />
+        <beans:property name="suffix" value=".jsp" />
+    </beans:bean>
+
+
+    <resources mapping="/resources/**" location="/resources/" />
+    <resources mapping="/css/**" location="/resources/css/" />
+    <resources mapping="/js/**" location="/resources/js/" />
+    <resources mapping="/fonts/**" location="/resources/fonts/" />
+
 </beans:beans>
