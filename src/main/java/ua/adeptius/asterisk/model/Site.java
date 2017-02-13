@@ -7,7 +7,8 @@ import java.util.List;
 
 public class Site {
 
-    public Site(String name, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail, List<String> blackIps, String password) {
+    public Site(String name, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail,
+                List<String> blackIps, String password, int timeToBlock) {
         this.name = name;
         this.phones = phones;
         this.standartNumber = standartNumber;
@@ -15,6 +16,7 @@ public class Site {
         this.eMail = eMail;
         this.blackIps = blackIps;
         this.password = password;
+        this.timeToBlock = timeToBlock;
     }
 
     private List<String> blackIps;
@@ -26,6 +28,13 @@ public class Site {
     private String password;
     @JsonIgnore
     private long lastEmailTime;
+
+    private int timeToBlock;
+
+    public int getTimeToBlock() {
+        return timeToBlock;
+    }
+
 
     public String getPassword() {
         return password;

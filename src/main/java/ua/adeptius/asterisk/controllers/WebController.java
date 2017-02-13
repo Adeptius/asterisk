@@ -19,15 +19,9 @@ public class WebController {
     String plaintext(@PathVariable String sitename,
                      @PathVariable String googleid,
                      @PathVariable String ip,
-                     @PathVariable String pagerequest,
-                     HttpServletResponse response,
-                     HttpServletRequest request) {
-
+                     @PathVariable String pagerequest) {
         Site site = MainController.getSiteByName(sitename);
         String phone = MainController.getFreeNumberFromSite(site, googleid, ip, pagerequest);
-
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
         return phone;
     }
 

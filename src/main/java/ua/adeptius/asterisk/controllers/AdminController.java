@@ -26,12 +26,8 @@ public class AdminController {
 
     @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public LinkedList<String> getLogs(HttpServletResponse response,
-                                      HttpServletRequest request,
-                                      @RequestParam String adminPassword) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-        if (isAdminPasswordWrong(adminPassword)){
+    public LinkedList<String> getLogs(@RequestParam String adminPassword) {
+         if (isAdminPasswordWrong(adminPassword)){
             LinkedList<String> list = new LinkedList<>();
             list.add("Wrong password");
             return list;
@@ -42,11 +38,7 @@ public class AdminController {
     @RequestMapping(value = "/getallsites", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String[] getAllNameOfSites(
-            @RequestParam String password,
-            HttpServletResponse response,
-            HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+            @RequestParam String password) {
         if (isAdminPasswordWrong(password)){
             return new String[]{"Wrong password"};
         }
@@ -65,13 +57,9 @@ public class AdminController {
                                 @RequestParam String googleAnalyticsTrackingId,
                                 @RequestParam String email,
                                 @RequestParam String blackIps,
+                                @RequestParam int timeToBlock,
                                 @RequestParam String password,
-                                @RequestParam String adminPassword,
-                                HttpServletResponse response,
-                                HttpServletRequest request
-    ) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                                @RequestParam String adminPassword) {
 
         if (isAdminPasswordWrong(adminPassword)){
             return "Wrong password";
@@ -85,7 +73,7 @@ public class AdminController {
             blackList.add(s);
         }
 
-        Site newSite = new Site(name, phoneList, standartNumber, googleAnalyticsTrackingId, email, blackList, password);
+        Site newSite = new Site(name, phoneList, standartNumber, googleAnalyticsTrackingId, email, blackList, password, timeToBlock);
 
 
         Site site = null;
@@ -121,11 +109,7 @@ public class AdminController {
     @RequestMapping(value = "/site/remove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getSiteByName(@RequestParam String name,
-                                @RequestParam String adminPassword,
-                                HttpServletResponse response,
-                                HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                                @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)){
             return "Wrong password";
         }
@@ -154,23 +138,15 @@ public class AdminController {
 
     @RequestMapping(value = "/script/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String getScript(@PathVariable String name,
-                            HttpServletResponse response,
-                            HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-        return "<script src=\"http://194.44.37.30:8080/tracking/script/" + name + "\"></script>";
+    public String getScript(@PathVariable String name) {
+         return "<script src=\"http://194.44.37.30:8080/tracking/script/" + name + "\"></script>";
     }
 
 
     @RequestMapping(value = "/getsetting", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getSetting(@RequestParam String name,
-                             @RequestParam String adminPassword,
-                             HttpServletResponse response,
-                             HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                             @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)){
             return "Wrong password";
         }
@@ -182,11 +158,7 @@ public class AdminController {
     @ResponseBody
     public String setSetting(@RequestParam String name,
                              @RequestParam String value,
-                             @RequestParam String adminPassword,
-                             HttpServletResponse response,
-                             HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                             @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)){
             return "Wrong password";
         }

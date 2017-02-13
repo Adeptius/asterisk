@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.utils;
 
 
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
@@ -9,6 +10,8 @@ import ua.adeptius.asterisk.model.Site;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import static ua.adeptius.asterisk.model.LogCategory.DB_OPERATIONS;
+import static ua.adeptius.asterisk.model.LogCategory.ELSE;
 import static ua.adeptius.asterisk.model.LogCategory.NUMBER_FREE;
 
 public class PhonesWatcher extends Thread {
@@ -59,6 +62,19 @@ public class PhonesWatcher extends Thread {
             // считаем сколько времени номер занят
             past = currentTime - phone.getStartedBusy();
             phone.setBusyTime(past);
+        }
+
+        long timeToBlock = site.getTimeToBlock()*60*1000;
+
+        if (past > timeToBlock){
+//            site.getBlackIps().add(phone.getIp());
+            try {
+                MyLogger.log(ELSE, site.getName() + ": IP " + phone.getIp() + " заблокирован по времени.");
+                Main.mySqlDao.addIpToBlackList(site.getName(), phone.getIp());
+                phone.markFree();
+            } catch (Exception e) {
+                MyLogger.log(DB_OPERATIONS, site.getName() + ": ошибка добавления " + phone.getIp() + " в БД");
+            }
         }
     }
 }

@@ -23,11 +23,7 @@ public class UserConfigurationController {
     @ResponseBody
     public String addToBlackList(@RequestParam String name,
                                  @RequestParam String password,
-                                 @RequestParam String ip,
-                                 HttpServletResponse response,
-                                 HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                                 @RequestParam String ip) {
         if (isPasswordWrong(name, password)) {
             return "Wrong password";
         }
@@ -39,8 +35,6 @@ public class UserConfigurationController {
             regexMatcher.find();
             regexMatcher.group();
             Main.mySqlDao.addIpToBlackList(name, ip);
-            Site site = MainController.getSiteByName(name);
-            site.getBlackIps().add(ip);
             return "IP " + ip + " заблокирован.";
         } catch (Exception e) {
             return "Ошибка БД или неправильный IP";
@@ -51,11 +45,7 @@ public class UserConfigurationController {
         @ResponseBody
         public String removeFromBlackList (@RequestParam String name,
                 @RequestParam String password,
-                @RequestParam String ip,
-                HttpServletResponse response,
-                HttpServletRequest request){
-            String accessControlAllowOrigin = request.getHeader("Origin");
-            response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                @RequestParam String ip){
             if (isPasswordWrong(name, password)) {
                 return "Wrong password";
             }
@@ -77,12 +67,7 @@ public class UserConfigurationController {
         @RequestMapping(value = "/checklogin", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
         @ResponseBody
         public String checkLogin (@RequestParam String login,
-                @RequestParam String password,
-                HttpServletResponse response,
-                HttpServletRequest request){
-            String accessControlAllowOrigin = request.getHeader("Origin");
-            response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-
+                @RequestParam String password){
 
             try {
                 Site site = MainController.getSiteByName(login);

@@ -44,14 +44,13 @@ function getDate() {
 
 function processAllIfAuthIsOk(login, password){
     repeatedFunction();
-
     function repeatedFunction() {
         updatePhoneTable(login, password);
         updateLogs(login);
+        updateBlackList(login, password);
         setTimeout(repeatedFunction, 5000)
     }
 
-    updateBlackList(login, password);
 
     $('#historyButton').on('click', function () {
         showHistory(login, password, $('#dateFrom').val(), $('#dateTo').val());

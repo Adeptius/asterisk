@@ -26,13 +26,9 @@ public class StatusController {
     @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public Site getSiteByName(@RequestParam String name,
-                              @RequestParam String password,
-                              HttpServletResponse response,
-                              HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-        if (isPasswordWrong(name,password)){
-            return new Site("Wrong password",null,"Wrong password","Wrong password","Wrong password",null,"Wrong password");
+                              @RequestParam String password) {
+       if (isPasswordWrong(name,password)){
+            return new Site("Wrong password",null,"Wrong password","Wrong password","Wrong password",null,"Wrong password",0);
         }
 
         Site site = MainController.getSiteByName(name);
@@ -44,11 +40,7 @@ public class StatusController {
     public List<Statistic> getSiteByName(@RequestParam String name,
                                          @RequestParam String dateFrom,
                                          @RequestParam String dateTo,
-                                         @RequestParam String password,
-                                         HttpServletResponse response,
-                                         HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                                         @RequestParam String password) {
         if (isPasswordWrong(name,password)){
             ArrayList<Statistic> list = new ArrayList<>();
             Statistic statistic = new Statistic();

@@ -100,12 +100,13 @@
             <!--<version>1.2</version>-->
         <!--</dependency>-->
 
-        <!--&lt;!&ndash; @Inject &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>javax.inject</groupId>-->
-            <!--<artifactId>javax.inject</artifactId>-->
-            <!--<version>1</version>-->
-        <!--</dependency>-->
+        <!-- @Inject -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
         <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>servlet-api</artifactId>

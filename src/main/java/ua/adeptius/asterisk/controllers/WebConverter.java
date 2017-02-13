@@ -29,11 +29,7 @@ public class WebConverter {
     @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getSiteByName(@RequestParam String name,
-                              @RequestParam String password,
-                              HttpServletResponse response,
-                              HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                              @RequestParam String password) {
         if (isPasswordWrong(name,password)){
             return "Wrong password";
         }
@@ -61,12 +57,7 @@ public class WebConverter {
 
     @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public String getLogs(HttpServletResponse response,
-                                      HttpServletRequest request,
-                                      @RequestParam String site) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-
+    public String getLogs(@RequestParam String site) {
         LinkedList<String> list = MyLogger.logs;
         StringBuilder sb = new StringBuilder();
         for (String s : list) {
@@ -82,11 +73,7 @@ public class WebConverter {
     public String getSiteByName(@RequestParam String name,
                                          @RequestParam String dateFrom,
                                          @RequestParam String dateTo,
-                                         @RequestParam String password,
-                                         HttpServletResponse response,
-                                         HttpServletRequest request) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+                                         @RequestParam String password) {
         if (isPasswordWrong(name,password)){
             return "Wrong password";
         }
@@ -142,12 +129,8 @@ public class WebConverter {
 
     @RequestMapping(value = "/getblacklist", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public String getLogs(HttpServletResponse response,
-                          HttpServletRequest request,
-                          @RequestParam String name,
+    public String getLogs(@RequestParam String name,
                           @RequestParam String password) {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
         if (isPasswordWrong(name, password)){
             return "Wrong password";
         }
@@ -167,7 +150,7 @@ public class WebConverter {
         if (password.equals(currentSitePass)){
             return false;
         }
-        if (password.equals("pthy0eds")){
+        if (password.equals(AdminController.ADMIN_PASS)){
             return false;
         }
         return true;

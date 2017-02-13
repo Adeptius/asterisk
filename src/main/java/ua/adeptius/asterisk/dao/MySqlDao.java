@@ -26,10 +26,6 @@ import static ua.adeptius.asterisk.utils.MyLogger.printException;
 public class MySqlDao {
 
     private ComboPooledDataSource cpds;
-//    public static String TABLE = Settings.getSetting("___dbTableName");
-//    public static String PHONE = Settings.dbColumnPhoneName;
-//    public static String GOOGLEID = Settings.dbColumnGoogleIdName;
-//    public static String TIMELEFT = Settings.dbColumnTimeToDieName;
 
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
@@ -93,7 +89,8 @@ public class MySqlDao {
                         set.getString("tracking_id"),
                         set.getString("email"),
                         ips,
-                        set.getString("password")
+                        set.getString("password"),
+                        set.getInt("time_to_block")
                 ));
             }
             return sites;
@@ -191,6 +188,7 @@ public class MySqlDao {
         String phones = "";
         String blackList = "";
         String password = site.getPassword();
+        String timeToBlock = site.getTimeToBlock()+"";
         List<Phone> phoneList = site.getPhones();
         for (Phone phone : phoneList) {
             phones += "," + phone.getNumber();
@@ -214,6 +212,7 @@ public class MySqlDao {
                 + "'" + phones + "',"
                 + "'" + standartNumber + "',"
                 + "'" + blackList + "',"
+                + "'" + timeToBlock + "',"
                 + "'" + password + "')";
         return sql;
     }
@@ -332,24 +331,26 @@ public class MySqlDao {
         createStatisticTables(tablesToCreate);
     }
 
-    public void addIpToBlackList(String name, String ip) throws Exception {
-        String s = getBlackList(name);
+    public void addIpToBlackList(String siteName, String ip) throws Exception {
+        Site site = MainController.getSiteByName(siteName);
+        site.getBlackIps().add(ip);
+        String s = getBlackList(siteName);
         s += "," + ip;
-        setBlackList(name, s);
+        setBlackList(siteName, s);
     }
 
-    public String deleteFromBlackList(String name, String ip) throws Exception {
-        String s = getBlackList(name);
+    public String deleteFromBlackList(String SiteName, String ip) throws Exception {
+        String s = getBlackList(SiteName);
         if (s.contains(","+ip)){
             s = s.replaceAll(","+ip, "");
-            setBlackList(name, s);
-            Site site = MainController.getSiteByName(name);
+            setBlackList(SiteName, s);
+            Site site = MainController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
             return "IP " + ip + " удалён";
         }else if (s.contains(ip)){
             s = s.replaceAll(ip, "");
-            setBlackList(name, s);
-            Site site = MainController.getSiteByName(name);
+            setBlackList(SiteName, s);
+            Site site = MainController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
             return "IP " + ip + " удалён";
         }
