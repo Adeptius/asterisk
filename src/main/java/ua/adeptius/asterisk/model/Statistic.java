@@ -69,6 +69,9 @@ public class Statistic {
     }
 
     public String getRequest() {
+        if (reques==null){
+            return "";
+        }
         return reques;
     }
 

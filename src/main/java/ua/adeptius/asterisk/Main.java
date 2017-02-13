@@ -43,14 +43,6 @@ public class Main {
             throw new RuntimeException("ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");
         }
 
-        try {
-            monitor = new AsteriskMonitor();
-            monitor.run();
-        } catch (Exception e) {
-            e.printStackTrace();
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАПУСКА МОНИТОРИНГА ТЕЛЕФОНИИ");
-            throw new RuntimeException("ОШИБКА ЗАПУСКА МОНИТОРИНГА ТЕЛЕФОНИИ");
-        }
 
         new PhonesWatcher();
 
@@ -60,6 +52,29 @@ public class Main {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ");
             throw new RuntimeException("ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ");
+        }
+
+        Thread thread = new Thread(() -> initMonitor());
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+
+    private void initMonitor(){
+        try {
+            monitor = new AsteriskMonitor();
+            monitor.run();
+        } catch (Exception e) {
+//            e.printStackTrace();
+            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАПУСКА МОНИТОРИНГА ТЕЛЕФОНИИ " + e.getMessage());
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            } finally {
+            }
+            MyLogger.log(DB_OPERATIONS, "ПОВТОРНО ЗАПУСКАЮ ТЕЛЕФОНИЮ");
+            initMonitor();
         }
     }
 }

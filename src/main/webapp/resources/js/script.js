@@ -1,10 +1,11 @@
-
 $(document).ready(function () {
     var loginFromCoockie = $.cookie("tracklog");
     var passwordFromCoockie = $.cookie("trackpass");
     if (loginFromCoockie == null || passwordFromCoockie == null){
         window.location.href = '/tracking/login';
     }
+
+    setToday();
 
     $.post('/tracking/userconfig/checklogin',
         {login: loginFromCoockie, password: passwordFromCoockie}, function (data) {
@@ -14,7 +15,32 @@ $(document).ready(function () {
                 window.location.href = '/tracking/login.html';
             }
         });
+
+    $('#timeResetButton').on('click', function () {
+        setToday();
+        $('#divHistory').html('');
+    })
 });
+
+function setToday() {
+    $('#dateFrom').val( getDate() + ' 00:00:00');
+    $('#dateTo').val( getDate() + ' 23:59:59');
+}
+
+function getDate() {
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = date.getMonth() +1;
+    var day = date.getUTCDate();
+    if (month < 10){
+        month = '0' + month;
+    }
+    if (day < 10){
+        day = '0' + day;
+    }
+    return year + '-' + month + '-' + day;
+}
+
 
 function processAllIfAuthIsOk(login, password){
     repeatedFunction();
@@ -45,14 +71,6 @@ function processAllIfAuthIsOk(login, password){
         $.cookie("trackpass",null);
         window.location.href = '/tracking/login.html';
     });
-
-
-
-
-    // $('#phonesTable .statusNumber').click(function () {
-    //     alert('asdf');
-    //     alert($(this).val())
-    // });
 }
 
 function removeFromBlackList(login, password, ip) {
