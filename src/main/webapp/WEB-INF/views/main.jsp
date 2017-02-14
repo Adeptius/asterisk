@@ -35,8 +35,12 @@
             <button id="buttonBlockIp" type="submit">Заблокировать</button>
             <button id="buttonUnBlockIp" type="submit">Разблокировать</button>
         </div>
+        <h1>Минут до автоблока</h1>
+        <div id="blockTimerButtons">
+            <input id="timeToBlock" type="text">
+            <button id="saveBlockTimeButton" type="submit">Задать</button>
+        </div>
     </div>
-
 </div>
 
 
@@ -49,10 +53,6 @@
 </div>
 
 <table id="divHistory" class="simple-little-table"></table>
-
-
-
-
 
 </body>
 </html>

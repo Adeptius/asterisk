@@ -120,7 +120,7 @@ public class WebConverter {
                 "<button type=\"submit\">Скачать</button>\n" +
                 "</form>";
 
-        String url = Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT") + "/tracking/status/record/"+id+"/"+date;
+        String url = "/tracking/status/record/"+id+"/"+date;
 //        String url = "http://188.231.188.166/in-443550206-0934027182-20170209-000706-1486591626.2761.wav";
 
         form = form.replaceAll("URL",url);

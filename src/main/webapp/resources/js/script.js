@@ -50,6 +50,7 @@ function processAllIfAuthIsOk(login, password){
         updateBlackList(login, password);
         setTimeout(repeatedFunction, 5000)
     }
+    updateBlackListTimer(login, password);
 
 
     $('#historyButton').on('click', function () {
@@ -64,6 +65,9 @@ function processAllIfAuthIsOk(login, password){
         removeFromBlackList(login, password, $('#ipToBlock').val());
     });
 
+    $('#saveBlockTimeButton').on('click', function () {
+        changeBlackListTimer(login, password, $('#timeToBlock').val());
+    });
 
     $('#exitButton').on('click', function () {
         $.cookie("tracklog",null);
@@ -87,6 +91,20 @@ function addToBlackList(login, password, ip) {
             alert(data);
             updateBlackList(login, password);
             $('#ipToBlock').val('')
+        });
+}
+
+function changeBlackListTimer(login, password, timer) {
+    $.post('/tracking/userconfig/setblocktime',
+        {name: login, password: password, time: timer}, function (data) {
+            updateBlackListTimer();
+        });
+}
+
+function updateBlackListTimer(login, password) {
+    $.post('/tracking/status/siteinfo',
+        {name: login, password: password}, function (data) {
+            $('#timeToBlock').val(data.timeToBlock);
         });
 }
 

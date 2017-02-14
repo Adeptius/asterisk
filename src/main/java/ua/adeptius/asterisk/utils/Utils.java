@@ -52,15 +52,4 @@ public class Utils {
 
         return s;
     }
-
-    public static void check() {
-        try {
-            URL url = new URL("http://e404.ho.ua/on");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.connect();
-            connection.getInputStream();
-        } catch (IOException e) {
-            throw new RuntimeException();
-        }
-    }
 }

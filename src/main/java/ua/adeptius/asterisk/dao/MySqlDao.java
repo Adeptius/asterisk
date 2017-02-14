@@ -336,6 +336,10 @@ public class MySqlDao {
         site.getBlackIps().add(ip);
         String s = getBlackList(siteName);
         s += "," + ip;
+        if (s.length() > 1500){
+            s = s.substring(s.indexOf(","));
+            s = s.substring(s.indexOf(","));
+        }
         setBlackList(siteName, s);
     }
 
@@ -386,5 +390,16 @@ public class MySqlDao {
     }
 
 
-
+    public void setTimeToBlock(String name, int time) throws Exception{
+        String sql = "UPDATE `sites` SET `time_to_block`='"+time+"' WHERE `name`='"+name+"';";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+            MainController.getSiteByName(name).setTimeToBlock(time);
+        } catch (Exception  e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, name + ": Ошибка при установке времени блокировки в БД");
+            throw new Exception(name + ": Ошибка при установке времени блокировки в БД");
+        }
+    }
 }

@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Site;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,6 +15,24 @@ import java.util.regex.Pattern;
 @Controller
 @RequestMapping("/userconfig")
 public class UserConfigurationController {
+
+
+    @RequestMapping(value = "/setblocktime", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
+    @ResponseBody
+    public String addToBlackList(@RequestParam String name,
+                                 @RequestParam String password,
+                                 @RequestParam int time) {
+        if (isPasswordWrong(name, password)) {
+            return "Wrong password";
+        }
+        try {
+            Main.mySqlDao.setTimeToBlock(name, time);
+            MainController.getSiteByName(name).setTimeToBlock(time);
+            return "Задано время автоматической блокировки: " + time + " минут";
+        } catch (Exception e) {
+            return "Ошибка";
+        }
+    }
 
 
     @RequestMapping(value = "/addtoblacklist", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")

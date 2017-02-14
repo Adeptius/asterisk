@@ -17,7 +17,7 @@ textarea {
 
 #logArea {
     width: 400px;
-    height: 250px;
+    height: 300px;
 }
 
 #blackListArea {
@@ -39,6 +39,11 @@ textarea {
     display: block;
 }
 
+#blockTimerButtons{
+    margin: 10px;
+    width: 150px;
+}
+
 #headerHorizontalDiv {
     overflow: hidden;
 }
@@ -47,22 +52,10 @@ textarea {
     float: left;
 }
 
-/*#ipToBlock {*/
-    /*width: 100px;*/
-/*}*/
-
 #buttonBlockIp {
 
 }
 
-/*form {*/
-    /*display: block;*/
-    /*margin: 0;*/
-    /*padding: 0;*/
-    /*width: 50%;*/
-    /*border: 1px solid green;*/
-    /*overflow: visible*/
-/*}*/
 
 #ipToBlock, #buttonBlockIp, #buttonUnBlockIp {
     display: block;
@@ -89,4 +82,12 @@ textarea {
 
 h1{
     margin-left: 10px;
+}
+
+#timeToBlock{
+    width: 50px;
+}
+
+#saveBlockTimeButton{
+    width: 95px;
 }

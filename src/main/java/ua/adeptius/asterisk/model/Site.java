@@ -31,6 +31,10 @@ public class Site {
 
     private int timeToBlock;
 
+    public void setTimeToBlock(int timeToBlock) {
+        this.timeToBlock = timeToBlock;
+    }
+
     public int getTimeToBlock() {
         return timeToBlock;
     }

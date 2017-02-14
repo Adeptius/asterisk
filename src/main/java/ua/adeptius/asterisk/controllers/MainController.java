@@ -53,8 +53,6 @@ public class MainController {
             }
         }
 
-
-        Utils.check();
         MyLogger.log(REQUEST_NUMBER, site.getName() + ": запрос номера googleId: " + googleId);
         for (Phone phone : phones) {
             if (phone.isFree()) {
@@ -67,10 +65,8 @@ public class MainController {
             }
         }
 
-
         MyLogger.log(NO_NUMBERS_LEFT, site.getName() + ": нет свободных номеров.");
         new Mail().checkTimeAndSendEmail(site, "Закончились свободные номера");
-
         return site.getStandartNumber();
     }
 
