@@ -31,11 +31,4 @@ public class ScriptController {
             return "Not found in db";
         }
     }
-
-
-
-
-
-
-
 }

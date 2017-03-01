@@ -73,13 +73,17 @@ public class WebConverter {
     public String getSiteByName(@RequestParam String name,
                                          @RequestParam String dateFrom,
                                          @RequestParam String dateTo,
+                                         @RequestParam String direction,
                                          @RequestParam String password) {
         if (isPasswordWrong(name,password)){
             return "Wrong password";
         }
+        if (!direction.equals("IN") && !direction.equals("OUT")){
+            return "Wrong direction";
+        }
         try {
             if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
-                List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo);
+                List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo, direction);
                 Collections.reverse(list);
                 StringBuilder builder = new StringBuilder();
                 builder.append(
@@ -99,7 +103,7 @@ public class WebConverter {
                     builder.append("<td>" + statistic.getDate() + "</td>");
                     builder.append("<td>" + statistic.getTo() + "</td>");
                     builder.append("<td>" + statistic.getFrom() + "</td>");
-                    builder.append("<td>" + statistic.getTimeToAnswer() + "</td>");
+                    builder.append("<td>" + statistic.getTimeToAnswerForWeb() + "</td>");
                     builder.append("<td>" + statistic.getTalkingTime() + "</td>");
                     builder.append("<td>" + statistic.getGoogleId() + "</td>");
                     builder.append("<td>" + statistic.getRequest().replaceAll("&", " ") + "</td>");

@@ -28,19 +28,34 @@ public class Statistic {
     private int speakTime;
     @JsonIgnore
     private int dateForDb;
+    @JsonIgnore
+    private int timeToAnswerInSeconds;
 
+    private String direction;
     private String from;
     private String to;
     private String date;
-    private int timeToAnswerInSeconds;
     private int talkingTime;
     String googleId;
     String reques;
     private String callUniqueId;
 
 
+    public String getDirection() {
+        return direction;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
     public void setTimeToAnswer(int timeToAnswer) {
+        this.timeToAnswerInSeconds = timeToAnswer;
         this.timeToAnswer = timeToAnswer;
+    }
+
+    public int getTimeToAnswerForWeb() {
+        return timeToAnswer;
     }
 
     public int getTalkingTime() {
@@ -97,6 +112,7 @@ public class Statistic {
         long time = ended - answered;
         return StringUtils.getStringedTime(time);
     }
+
 
 
     public int getTimeToAnswerInSeconds(){
@@ -219,5 +235,27 @@ public class Statistic {
             }
             return "";
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Statistic{" +
+                "called=" + called +
+                ", answered=" + answered +
+                ", ended=" + ended +
+                ", site=" + site +
+                ", speakTimeInSeconds=" + speakTimeInSeconds +
+                ", speakTime=" + speakTime +
+                ", dateForDb=" + dateForDb +
+                ", direction='" + direction + '\'' +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", date='" + date + '\'' +
+                ", timeToAnswerInSeconds=" + timeToAnswerInSeconds +
+                ", talkingTime=" + talkingTime +
+                ", googleId='" + googleId + '\'' +
+                ", reques='" + reques + '\'' +
+                ", callUniqueId='" + callUniqueId + '\'' +
+                '}';
     }
 }

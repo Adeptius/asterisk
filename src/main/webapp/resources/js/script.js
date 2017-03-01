@@ -53,8 +53,12 @@ function processAllIfAuthIsOk(login, password){
     updateBlackListTimer(login, password);
 
 
-    $('#historyButton').on('click', function () {
-        showHistory(login, password, $('#dateFrom').val(), $('#dateTo').val());
+    $('#historyInButton').on('click', function () {
+        showHistory(login, password, $('#dateFrom').val(), $('#dateTo').val(), 'IN');
+    });
+
+    $('#historyOutButton').on('click', function () {
+        showHistory(login, password, $('#dateFrom').val(), $('#dateTo').val(), 'OUT');
     });
 
     $('#buttonBlockIp').on('click', function () {
@@ -97,7 +101,8 @@ function addToBlackList(login, password, ip) {
 function changeBlackListTimer(login, password, timer) {
     $.post('/tracking/userconfig/setblocktime',
         {name: login, password: password, time: timer}, function (data) {
-            updateBlackListTimer();
+            updateBlackListTimer(login, password);
+            alert(data);
         });
 }
 
@@ -115,9 +120,9 @@ function updateBlackList(login, password) {
         });
 }
 
-function showHistory(login, password, datefrom, dateto) {
+function showHistory(login, password, datefrom, dateto, direction) {
     $.post('/tracking/converter/history',
-        {name: login, password: password, dateFrom: datefrom, dateTo: dateto}, function (data) {
+        {name: login, password: password, dateFrom: datefrom, dateTo: dateto, direction: direction}, function (data) {
             $('#divHistory').html(data);
         });
 }

@@ -40,6 +40,7 @@ public class StatusController {
     public List<Statistic> getSiteByName(@RequestParam String name,
                                          @RequestParam String dateFrom,
                                          @RequestParam String dateTo,
+                                         @RequestParam String direction,
                                          @RequestParam String password) {
         if (isPasswordWrong(name,password)){
             ArrayList<Statistic> list = new ArrayList<>();
@@ -48,9 +49,16 @@ public class StatusController {
             list.add(statistic);
             return list;
         }
+        if (!direction.equals("IN") && !direction.equals("OUT")){
+            ArrayList<Statistic> list = new ArrayList<>();
+            Statistic statistic = new Statistic();
+            statistic.setDate("Wrong direction");
+            list.add(statistic);
+            return list;
+        }
         try {
             if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
-                List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo);
+                List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo,direction);
                 return list;
             }
         } catch (Exception e) {

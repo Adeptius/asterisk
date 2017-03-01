@@ -48,7 +48,8 @@
 <div id="historyButtons">
     <input type="text" id="dateFrom" value="2017-02-07 00:00:00">
     <input type="text" id="dateTo" value="2017-02-15 00:00:00">
-    <button type="submit" id="historyButton">Показать</button>
+    <button type="submit" id="historyInButton">Показать входящие</button>
+    <button type="submit" id="historyOutButton">Показать исходящие</button>
     <button type="submit" id="timeResetButton">Сброс</button>
 </div>
 

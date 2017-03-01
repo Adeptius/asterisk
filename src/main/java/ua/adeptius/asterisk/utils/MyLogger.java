@@ -11,9 +11,6 @@ public class MyLogger {
 
     public static void log(LogCategory category, String message) {
         if (Settings.getSettingBoolean(category.toString())){
-            if (Settings.getSettingBoolean("ONLY_ACTIVE_SITE") && !message.contains(Settings.getSetting("ACTIVE_SITE"))){
-                return;
-            }
             System.out.println(message);
             logs.addFirst(message);
             if (logs.size()>70){

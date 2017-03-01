@@ -165,6 +165,7 @@ public class MySqlDao {
     public String createSqlQueryForCtreatingStatisticTable(String name) {
         String sql = "CREATE TABLE `" + name + "` (  " +
                 "`date` VARCHAR(20) NOT NULL,  " +
+                "`direction` VARCHAR(3) NOT NULL,  " +
                 "`to` VARCHAR(45) NULL,  " +
                 "`from` VARCHAR(45) NULL,  " +
                 "`time_to_answer` INT NULL,  " +
@@ -239,10 +240,11 @@ public class MySqlDao {
     }
 
 
-    public List<Statistic> getStatisticOfRange(String sitename, String startDate, String endDate) throws Exception {
+    public List<Statistic> getStatisticOfRange(String sitename, String startDate, String endDate, String direction) throws Exception {
         String sql = "SELECT * FROM calltrackdb.statistic_" +
                 sitename +
-                " WHERE call_date BETWEEN STR_TO_DATE('" +
+                " WHERE direction = '"+direction+
+                "' AND call_date BETWEEN STR_TO_DATE('" +
                 startDate +
                 "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" +
                 endDate +
@@ -254,6 +256,7 @@ public class MySqlDao {
             while (set.next()) {
                 Statistic statistic = new Statistic();
                 statistic.setDate(set.getString("call_date"));
+                statistic.setDirection(set.getString("direction"));
                 statistic.setTo(set.getString("to"));
                 statistic.setFrom(set.getString("from"));
                 statistic.setTimeToAnswer(set.getInt("time_to_answer"));
@@ -307,6 +310,7 @@ public class MySqlDao {
     public void saveStatisticToTable(Site site, Statistic statistic) {
         String sql = "INSERT INTO `statistic_"+site.getName()+"` VALUES ('"
                 +statistic.getDateForDb()+"', '"
+                +statistic.getDirection()+"', '"
                 +statistic.getTo()+"', '"
                 +statistic.getFrom()+"', '"
                 +statistic.getTimeToAnswerInSeconds()+"', '"

@@ -163,13 +163,16 @@ public class AdminController {
             return "Wrong password";
         }
         Settings.setSetting(name, value);
-        String result = "Сохранено значение " + value + " для " + name;
-        MyLogger.log(LogCategory.ELSE, result);
-        return result;
+        if (!name.equals("ACTIVE_SITE")){
+            String result = "Сохранено значение " + value + " для " + name;
+            MyLogger.log(LogCategory.ELSE, result);
+            return result;
+        }else {
+            return null;
+        }
     }
 
     private boolean isAdminPasswordWrong(String password){
         return !password.equals(ADMIN_PASS);
     }
-
 }
