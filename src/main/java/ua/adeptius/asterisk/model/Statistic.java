@@ -200,7 +200,7 @@ public class Statistic {
 
     private static String filterUtmMarks(String s){
         if (s==null || "".equals(s)){ // если параметров нет вообще
-            return s;
+            return s ;
         }
         if (!s.contains("=")){ // если почему-то не пусто но и параметра нет
             return "";
