@@ -22,14 +22,7 @@ public class Statistic {
     private int timeToAnswer;
     @JsonIgnore
     private Site site;
-    @JsonIgnore
-    private int speakTimeInSeconds;
-    @JsonIgnore
-    private int speakTime;
-    @JsonIgnore
-    private int dateForDb;
-    @JsonIgnore
-    private int timeToAnswerInSeconds;
+
 
     private String direction;
     private String from;
@@ -39,6 +32,26 @@ public class Statistic {
     String googleId;
     String reques;
     private String callUniqueId;
+
+    public String getTimeToAnswerForWebInSeconds() {
+        if (timeToAnswer == 0) {
+            return "Недозвон";
+        }
+        return "" + (timeToAnswer - 2); // для отображения в веб. Корректирую погрешность на +2 секунды
+    }
+
+    // Используется в JSON
+    public String getTimeToAnswerForWebPretty() {
+        if (timeToAnswer == 0) {
+            return "Недозвон";
+        }
+        return StringUtils.getStringedTime((timeToAnswer - 2) * 1000); // для отображения в веб. Корректирую погрешность на +2 секунды
+    }
+
+    // Используется в JSON
+    public String getTalkingTimePretty() {
+        return StringUtils.getStringedTime(talkingTime*1000);
+    }
 
 
     public String getDirection() {
@@ -50,13 +63,9 @@ public class Statistic {
     }
 
     public void setTimeToAnswer(int timeToAnswer) {
-        this.timeToAnswerInSeconds = timeToAnswer;
         this.timeToAnswer = timeToAnswer;
     }
 
-    public int getTimeToAnswerForWeb() {
-        return timeToAnswer;
-    }
 
     public int getTalkingTime() {
         return talkingTime;
@@ -84,7 +93,7 @@ public class Statistic {
     }
 
     public String getRequest() {
-        if (reques==null){
+        if (reques == null) {
             return "";
         }
         return reques;
@@ -93,46 +102,41 @@ public class Statistic {
     public void setRequest(String reques) {
         this.reques = filterUtmMarks(reques);
     }
- public void setRequestWithOutfiltering(String reques) {
+
+    public void setRequestWithoutFiltering(String reques) {
         this.reques = reques;
     }
 
-    public String getTimeToAnswer(){
-        if (answered == 0){
+    public String getTimeToAnswer() {
+        if (answered == 0) {
             return "0";
         }
         long time = answered - called;
         return StringUtils.getStringedTime(time);
     }
 
-    public String getSpeakTime(){
-        if (answered == 0){
-            return "Сбой звонка";
-        }
-        long time = ended - answered;
-        return StringUtils.getStringedTime(time);
-    }
 
-
-
-    public int getTimeToAnswerInSeconds(){
-        if (answered == 0){
+    @JsonIgnore
+    public int getTimeToAnswerInSeconds() {
+        if (answered == 0) {
             return 0;
         }
         long time = answered - called;
-        return (int) (time/1000);
+        return (int) (time / 1000);
     }
 
-    public int getSpeakTimeInSeconds(){
+    @JsonIgnore
+    public int getSpeakTimeInSeconds() {
         long time = 0;
-        if (answered !=0){
+        if (answered != 0) {
             time = ended - answered;
-        }else {
+        } else {
             time = ended - called;
         }
         return (int) (time / 1000);
     }
 
+    @JsonIgnore
     public String getDateForDb() {
         long time = called;
         GregorianCalendar calendar = new GregorianCalendar();
@@ -149,25 +153,16 @@ public class Statistic {
         this.site = site;
     }
 
-    public long getCalled() {
-        return called;
-    }
 
     public void setCalled(long called) {
         this.called = called;
     }
 
-    public long getAnswered() {
-        return answered;
-    }
 
     public void setAnswered(long answered) {
         this.answered = answered;
     }
 
-    public long getEnded() {
-        return ended;
-    }
 
     public void setEnded(long ended) {
         this.ended = ended;
@@ -198,11 +193,11 @@ public class Statistic {
     }
 
 
-    private static String filterUtmMarks(String s){
-        if (s==null || "".equals(s)){ // если параметров нет вообще
-            return s ;
+    private static String filterUtmMarks(String s) {
+        if (s == null || "".equals(s)) { // если параметров нет вообще
+            return s;
         }
-        if (!s.contains("=")){ // если почему-то не пусто но и параметра нет
+        if (!s.contains("=")) { // если почему-то не пусто но и параметра нет
             return "";
         }
         String[] keys = new String[]{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "pm_source", "pm_block", "pm_position"};
@@ -214,8 +209,8 @@ public class Statistic {
                     String currentKey = splitted[i].substring(0, splitted[i].indexOf("="));
                     for (int j = 0; j < keys.length; j++) {
                         if (currentKey.equals(keys[j])) {
-                            String currentValue = splitted[i].substring(splitted[i].indexOf("=")+1);
-                            if (!currentValue.equals("")){ // если значение не пустое.
+                            String currentValue = splitted[i].substring(splitted[i].indexOf("=") + 1);
+                            if (!currentValue.equals("")) { // если значение не пустое.
                                 if (!result.equals("")) { // вначале & добавлять не нужно
                                     result += "&";
                                 }
@@ -226,10 +221,10 @@ public class Statistic {
                 }
             }
             return result;
-        }else {// если параметр 1
+        } else {// если параметр 1
             for (int i = 0; i < keys.length; i++) {
                 String key = s.substring(0, s.indexOf("="));
-                if (keys[i].equals(key)){
+                if (keys[i].equals(key)) {
                     return s;
                 }
             }
@@ -237,25 +232,39 @@ public class Statistic {
         }
     }
 
-    @Override
-    public String toString() {
-        return "Statistic{" +
-                "called=" + called +
-                ", answered=" + answered +
-                ", ended=" + ended +
-                ", site=" + site +
-                ", speakTimeInSeconds=" + speakTimeInSeconds +
-                ", speakTime=" + speakTime +
-                ", dateForDb=" + dateForDb +
-                ", direction='" + direction + '\'' +
-                ", from='" + from + '\'' +
-                ", to='" + to + '\'' +
-                ", date='" + date + '\'' +
-                ", timeToAnswerInSeconds=" + timeToAnswerInSeconds +
-                ", talkingTime=" + talkingTime +
-                ", googleId='" + googleId + '\'' +
-                ", reques='" + reques + '\'' +
-                ", callUniqueId='" + callUniqueId + '\'' +
-                '}';
-    }
+    //    public String getSpeakTime(){
+//        if (answered == 0){
+//            return "Недозвон";
+//        }
+//        long time = ended - answered;
+//        return StringUtils.getStringedTime(time);
+//    }
+
+    //    public long getEnded() {
+//        return ended;
+//    }
+
+    //    public long getAnswered() {
+//        return answered;
+//    }
+
+
+    //    public long getCalled() {
+//        return called;
+//    }
+
+
+//    public int getTimeToAnswerForWeb() {
+//        return timeToAnswer;
+//    }
+
+    //    @JsonIgnore
+//    private int speakTimeInSeconds;
+//    @JsonIgnore
+//    private int speakTime;
+//    @JsonIgnore
+//    private int dateForDb;
+//    @JsonIgnore
+//    private int timeToAnswerInSeconds;
+
 }

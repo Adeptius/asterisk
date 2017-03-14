@@ -244,7 +244,7 @@ public class MySqlDao {
         String sql = "SELECT * FROM calltrackdb.statistic_" +
                 sitename +
                 " WHERE direction = '"+direction+
-                "' AND call_date BETWEEN STR_TO_DATE('" +
+                "' AND date BETWEEN STR_TO_DATE('" +
                 startDate +
                 "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" +
                 endDate +
@@ -255,7 +255,7 @@ public class MySqlDao {
             List<Statistic> statisticList = new ArrayList<>();
             while (set.next()) {
                 Statistic statistic = new Statistic();
-                statistic.setDate(set.getString("call_date"));
+                statistic.setDate(set.getString("date"));
                 statistic.setDirection(set.getString("direction"));
                 statistic.setTo(set.getString("to"));
                 statistic.setFrom(set.getString("from"));
@@ -263,7 +263,7 @@ public class MySqlDao {
                 statistic.setTalkingTime(set.getInt("talking_time"));
                 statistic.setGoogleId(set.getString("google_id"));
                 statistic.setCallUniqueId(set.getString("call_id"));
-                statistic.setRequestWithOutfiltering(set.getString("utm"));
+                statistic.setRequestWithoutFiltering(set.getString("utm"));
                 statisticList.add(statistic);
             }
             return statisticList;
@@ -278,7 +278,8 @@ public class MySqlDao {
 
     public void deleteTables(List<String> tablesToDelete) {
         for (String s : tablesToDelete) {
-            String sql = "DROP TABLE " + s;
+//            String sql = "DROP TABLE `" + s;
+            String sql = "DROP TABLE `"+ s +"`";
             try (Connection connection = getConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);

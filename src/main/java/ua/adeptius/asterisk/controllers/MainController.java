@@ -9,7 +9,6 @@ import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.GoogleAnalitycs;
 import ua.adeptius.asterisk.utils.Mail;
 import ua.adeptius.asterisk.utils.MyLogger;
-import ua.adeptius.asterisk.utils.Utils;
 
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -95,6 +94,7 @@ public class MainController {
     private static HashMap<String, Statistic> phonesTime = new HashMap<>();
 
     public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo, String callUniqueId) {
+
         Site site;
         if ((site = whosePhone(phoneTo)) != null) { // Если входящий звонок
             if (category == INCOMING_CALL) {
@@ -135,7 +135,7 @@ public class MainController {
                             + " ответил за: "
                             + statistic.getTimeToAnswer()
                             + ", время разговора: "
-                            + statistic.getSpeakTime();
+                            + statistic.getTimeToAnswerForWebInSeconds();
                     MyLogger.log(PHONE_TIME_REPORT, report);
                     Main.mySqlDao.saveStatisticToTable(site, statistic);
 
@@ -172,7 +172,7 @@ public class MainController {
                             + " с "
                             + statistic.getTo()
                             + ", время разговора: "
-                            + statistic.getSpeakTime();
+                            + statistic.getTimeToAnswerForWebInSeconds();
                     MyLogger.log(PHONE_TIME_REPORT, report);
                     Main.mySqlDao.saveStatisticToTable(site, statistic);
                 }catch (NullPointerException e){

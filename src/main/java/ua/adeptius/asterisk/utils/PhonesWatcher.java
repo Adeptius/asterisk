@@ -19,7 +19,7 @@ public class PhonesWatcher extends Thread {
     List<Site> sites = MainController.sites;
 
     public PhonesWatcher() {
-//        setDaemon(true);
+        setDaemon(true);
         start();
     }
 

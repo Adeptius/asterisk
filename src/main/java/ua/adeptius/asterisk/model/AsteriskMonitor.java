@@ -39,39 +39,55 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     private HashMap<String, String> phonesFromAndPhonesTo = new HashMap<>();
 
-    public static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
-
     public void onManagerEvent(ManagerEvent event) {
         if (!(event instanceof NewChannelEvent) && !(event instanceof HangupEvent) && !(event instanceof NewStateEvent)) {
             return;
         }
 
-//        EXECUTOR.submit(() -> {
 //        System.out.println(event);
-            if (event instanceof NewChannelEvent) {
-//            System.out.println(event);
-                String callerIdNum = ((NewChannelEvent) event).getCallerIdNum();
-                String phoneReseive = ((NewChannelEvent) event).getExten();
-                phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
-                MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
+        if (event instanceof NewChannelEvent) {
+            NewChannelEvent newChannelEvent = (NewChannelEvent) event;
+            if (newChannelEvent.getChannel().startsWith("SIP/Intertelekom")) return;
 
-            } else if (event instanceof HangupEvent) {
-//            System.out.println(event);
-                String callUniqueId = ((HangupEvent) event).getUniqueId();
-                String callerIdNum = ((HangupEvent) event).getCallerIdNum();
-                String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-                MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
-                phonesFromAndPhonesTo.remove(callerIdNum);
+//            System.out.println(newChannelEvent);
+            String callerIdNum = addZero(newChannelEvent.getCallerIdNum());
+            String phoneReseive = addZero(newChannelEvent.getExten());
+            phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
+            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
 
-            } else if (event instanceof NewStateEvent) {
-//            System.out.println(event);
-                int code = ((NewStateEvent) event).getChannelState();
-                String callerIdNum = ((NewStateEvent) event).getCallerIdNum();
-                String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-                if (code == 6) {
-                    MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
-                }
+        } else if (event instanceof HangupEvent) {
+            HangupEvent hangupEvent = (HangupEvent) event;
+            if (hangupEvent.getChannel().startsWith("SIP/Intertelekom")) return;
+
+//            System.out.println(hangupEvent);
+            String callUniqueId =  addZero(hangupEvent.getUniqueId());
+            String callerIdNum =  addZero(hangupEvent.getCallerIdNum());
+            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
+            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
+            phonesFromAndPhonesTo.remove(callerIdNum);
+
+        } else if (event instanceof NewStateEvent) {
+            NewStateEvent newStateEvent = (NewStateEvent) event;
+            if (newStateEvent.getChannel().startsWith("SIP/Intertelekom")) return;
+
+//            System.out.println(newStateEvent);
+            int code = newStateEvent.getChannelState();
+            String callerIdNum =  addZero(newStateEvent.getCallerIdNum());
+            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
+            if (code == 6) {
+                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
             }
-//        });
+        }
+    }
+
+    public static String addZero(String source){
+        try {
+            if (source.length() == 9 && !source.startsWith("0")) {
+                source = "0" + source;
+            }
+        }catch (Exception e){
+            System.out.println("Ошибка добавления нолика. Пришло " + source);
+        }
+        return source;
     }
 }

@@ -11,11 +11,7 @@ import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.utils.MyLogger;
-import ua.adeptius.asterisk.utils.Settings;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,11 +99,15 @@ public class WebConverter {
                     builder.append("<td>" + statistic.getDate() + "</td>");
                     builder.append("<td>" + statistic.getTo() + "</td>");
                     builder.append("<td>" + statistic.getFrom() + "</td>");
-                    builder.append("<td>" + statistic.getTimeToAnswerForWeb() + "</td>");
+                    builder.append("<td>" + statistic.getTimeToAnswerForWebInSeconds() + "</td>");
                     builder.append("<td>" + statistic.getTalkingTime() + "</td>");
                     builder.append("<td>" + statistic.getGoogleId() + "</td>");
                     builder.append("<td>" + statistic.getRequest().replaceAll("&", " ") + "</td>");
-                    builder.append("<td>" + getButton(statistic.getDate(), statistic.getCallUniqueId()) + "</td>");
+                    if (!statistic.getTimeToAnswerForWebInSeconds().equals("Недозвон")){
+                        builder.append("<td>" + getButton(statistic.getDate(), statistic.getCallUniqueId()) + "</td>");
+                    }else {
+                        builder.append("<td>" + "</td>");
+                    }
                     builder.append("</tr>\n");
                 }
                 return builder.toString();

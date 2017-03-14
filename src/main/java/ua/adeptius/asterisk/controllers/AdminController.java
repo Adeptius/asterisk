@@ -80,7 +80,7 @@ public class AdminController {
         try {
             site = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
-            e.printStackTrace();
+            MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + name + " В базе нет. Создаём новый.");
         }
 
 
@@ -139,7 +139,11 @@ public class AdminController {
     @RequestMapping(value = "/script/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getScript(@PathVariable String name) {
-         return "<script src=\"http://194.44.37.30:8080/tracking/script/" + name + "\"></script>";
+         return "<script src=\"http://"
+                 + Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT")
+                 + "/tracking/script/"
+                 + name
+                 + "\"></script>";
     }
 
 

@@ -65,7 +65,6 @@ public class Main {
             monitor = new AsteriskMonitor();
             monitor.run();
         } catch (Exception e) {
-//            e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАПУСКА МОНИТОРИНГА ТЕЛЕФОНИИ " + e.getMessage());
             try {
                 Thread.sleep(60000);
