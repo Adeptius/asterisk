@@ -11,8 +11,6 @@ import org.asteriskjava.manager.event.NewChannelEvent;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static ua.adeptius.asterisk.model.LogCategory.ANSWER_CALL;
 import static ua.adeptius.asterisk.model.LogCategory.ENDED_CALL;
