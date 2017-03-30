@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="war" name="asterisk_dmitriy:war">
-    <output-path>$PROJECT_DIR$/target</output-path>
-    <root id="archive" name="tracking.war">
-      <element id="artifact" artifact-name="asterisk_dmitriy:war exploded" />
-    </root>
-  </artifact>
-</component>
