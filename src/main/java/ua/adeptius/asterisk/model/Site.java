@@ -2,7 +2,9 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import ua.adeptius.asterisk.forwarding.Rule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Site {
@@ -17,6 +19,9 @@ public class Site {
         this.blackIps = blackIps;
         this.password = password;
         this.timeToBlock = timeToBlock;
+
+
+
     }
 
     private List<String> blackIps;
@@ -26,10 +31,15 @@ public class Site {
     private String googleAnalyticsTrackingId;
     private String eMail;
     private String password;
+    private int timeToBlock;
+    private List<Rule> rules = new ArrayList<>();
+
     @JsonIgnore
     private long lastEmailTime;
 
-    private int timeToBlock;
+    public void loadRules(){
+
+    }
 
     public void setTimeToBlock(int timeToBlock) {
         this.timeToBlock = timeToBlock;
@@ -38,6 +48,7 @@ public class Site {
     public int getTimeToBlock() {
         return timeToBlock;
     }
+
 
 
     public String getPassword() {
@@ -76,6 +87,7 @@ public class Site {
         return blackIps;
     }
 
+
     @Override
     public String toString() {
         return "Site{" +
@@ -85,7 +97,13 @@ public class Site {
                 ", standartNumber='" + standartNumber + '\'' +
                 ", googleAnalyticsTrackingId='" + googleAnalyticsTrackingId + '\'' +
                 ", eMail='" + eMail + '\'' +
+                ", password='" + password + '\'' +
+                ", timeToBlock=" + timeToBlock +
+                ", rules=" + rules +
                 ", lastEmailTime=" + lastEmailTime +
                 '}';
     }
+
+
+
 }

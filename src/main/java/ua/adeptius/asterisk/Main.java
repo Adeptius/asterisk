@@ -5,6 +5,7 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.MySqlDao;
 import ua.adeptius.asterisk.model.AsteriskMonitor;
 import ua.adeptius.asterisk.model.LogCategory;
+import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.MyLogger;
 import ua.adeptius.asterisk.utils.PhonesWatcher;
 import ua.adeptius.asterisk.utils.Settings;
@@ -37,6 +38,9 @@ public class Main {
 
         try {
             MainController.sites = mySqlDao.getSites();
+            for (Site site : MainController.sites) {
+                System.out.println(site);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");

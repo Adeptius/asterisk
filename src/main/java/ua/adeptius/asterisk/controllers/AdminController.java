@@ -139,7 +139,7 @@ public class AdminController {
     @RequestMapping(value = "/script/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getScript(@PathVariable String name) {
-         return "<script src=\"http://"
+         return "<script src=\"https://"
                  + Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT")
                  + "/tracking/script/"
                  + name

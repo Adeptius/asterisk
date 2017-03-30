@@ -2,23 +2,73 @@ package ua.adeptius.asterisk.forwarding;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static ua.adeptius.asterisk.forwarding.DestinationType.*;
 import static ua.adeptius.asterisk.forwarding.ForwardType.*;
 
-public class Exten {
+public class Rule {
 
 
-    private ArrayList<String> from;
-    private ArrayList<String> to;
-    private ForwardType forwardType;
-    private DestinationType destinationType;
+    private ArrayList<String> from = new ArrayList<>();
+    private ArrayList<String> to = new ArrayList<>();
+    private ForwardType forwardType = BY_TURNS;
+    private DestinationType destinationType = GSM;
     private int time;
     private String melody;
+    private String siteName;
 
-    @Override
-    public String toString() {
+    public Rule() {
+    }
+
+    public Rule(List<String> lines) {
+        for (String line : lines) {
+            String numbers = line.substring(line.indexOf("(")+1, line.lastIndexOf(")")); // получаем то, что содержится в скобках
+
+            if (line.contains("Goto")){// определяем сип ли это
+                destinationType = SIP;
+            }else { // время есть только в GSM
+                String s = line.substring(0, line.lastIndexOf(","));
+                s = s.substring(s.lastIndexOf(",")+1);
+                time = Integer.parseInt(s); // узнали время
+
+                // мелодия есть только в GSM
+                melody = numbers.substring(numbers.lastIndexOf(",")+1);
+            }
+
+            if (line.contains("&")){
+                forwardType = TO_ALL;
+            }
+            String numberFrom = line.substring(line.indexOf("exten =>")+9, line.indexOf(","));
+            addNumberFrom(numberFrom);
+
+
+            if (forwardType == TO_ALL){ // если всем сразу выбираем номера
+                String[] splitted = numbers.substring(0,numbers.indexOf(",")).split("&");
+                for (String s : splitted) {
+                    addNumberTo(s.substring(s.lastIndexOf("/")+1));
+                }
+            }else if (forwardType == BY_TURNS){ // если по очереди выбираем номера
+
+                if (destinationType == SIP){
+                    String s = numbers;
+                    s = s.substring(s.indexOf("direct,")+7);
+                    s = s.substring(0, s.indexOf(","));
+                    addNumberTo(s);
+                }else {
+                    String s = numbers.substring(0, numbers.indexOf(","));
+                    s = s.substring(s.lastIndexOf("/")+1);
+                    addNumberTo(s);
+                }
+            }
+//            System.out.println(line);
+        }
+        System.out.println(this);
+    }
+
+    public String getConfig() {
         StringBuilder builder = new StringBuilder();
+        builder.append("; Start Rule\n");
         for (int i = 0; i < from.size(); i++) {
             String numberFrom = from.get(i);
             builder.append("exten => ").append(numberFrom).append(",1,Noop(${CALLERID(num)})\n");
@@ -51,8 +101,26 @@ public class Exten {
             builder.append("\n");
         }
 
+        if (builder.toString().endsWith("\n")){
+            builder.deleteCharAt(builder.length()-1);
+        }
+        builder.append("; End Rule\n");
         return builder.toString();
     }
+
+
+    public void addNumberTo(String number){
+        if (!to.contains(number)){
+            to.add(number);
+        }
+    }
+
+    public void addNumberFrom(String number){
+        if (!from.contains(number)){
+            from.add(number);
+        }
+    }
+
 
     public ArrayList<String> getFrom() {
         return from;
@@ -100,5 +168,18 @@ public class Exten {
 
     public void setMelody(String melody) {
         this.melody = melody;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Rule{" +
+                "from=" + from +
+                ", to=" + to +
+                ", forwardType=" + forwardType +
+                ", destinationType=" + destinationType +
+                ", time=" + time +
+                ", melody='" + melody + '\'' +
+                '}';
     }
 }
