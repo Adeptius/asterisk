@@ -4,8 +4,6 @@ package ua.adeptius.asterisk.utils;
 
 public class StringUtils {
 
-
-
     public static String getStringedTime(long time){
         time = time /1000;
 

@@ -3,11 +3,10 @@ package ua.adeptius.asterisk.dao;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.tracking.TrackingController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.Settings;
 import ua.adeptius.asterisk.utils.Utils;
 
 import java.sql.Connection;
@@ -17,15 +16,16 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ua.adeptius.asterisk.model.LogCategory.DB_ERROR_CONNECTING;
-import static ua.adeptius.asterisk.model.LogCategory.DB_OPERATIONS;
-import static ua.adeptius.asterisk.utils.MyLogger.log;
-import static ua.adeptius.asterisk.utils.MyLogger.printException;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_ERROR_CONNECTING;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
+import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
+import static ua.adeptius.asterisk.utils.logging.MyLogger.printException;
 
 
 public class MySqlDao {
 
     private ComboPooledDataSource cpds;
+    public static final String SITE_TABLE = "sites";
 
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
@@ -48,10 +48,9 @@ public class MySqlDao {
         }
     }
 
-
     public List<Site> getSites() throws Exception {
         List<Site> sites = new ArrayList<>();
-        String sql = "SELECT * from sites";
+        String sql = "SELECT * from "+SITE_TABLE;
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -103,7 +102,7 @@ public class MySqlDao {
 
 
     public boolean deleteSite(String name) throws Exception {
-        String sql = createSqlQueryForDeleteSite(name);
+        String sql = SqlStatementHelper.createSqlQueryForDeleteSite(name);
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
@@ -117,7 +116,7 @@ public class MySqlDao {
 
 
     public boolean saveSite(Site site) throws Exception {
-        String sql = createSqlQueryForSaveSite(site);
+        String sql = SqlStatementHelper.createSqlQueryForSaveSite(site);
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
@@ -133,8 +132,8 @@ public class MySqlDao {
     public boolean editSite(Site site) throws Exception {
         Connection connection = getConnection();
 
-        String sqlDelete = createSqlQueryForDeleteSite(site.getName());
-        String sqlSave = createSqlQueryForSaveSite(site);
+        String sqlDelete = SqlStatementHelper.createSqlQueryForDeleteSite(site.getName());
+        String sqlSave = SqlStatementHelper.createSqlQueryForSaveSite(site);
 
         try (Statement deleteStatement = connection.createStatement();
              Statement addStatement = connection.createStatement()) {
@@ -158,65 +157,8 @@ public class MySqlDao {
                 connection.close();
             }
         }
-
     }
 
-
-    public String createSqlQueryForCtreatingStatisticTable(String name) {
-        String sql = "CREATE TABLE `" + name + "` (  " +
-                "`date` VARCHAR(20) NOT NULL,  " +
-                "`direction` VARCHAR(3) NOT NULL,  " +
-                "`to` VARCHAR(45) NULL,  " +
-                "`from` VARCHAR(45) NULL,  " +
-                "`time_to_answer` INT NULL,  " +
-                "`talking_time` INT NULL,  " +
-                "`google_id` VARCHAR(45) NULL,  " +
-                "`call_id` VARCHAR(45) NULL,  " +
-                "`utm` VARCHAR(600) NULL,  " +
-                "PRIMARY KEY (`date`));";
-        return sql;
-    }
-
-    public String createSqlQueryForDeleteSite(String site) {
-        return "DELETE from sites WHERE name = '" + site + "'";
-    }
-
-    public String createSqlQueryForSaveSite(Site site) {
-        String name = site.getName();
-        String email = site.getMail();
-        String standartNumber = site.getStandartNumber();
-        String googleId = site.getGoogleAnalyticsTrackingId();
-        String phones = "";
-        String blackList = "";
-        String password = site.getPassword();
-        String timeToBlock = site.getTimeToBlock()+"";
-        List<Phone> phoneList = site.getPhones();
-        for (Phone phone : phoneList) {
-            phones += "," + phone.getNumber();
-        }
-        if (phones.startsWith(",")) {
-            phones = phones.substring(1);
-        }
-
-        List<String> blackIPList = site.getBlackIps();
-        for (String s : blackIPList) {
-            blackList += "," + s;
-        }
-        if (blackList.startsWith(",")) {
-            blackList = blackList.substring(1);
-        }
-
-        String sql = "INSERT INTO sites VALUES("
-                + "'" + name + "',"
-                + "'" + googleId + "',"
-                + "'" + email + "',"
-                + "'" + phones + "',"
-                + "'" + standartNumber + "',"
-                + "'" + blackList + "',"
-                + "'" + timeToBlock + "',"
-                + "'" + password + "')";
-        return sql;
-    }
 
     public List<String> getListOfTables() throws Exception {
         String sql = "show tables like 'statistic_%'";
@@ -278,7 +220,6 @@ public class MySqlDao {
 
     public void deleteTables(List<String> tablesToDelete) {
         for (String s : tablesToDelete) {
-//            String sql = "DROP TABLE `" + s;
             String sql = "DROP TABLE `"+ s +"`";
             try (Connection connection = getConnection();
                  Statement statement = connection.createStatement()) {
@@ -295,7 +236,7 @@ public class MySqlDao {
     public void createStatisticTables(List<String> tablesToCreate) {
         for (String s : tablesToCreate) {
             s = "statistic_" + s;
-            String sql = createSqlQueryForCtreatingStatisticTable(s);
+            String sql = SqlStatementHelper.createSqlQueryForCtreatingStatisticTable(s);
             try (Connection connection = getConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
@@ -330,14 +271,14 @@ public class MySqlDao {
 
     public void createOrCleanStatisticsTables() throws Exception{
         List<String> tables = getListOfTables();
-        List<String> tablesToDelete = Utils.findTablesThatNeedToDelete(MainController.sites, tables);
+        List<String> tablesToDelete = Utils.findTablesThatNeedToDelete(TrackingController.sites, tables);
         deleteTables(tablesToDelete);
-        List<String> tablesToCreate = Utils.findTablesThatNeedToCreate(MainController.sites, tables);
+        List<String> tablesToCreate = Utils.findTablesThatNeedToCreate(TrackingController.sites, tables);
         createStatisticTables(tablesToCreate);
     }
 
     public void addIpToBlackList(String siteName, String ip) throws Exception {
-        Site site = MainController.getSiteByName(siteName);
+        Site site = TrackingController.getSiteByName(siteName);
         site.getBlackIps().add(ip);
         String s = getBlackList(siteName);
         s += "," + ip;
@@ -353,13 +294,13 @@ public class MySqlDao {
         if (s.contains(","+ip)){
             s = s.replaceAll(","+ip, "");
             setBlackList(SiteName, s);
-            Site site = MainController.getSiteByName(SiteName);
+            Site site = TrackingController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
             return "IP " + ip + " удалён";
         }else if (s.contains(ip)){
             s = s.replaceAll(ip, "");
             setBlackList(SiteName, s);
-            Site site = MainController.getSiteByName(SiteName);
+            Site site = TrackingController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
             return "IP " + ip + " удалён";
         }
@@ -367,19 +308,19 @@ public class MySqlDao {
     }
 
     private void setBlackList(String sitename, String ip) throws Exception {
-        String sql = "UPDATE `sites` SET `black_list_ip`='"+ip+"' WHERE `name`='"+sitename+"';";
+        String sql = "UPDATE `"+SITE_TABLE+"` SET `black_list_ip`='"+ip+"' WHERE `name`='"+sitename+"';";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception  e) {
             e.printStackTrace();
-            log(DB_OPERATIONS, sitename + ": Ошибка при сохранении отчета в БД ");
-            throw new Exception(sitename + ": Ошибка при сохранении отчета в БД ");
+            log(DB_OPERATIONS, sitename + ": Ошибка при сохранении черного списка в БД ");
+            throw new Exception(sitename + ": Ошибка при сохранении черного списка в БД ");
         }
     }
 
     private String getBlackList(String sitename) throws Exception{
-        String sql = "SELECT `black_list_ip` FROM `sites` WHERE `name` like \""+sitename+"\"";
+        String sql = "SELECT `black_list_ip` FROM `"+SITE_TABLE+"` WHERE `name` like \""+sitename+"\"";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -396,11 +337,11 @@ public class MySqlDao {
 
 
     public void setTimeToBlock(String name, int time) throws Exception{
-        String sql = "UPDATE `sites` SET `time_to_block`='"+time+"' WHERE `name`='"+name+"';";
+        String sql = "UPDATE `"+SITE_TABLE+"` SET `time_to_block`='"+time+"' WHERE `name`='"+name+"';";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
-            MainController.getSiteByName(name).setTimeToBlock(time);
+            TrackingController.getSiteByName(name).setTimeToBlock(time);
         } catch (Exception  e) {
             e.printStackTrace();
             log(DB_OPERATIONS, name + ": Ошибка при установке времени блокировки в БД");

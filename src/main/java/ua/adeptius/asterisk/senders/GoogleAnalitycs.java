@@ -1,7 +1,7 @@
-package ua.adeptius.asterisk.utils;
+package ua.adeptius.asterisk.senders;
 
 
-import ua.adeptius.asterisk.model.LogCategory;
+import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.model.Site;
 
 import java.io.BufferedReader;
@@ -12,7 +12,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ua.adeptius.asterisk.utils.MyLogger.log;
+import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
 
 @SuppressWarnings("Duplicates")
 public class GoogleAnalitycs extends Thread {

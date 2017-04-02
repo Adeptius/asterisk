@@ -1,9 +1,10 @@
-package ua.adeptius.asterisk.forwarding;
+package ua.adeptius.asterisk.dao;
 
+
+import ua.adeptius.asterisk.telephony.Rule;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,16 +14,12 @@ public class ConfigDAO {
 
     private static String folder = "C:\\Users\\Владимир\\Desktop\\rules\\";
 
-    public static void writeToFile(String filename, List<Rule> ruleList) {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter( folder + filename + ".conf"));
-            for (Rule rule : ruleList) {
-                writer.write(rule.getConfig());
-            }
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } // TODO пробросить ексепшен
+    public static void writeToFile(String filename, List<Rule> ruleList) throws Exception {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
+        for (Rule rule : ruleList) {
+            writer.write(rule.getConfig());
+        }
+        writer.close();
     }
 
     public static List<Rule> readFromFile(String filename) throws Exception {

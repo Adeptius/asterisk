@@ -2,8 +2,12 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import ua.adeptius.asterisk.forwarding.Rule;
+import ua.adeptius.asterisk.dao.ConfigDAO;
+import ua.adeptius.asterisk.telephony.Rule;
+import ua.adeptius.asterisk.utils.logging.LogCategory;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
 
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,9 +23,7 @@ public class Site {
         this.blackIps = blackIps;
         this.password = password;
         this.timeToBlock = timeToBlock;
-
-
-
+        loadRules();
     }
 
     private List<String> blackIps;
@@ -38,7 +40,26 @@ public class Site {
     private long lastEmailTime;
 
     public void loadRules(){
+        try {
+            rules = ConfigDAO.readFromFile(name);
+        } catch (NoSuchFileException e) {
+            MyLogger.log(LogCategory.DB_ERROR_CONNECTING,
+                    "Отсутствует конфиг с правилами переадресации для сайта " + name);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
+    public void setRules(List<Rule> rules) {
+        this.rules = rules;
+    }
+
+    public List<Rule> getRules() {
+        return rules;
+    }
+
+    public void saveRules() throws Exception{
+        ConfigDAO.writeToFile(name, rules);
     }
 
     public void setTimeToBlock(int timeToBlock) {
@@ -48,8 +69,6 @@ public class Site {
     public int getTimeToBlock() {
         return timeToBlock;
     }
-
-
 
     public String getPassword() {
         return password;

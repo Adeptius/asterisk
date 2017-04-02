@@ -1,9 +1,9 @@
-package ua.adeptius.asterisk.model;
+package ua.adeptius.asterisk.monitor;
 
 import org.asteriskjava.manager.event.HangupEvent;
 import org.asteriskjava.manager.event.NewStateEvent;
-import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.utils.Settings;
+import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
 import org.asteriskjava.manager.event.ManagerEvent;
@@ -12,9 +12,9 @@ import org.asteriskjava.manager.event.NewChannelEvent;
 import java.io.IOException;
 import java.util.HashMap;
 
-import static ua.adeptius.asterisk.model.LogCategory.ANSWER_CALL;
-import static ua.adeptius.asterisk.model.LogCategory.ENDED_CALL;
-import static ua.adeptius.asterisk.model.LogCategory.INCOMING_CALL;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.ANSWER_CALL;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.ENDED_CALL;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.INCOMING_CALL;
 
 public class AsteriskMonitor implements ManagerEventListener {
 
@@ -51,7 +51,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum = addZero(newChannelEvent.getCallerIdNum());
             String phoneReseive = addZero(newChannelEvent.getExten());
             phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
-            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
+            TrackingController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
 
         } else if (event instanceof HangupEvent) {
             HangupEvent hangupEvent = (HangupEvent) event;
@@ -61,7 +61,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callUniqueId =  addZero(hangupEvent.getUniqueId());
             String callerIdNum =  addZero(hangupEvent.getCallerIdNum());
             String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
+            TrackingController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
             phonesFromAndPhonesTo.remove(callerIdNum);
 
         } else if (event instanceof NewStateEvent) {
@@ -73,7 +73,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum =  addZero(newStateEvent.getCallerIdNum());
             String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
             if (code == 6) {
-                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
+                TrackingController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
             }
         }
     }

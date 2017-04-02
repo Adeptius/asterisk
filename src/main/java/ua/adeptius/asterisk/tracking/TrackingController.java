@@ -1,24 +1,24 @@
-package ua.adeptius.asterisk.controllers;
+package ua.adeptius.asterisk.tracking;
 
 
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.model.LogCategory;
+import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.GoogleAnalitycs;
-import ua.adeptius.asterisk.utils.Mail;
-import ua.adeptius.asterisk.utils.MyLogger;
+import ua.adeptius.asterisk.senders.GoogleAnalitycs;
+import ua.adeptius.asterisk.senders.Mail;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static ua.adeptius.asterisk.model.LogCategory.*;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
 @SuppressWarnings("Duplicates")
-public class MainController {
+public class TrackingController {
 
     public static List<Site> sites;
 

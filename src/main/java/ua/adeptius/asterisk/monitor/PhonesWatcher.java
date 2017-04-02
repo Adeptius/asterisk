@@ -1,22 +1,23 @@
-package ua.adeptius.asterisk.utils;
+package ua.adeptius.asterisk.monitor;
 
 
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.model.LogCategory;
+import ua.adeptius.asterisk.tracking.TrackingController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
+import ua.adeptius.asterisk.dao.Settings;
 
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import static ua.adeptius.asterisk.model.LogCategory.DB_OPERATIONS;
-import static ua.adeptius.asterisk.model.LogCategory.ELSE;
-import static ua.adeptius.asterisk.model.LogCategory.NUMBER_FREE;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.ELSE;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.NUMBER_FREE;
 
 public class PhonesWatcher extends Thread {
 
-    List<Site> sites = MainController.sites;
+    List<Site> sites = TrackingController.sites;
 
     public PhonesWatcher() {
         setDaemon(true);

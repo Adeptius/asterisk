@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.tracking.TrackingController;
 
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
@@ -27,7 +28,7 @@ public class UserConfigurationController {
         }
         try {
             Main.mySqlDao.setTimeToBlock(name, time);
-            MainController.getSiteByName(name).setTimeToBlock(time);
+            TrackingController.getSiteByName(name).setTimeToBlock(time);
             return "Задано время автоматической блокировки: " + time + " минут";
         } catch (Exception e) {
             return "Ошибка";
@@ -86,7 +87,7 @@ public class UserConfigurationController {
                 @RequestParam String password){
 
             try {
-                Site site = MainController.getSiteByName(login);
+                Site site = TrackingController.getSiteByName(login);
                 String passInDB = site.getPassword();
                 if (passInDB.equals(password)) {
                     return "true";
@@ -97,7 +98,7 @@ public class UserConfigurationController {
         }
 
     private static boolean isPasswordWrong(String sitename, String password) {
-        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
+        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
         if (password.equals(currentSitePass)) {
             return false;
         }

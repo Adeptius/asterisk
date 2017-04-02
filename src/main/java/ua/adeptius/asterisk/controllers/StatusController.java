@@ -6,16 +6,14 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.utils.MyLogger;
+import ua.adeptius.asterisk.tracking.TrackingController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +29,7 @@ public class StatusController {
             return new Site("Wrong password",null,"Wrong password","Wrong password","Wrong password",null,"Wrong password",0);
         }
 
-        Site site = MainController.getSiteByName(name);
+        Site site = TrackingController.getSiteByName(name);
         return site;
     }
 
@@ -57,7 +55,7 @@ public class StatusController {
             return list;
         }
         try {
-            if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
+            if (TrackingController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
                 List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo,direction);
                 return list;
             }
@@ -109,7 +107,7 @@ public class StatusController {
 
 
     private static boolean isPasswordWrong(String sitename, String password){
-        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
+        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
         if (password.equals(currentSitePass)){
             return false;
         }

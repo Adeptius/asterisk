@@ -1,25 +1,33 @@
-package ua.adeptius.asterisk.forwarding;
+package ua.adeptius.asterisk.telephony;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static ua.adeptius.asterisk.forwarding.DestinationType.*;
-import static ua.adeptius.asterisk.forwarding.ForwardType.*;
+import static ua.adeptius.asterisk.telephony.DestinationType.*;
+import static ua.adeptius.asterisk.telephony.ForwardType.*;
 
 public class Rule {
 
 
     private ArrayList<String> from = new ArrayList<>();
     private ArrayList<String> to = new ArrayList<>();
-    private ForwardType forwardType = BY_TURNS;
+    private ForwardType forwardType = QUEUE;
     private DestinationType destinationType = GSM;
     private int time;
     private String melody;
     private String siteName;
 
-    public Rule() {
+    public Rule(String sitename) {
+        this.siteName = sitename;
+        if (forwardType == QUEUE){
+            time = 10;
+        }else {
+            time = 600;
+        }
+        melody = "m(simple)";
     }
+
 
     public Rule(List<String> lines) {
         for (String line : lines) {
@@ -48,7 +56,7 @@ public class Rule {
                 for (String s : splitted) {
                     addNumberTo(s.substring(s.lastIndexOf("/")+1));
                 }
-            }else if (forwardType == BY_TURNS){ // если по очереди выбираем номера
+            }else if (forwardType == QUEUE){ // если по очереди выбираем номера
 
                 if (destinationType == SIP){
                     String s = numbers;
@@ -82,7 +90,7 @@ public class Rule {
                     builder.append("exten => ").append(numberFrom).append(",n(dest-ext),Goto(from-did-direct,").append(sipTo).append(",1)\n");
                 }
             }else if (destinationType == GSM){
-                if (forwardType == BY_TURNS){ // По очереди
+                if (forwardType == QUEUE){ // По очереди
                     for (String numberTo : to) {
                         builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/Intertelekom_main/")
                                 .append(numberTo).append(",").append(time).append(",").append(melody).append(")\n");

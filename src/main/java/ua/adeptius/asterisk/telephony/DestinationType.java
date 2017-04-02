@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.forwarding;
+package ua.adeptius.asterisk.telephony;
 
 
 

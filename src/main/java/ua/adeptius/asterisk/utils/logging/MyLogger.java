@@ -1,7 +1,8 @@
-package ua.adeptius.asterisk.utils;
+package ua.adeptius.asterisk.utils.logging;
 
 
-import ua.adeptius.asterisk.model.LogCategory;
+import ua.adeptius.asterisk.dao.Settings;
+import ua.adeptius.asterisk.utils.logging.LogCategory;
 
 import java.util.LinkedList;
 

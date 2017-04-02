@@ -1,18 +1,14 @@
 package ua.adeptius.asterisk;
 
 
-import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.tracking.TrackingController;
 import ua.adeptius.asterisk.dao.MySqlDao;
-import ua.adeptius.asterisk.model.AsteriskMonitor;
-import ua.adeptius.asterisk.model.LogCategory;
-import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.MyLogger;
-import ua.adeptius.asterisk.utils.PhonesWatcher;
-import ua.adeptius.asterisk.utils.Settings;
-import ua.adeptius.asterisk.utils.Utils;
-import java.util.List;
+import ua.adeptius.asterisk.monitor.AsteriskMonitor;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
+import ua.adeptius.asterisk.monitor.PhonesWatcher;
+import ua.adeptius.asterisk.dao.Settings;
 
-import static ua.adeptius.asterisk.model.LogCategory.DB_OPERATIONS;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
 
 public class Main {
@@ -37,16 +33,15 @@ public class Main {
         }
 
         try {
-            MainController.sites = mySqlDao.getSites();
-            for (Site site : MainController.sites) {
-                System.out.println(site);
-            }
+            TrackingController.sites = mySqlDao.getSites();
+//            for (Site site : TrackingController.sites) {
+//                System.out.println(site.getRules());
+//            }
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");
             throw new RuntimeException("ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");
         }
-
 
         new PhonesWatcher();
 

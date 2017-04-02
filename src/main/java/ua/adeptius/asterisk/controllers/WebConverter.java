@@ -10,7 +10,8 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.utils.MyLogger;
+import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -30,7 +31,7 @@ public class WebConverter {
             return "Wrong password";
         }
 
-        Site site = MainController.getSiteByName(name);
+        Site site = TrackingController.getSiteByName(name);
         StringBuilder builder = new StringBuilder();
         builder.append(
                 "    <tr>\n" +
@@ -78,7 +79,7 @@ public class WebConverter {
             return "Wrong direction";
         }
         try {
-            if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
+            if (TrackingController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
                 List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo, direction);
                 Collections.reverse(list);
                 StringBuilder builder = new StringBuilder();
@@ -138,7 +139,7 @@ public class WebConverter {
         if (isPasswordWrong(name, password)){
             return "Wrong password";
         }
-        Site site = MainController.getSiteByName(name);
+        Site site = TrackingController.getSiteByName(name);
         List<String> list = site.getBlackIps();
         StringBuilder sb = new StringBuilder();
         for (String s : list) {
@@ -150,7 +151,7 @@ public class WebConverter {
 
 
     private static boolean isPasswordWrong(String sitename, String password){
-        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
+        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
         if (password.equals(currentSitePass)){
             return false;
         }

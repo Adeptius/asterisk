@@ -4,18 +4,19 @@ package ua.adeptius.asterisk.controllers;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.model.LogCategory;
+import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.MyLogger;
-import ua.adeptius.asterisk.utils.Settings;
+import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
+import ua.adeptius.asterisk.dao.Settings;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -42,7 +43,7 @@ public class AdminController {
         if (isAdminPasswordWrong(password)){
             return new String[]{"Wrong password"};
         }
-        List<String> list = MainController.sites.stream().map(Site::getName).collect(Collectors.toList());
+        List<String> list = TrackingController.sites.stream().map(Site::getName).collect(Collectors.toList());
         String[] array = new String[list.size()];
         list.toArray(array);
         return array;
@@ -62,8 +63,14 @@ public class AdminController {
                                 @RequestParam String adminPassword) {
 
         if (isAdminPasswordWrong(adminPassword)){
-            return "Wrong password";
+            return "Error: Wrong password";
         }
+
+        Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(name);
+        if (!regexMatcher.find()){
+            return "Error: Name must contains only english letters";
+        }
+
         List<Phone> phoneList = new ArrayList<>();
         for (String s : phones.split(",")) {
             phoneList.add(new Phone(s));
@@ -78,7 +85,7 @@ public class AdminController {
 
         Site site = null;
         try {
-            site = MainController.getSiteByName(name);
+            site = TrackingController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + name + " В базе нет. Создаём новый.");
         }
@@ -87,13 +94,13 @@ public class AdminController {
         try {
             if (site != null) { // такой сайт есть. Обновляем.
                 Main.mySqlDao.editSite(newSite);
-                MainController.sites.remove(MainController.getSiteByName(newSite.getName()));
-                MainController.sites.add(newSite);
+                TrackingController.sites.remove(TrackingController.getSiteByName(newSite.getName()));
+                TrackingController.sites.add(newSite);
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " изменён");
                 return "Updated";
             } else { // сайта не существует. Создаём.
                 Main.mySqlDao.saveSite(newSite);
-                MainController.sites.add(newSite);
+                TrackingController.sites.add(newSite);
                 Main.mySqlDao.createOrCleanStatisticsTables();
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " добавлен");
                 return "Added";
@@ -116,7 +123,7 @@ public class AdminController {
 
         Site site = null;
         try {
-            site = MainController.getSiteByName(name);
+            site = TrackingController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.ELSE, site.getName() + " не найден в БД");
             return "Not found in db";
@@ -124,7 +131,7 @@ public class AdminController {
 
         try {
             Main.mySqlDao.deleteSite(site.getName());
-            MainController.sites.remove(site);
+            TrackingController.sites.remove(site);
             Main.mySqlDao.createOrCleanStatisticsTables();
             MyLogger.log(LogCategory.ELSE, site.getName() + " удалён");
             return "Deleted";

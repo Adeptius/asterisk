@@ -1,7 +1,9 @@
-package ua.adeptius.asterisk.utils;
+package ua.adeptius.asterisk.senders;
 
 
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
+import ua.adeptius.asterisk.dao.Settings;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -10,7 +12,7 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import static ua.adeptius.asterisk.model.LogCategory.*;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
 public class Mail {
 
