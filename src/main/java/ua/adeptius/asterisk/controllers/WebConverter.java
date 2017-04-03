@@ -10,7 +10,7 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.Collections;
@@ -31,7 +31,7 @@ public class WebConverter {
             return "Wrong password";
         }
 
-        Site site = TrackingController.getSiteByName(name);
+        Site site = MainController.getSiteByName(name);
         StringBuilder builder = new StringBuilder();
         builder.append(
                 "    <tr>\n" +
@@ -79,8 +79,8 @@ public class WebConverter {
             return "Wrong direction";
         }
         try {
-            if (TrackingController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
-                List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo, direction);
+            if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
+                List<Statistic> list = Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo, direction);
                 Collections.reverse(list);
                 StringBuilder builder = new StringBuilder();
                 builder.append(
@@ -139,7 +139,7 @@ public class WebConverter {
         if (isPasswordWrong(name, password)){
             return "Wrong password";
         }
-        Site site = TrackingController.getSiteByName(name);
+        Site site = MainController.getSiteByName(name);
         List<String> list = site.getBlackIps();
         StringBuilder sb = new StringBuilder();
         for (String s : list) {
@@ -151,7 +151,7 @@ public class WebConverter {
 
 
     private static boolean isPasswordWrong(String sitename, String password){
-        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
+        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
         if (password.equals(currentSitePass)){
             return false;
         }

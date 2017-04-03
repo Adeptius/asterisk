@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
@@ -27,8 +27,8 @@ public class UserConfigurationController {
             return "Wrong password";
         }
         try {
-            Main.mySqlDao.setTimeToBlock(name, time);
-            TrackingController.getSiteByName(name).setTimeToBlock(time);
+            Main.sitesDao.setTimeToBlock(name, time);
+            MainController.getSiteByName(name).setTimeToBlock(time);
             return "Задано время автоматической блокировки: " + time + " минут";
         } catch (Exception e) {
             return "Ошибка";
@@ -51,7 +51,7 @@ public class UserConfigurationController {
             Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip);
             regexMatcher.find();
             regexMatcher.group();
-            Main.mySqlDao.addIpToBlackList(name, ip);
+            Main.sitesDao.addIpToBlackList(name, ip);
             return "IP " + ip + " заблокирован.";
         } catch (Exception e) {
             return "Ошибка БД или неправильный IP";
@@ -73,7 +73,7 @@ public class UserConfigurationController {
                 Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip);
                 regexMatcher.find();
                 regexMatcher.group();
-                String result = Main.mySqlDao.deleteFromBlackList(name, ip);
+                String result = Main.sitesDao.deleteFromBlackList(name, ip);
                 return result;
             } catch (Exception e) {
                 return "Ошибка удаления";
@@ -87,7 +87,7 @@ public class UserConfigurationController {
                 @RequestParam String password){
 
             try {
-                Site site = TrackingController.getSiteByName(login);
+                Site site = MainController.getSiteByName(login);
                 String passInDB = site.getPassword();
                 if (passInDB.equals(password)) {
                     return "true";
@@ -98,7 +98,7 @@ public class UserConfigurationController {
         }
 
     private static boolean isPasswordWrong(String sitename, String password) {
-        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
+        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
         if (password.equals(currentSitePass)) {
             return false;
         }

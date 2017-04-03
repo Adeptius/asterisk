@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class RuleController {
 
         Site site = null;
         try {
-            site = TrackingController.getSiteByName(name);
+            site = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             return "Такого сайта не существует";
         }
@@ -49,7 +49,7 @@ public class RuleController {
 
         Site site = null;
         try {
-            site = TrackingController.getSiteByName(name);
+            site = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             return "Такого сайта не существует";
         }
@@ -75,7 +75,7 @@ public class RuleController {
 
 
     private static boolean isPasswordWrong(String sitename, String password) {
-        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
+        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
         if (password.equals(currentSitePass)) {
             return false;
         }

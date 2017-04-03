@@ -231,40 +231,4 @@ public class Statistic {
             return "";
         }
     }
-
-    //    public String getSpeakTime(){
-//        if (answered == 0){
-//            return "Недозвон";
-//        }
-//        long time = ended - answered;
-//        return StringUtils.getStringedTime(time);
-//    }
-
-    //    public long getEnded() {
-//        return ended;
-//    }
-
-    //    public long getAnswered() {
-//        return answered;
-//    }
-
-
-    //    public long getCalled() {
-//        return called;
-//    }
-
-
-//    public int getTimeToAnswerForWeb() {
-//        return timeToAnswer;
-//    }
-
-    //    @JsonIgnore
-//    private int speakTimeInSeconds;
-//    @JsonIgnore
-//    private int speakTime;
-//    @JsonIgnore
-//    private int dateForDb;
-//    @JsonIgnore
-//    private int timeToAnswerInSeconds;
-
 }

@@ -2,7 +2,7 @@ package ua.adeptius.asterisk.monitor;
 
 
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -17,7 +17,7 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.NUMBER_FREE;
 
 public class PhonesWatcher extends Thread {
 
-    List<Site> sites = TrackingController.sites;
+    List<Site> sites = MainController.sites;
 
     public PhonesWatcher() {
         setDaemon(true);
@@ -71,7 +71,7 @@ public class PhonesWatcher extends Thread {
 //            site.getBlackIps().add(phone.getIp());
             try {
                 MyLogger.log(ELSE, site.getName() + ": IP " + phone.getIp() + " заблокирован по времени.");
-                Main.mySqlDao.addIpToBlackList(site.getName(), phone.getIp());
+                Main.sitesDao.addIpToBlackList(site.getName(), phone.getIp());
                 phone.markFree();
             } catch (Exception e) {
                 MyLogger.log(DB_OPERATIONS, site.getName() + ": ошибка добавления " + phone.getIp() + " в БД");

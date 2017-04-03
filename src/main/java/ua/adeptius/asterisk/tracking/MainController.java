@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.tracking;
 
 
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.model.TelephonyCustomer;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Statistic;
@@ -18,12 +19,17 @@ import java.util.NoSuchElementException;
 import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
 @SuppressWarnings("Duplicates")
-public class TrackingController {
+public class MainController {
 
     public static List<Site> sites;
+    public static List<TelephonyCustomer> telephonyCustomers;
 
     public static Site getSiteByName(String name) throws NoSuchElementException {
         return sites.stream().filter(site -> site.getName().equals(name)).findFirst().get();
+    }
+
+    public static TelephonyCustomer getTelephonyCustomerByName(String name) throws NoSuchElementException {
+        return telephonyCustomers.stream().filter(tc -> tc.getName().equals(name)).findFirst().get();
     }
 
     public static String getFreeNumberFromSite(Site site, String googleId, String ip, String pageRequest) throws NoSuchElementException {
@@ -137,7 +143,7 @@ public class TrackingController {
                             + ", время разговора: "
                             + statistic.getTimeToAnswerForWebInSeconds();
                     MyLogger.log(PHONE_TIME_REPORT, report);
-                    Main.mySqlDao.saveStatisticToTable(site, statistic);
+                    Main.sitesDao.saveStatisticToTable(site, statistic);
 
                 }catch (NullPointerException ignored){}
             }
@@ -174,7 +180,7 @@ public class TrackingController {
                             + ", время разговора: "
                             + statistic.getTimeToAnswerForWebInSeconds();
                     MyLogger.log(PHONE_TIME_REPORT, report);
-                    Main.mySqlDao.saveStatisticToTable(site, statistic);
+                    Main.sitesDao.saveStatisticToTable(site, statistic);
                 }catch (NullPointerException e){
                     e.printStackTrace();
                     // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки

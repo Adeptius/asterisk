@@ -3,11 +3,10 @@ package ua.adeptius.asterisk.dao;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -15,22 +14,24 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_ERROR_CONNECTING;
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
 import static ua.adeptius.asterisk.utils.logging.MyLogger.printException;
 
-
-public class MySqlDao {
+@SuppressWarnings("Duplicates")
+public class SitesDao {
 
     private ComboPooledDataSource cpds;
     public static final String SITE_TABLE = "sites";
+    public static final String DB_URL =  "jdbc:mysql://" + Settings.getSetting("___dbAdress") + "calltrackdb";
 
     public void init() throws Exception {
         cpds = new ComboPooledDataSource();
         cpds.setDriverClass("com.mysql.jdbc.Driver");
-        cpds.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("___dbAdress"));
+        cpds.setJdbcUrl(DB_URL);
         cpds.setUser(Settings.getSetting("___dbLogin"));
         cpds.setPassword(Settings.getSetting("___dbPassword"));
         cpds.setMinPoolSize(1);
@@ -55,39 +56,13 @@ public class MySqlDao {
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             while (set.next()) {
-
-                // парсим телефоны
-                String[] p = set.getString("phones").split(",");
-                List<Phone> phones = new ArrayList<>();
-                int start = 0;
-                if (p[0].equals("")) {
-                    start = 1;
-                }
-                for (int i = start; i < p.length; i++) {
-                    phones.add(new Phone(p[i]));
-                }
-
-                // парсим черный список
-                List<String> ips = new ArrayList<>();
-                String s = set.getString("black_list_ip");
-                if (s != null) {
-                    String[] ip = s.split(",");
-                    start = 0;
-                    if (ip[0].equals("")) {
-                        start = 1;
-                    }
-                    for (int i = start; i < ip.length; i++) {
-                        ips.add(ip[i]);
-                    }
-                }
-
                 sites.add(new Site(
                         set.getString("name"),
-                        phones,
+                        DaoHelper.getListFromString(set.getString("phones")).stream().map(Phone::new).collect(Collectors.toList()),
                         set.getString("standart_number"),
                         set.getString("tracking_id"),
                         set.getString("email"),
-                        ips,
+                        DaoHelper.getListFromString(set.getString("black_list_ip")),
                         set.getString("password"),
                         set.getInt("time_to_block")
                 ));
@@ -96,13 +71,13 @@ public class MySqlDao {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
-        throw new Exception("Ошибка при загрузке данных с БД");
+        log(DB_OPERATIONS, "Ошибка при загрузке сайтов с БД");
+        throw new Exception("Ошибка при загрузке сайтов с БД");
     }
 
 
     public boolean deleteSite(String name) throws Exception {
-        String sql = SqlStatementHelper.createSqlQueryForDeleteSite(name);
+        String sql = DaoHelper.createSqlQueryForDeleteSite(name);
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
@@ -110,13 +85,13 @@ public class MySqlDao {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        log(DB_OPERATIONS, "Ошибка при удалении данных с БД");
-        throw new Exception("Ошибка при удалении данных с БД");
+        log(DB_OPERATIONS, "Ошибка при удалении сайтов с БД");
+        throw new Exception("Ошибка при удалении сайтов с БД");
     }
 
 
     public boolean saveSite(Site site) throws Exception {
-        String sql = SqlStatementHelper.createSqlQueryForSaveSite(site);
+        String sql = DaoHelper.createSqlQueryForSaveSite(site);
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
@@ -124,33 +99,28 @@ public class MySqlDao {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            log(DB_OPERATIONS, "Ошибка сохранения данных в БД: " + e.getMessage());
-            throw new Exception("Ошибка сохранения данных в БД: " + e.getMessage());
+            log(DB_OPERATIONS, "Ошибка сохранения сайта в БД: " + e.getMessage());
+            throw new Exception("Ошибка сохранения сайта в БД: " + e.getMessage());
         }
     }
 
     public boolean editSite(Site site) throws Exception {
         Connection connection = getConnection();
-
-        String sqlDelete = SqlStatementHelper.createSqlQueryForDeleteSite(site.getName());
-        String sqlSave = SqlStatementHelper.createSqlQueryForSaveSite(site);
-
+        String sqlDelete = DaoHelper.createSqlQueryForDeleteSite(site.getName());
+        String sqlSave = DaoHelper.createSqlQueryForSaveSite(site);
         try (Statement deleteStatement = connection.createStatement();
              Statement addStatement = connection.createStatement()) {
-
             connection.setAutoCommit(false);
-
             deleteStatement.execute(sqlDelete);
             addStatement.execute(sqlSave);
-
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             if (connection != null) {
                 connection.rollback();
             }
-            log(DB_OPERATIONS, "Ошибка изменения сайта " + site.getName());
-            throw new Exception("Ошибка изменения сайта " + site.getName() + ": " + e.getMessage());
+            log(DB_OPERATIONS, "Ошибка изменения сайта в базе" + site.getName());
+            throw new Exception("Ошибка изменения сайта " + site.getName() + " в базу: " + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.setAutoCommit(true);
@@ -159,14 +129,13 @@ public class MySqlDao {
         }
     }
 
-
     public List<String> getListOfTables() throws Exception {
         String sql = "show tables like 'statistic_%'";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             List<String> listOfTables = new ArrayList<>();
-            String columnName = Settings.getSetting("___dbAdress");
+            String columnName = DB_URL;
             columnName = columnName.substring(columnName.lastIndexOf("/") + 1);
             columnName = "Tables_in_" + columnName + " (statistic_%)";
             while (set.next()) {
@@ -176,9 +145,8 @@ public class MySqlDao {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
-
-        throw new Exception("Ошибка при загрузке данных с БД");
+        log(DB_OPERATIONS, "Ошибка при поиске таблиц статистики с БД");
+        throw new Exception("Ошибка при загрузке таблиц статистики с БД");
     }
 
 
@@ -213,7 +181,6 @@ public class MySqlDao {
             e.printStackTrace();
         }
         log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
-
         throw new Exception("Ошибка при загрузке данных с БД");
     }
 
@@ -227,7 +194,7 @@ public class MySqlDao {
                 log(DB_OPERATIONS, "Таблица " + s + " была удалена.");
             } catch (Exception e) {
                 e.printStackTrace();
-                log(DB_OPERATIONS, "ОШИБКА УДАЛЕНИЯ НЕНУЖНОЙ ТАБЛИЦЫ С БД " + s);
+                log(DB_OPERATIONS, "Ошибка удаления ненужной таблицы с бд " + s);
             }
         }
     }
@@ -236,7 +203,7 @@ public class MySqlDao {
     public void createStatisticTables(List<String> tablesToCreate) {
         for (String s : tablesToCreate) {
             s = "statistic_" + s;
-            String sql = SqlStatementHelper.createSqlQueryForCtreatingStatisticTable(s);
+            String sql = DaoHelper.createSqlQueryForCtreatingStatisticTable(s);
             try (Connection connection = getConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
@@ -271,14 +238,14 @@ public class MySqlDao {
 
     public void createOrCleanStatisticsTables() throws Exception{
         List<String> tables = getListOfTables();
-        List<String> tablesToDelete = Utils.findTablesThatNeedToDelete(TrackingController.sites, tables);
+        List<String> tablesToDelete = DaoHelper.findTablesThatNeedToDelete(MainController.sites, tables);
         deleteTables(tablesToDelete);
-        List<String> tablesToCreate = Utils.findTablesThatNeedToCreate(TrackingController.sites, tables);
+        List<String> tablesToCreate = DaoHelper.findTablesThatNeedToCreate(MainController.sites, tables);
         createStatisticTables(tablesToCreate);
     }
 
     public void addIpToBlackList(String siteName, String ip) throws Exception {
-        Site site = TrackingController.getSiteByName(siteName);
+        Site site = MainController.getSiteByName(siteName);
         site.getBlackIps().add(ip);
         String s = getBlackList(siteName);
         s += "," + ip;
@@ -294,13 +261,13 @@ public class MySqlDao {
         if (s.contains(","+ip)){
             s = s.replaceAll(","+ip, "");
             setBlackList(SiteName, s);
-            Site site = TrackingController.getSiteByName(SiteName);
+            Site site = MainController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
             return "IP " + ip + " удалён";
         }else if (s.contains(ip)){
             s = s.replaceAll(ip, "");
             setBlackList(SiteName, s);
-            Site site = TrackingController.getSiteByName(SiteName);
+            Site site = MainController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
             return "IP " + ip + " удалён";
         }
@@ -341,7 +308,7 @@ public class MySqlDao {
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
-            TrackingController.getSiteByName(name).setTimeToBlock(time);
+            MainController.getSiteByName(name).setTimeToBlock(time);
         } catch (Exception  e) {
             e.printStackTrace();
             log(DB_OPERATIONS, name + ": Ошибка при установке времени блокировки в БД");

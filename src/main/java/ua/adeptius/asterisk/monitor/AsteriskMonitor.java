@@ -2,7 +2,7 @@ package ua.adeptius.asterisk.monitor;
 
 import org.asteriskjava.manager.event.HangupEvent;
 import org.asteriskjava.manager.event.NewStateEvent;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
@@ -51,7 +51,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum = addZero(newChannelEvent.getCallerIdNum());
             String phoneReseive = addZero(newChannelEvent.getExten());
             phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
-            TrackingController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
+            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
 
         } else if (event instanceof HangupEvent) {
             HangupEvent hangupEvent = (HangupEvent) event;
@@ -61,7 +61,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callUniqueId =  addZero(hangupEvent.getUniqueId());
             String callerIdNum =  addZero(hangupEvent.getCallerIdNum());
             String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-            TrackingController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
+            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
             phonesFromAndPhonesTo.remove(callerIdNum);
 
         } else if (event instanceof NewStateEvent) {
@@ -73,7 +73,7 @@ public class AsteriskMonitor implements ManagerEventListener {
             String callerIdNum =  addZero(newStateEvent.getCallerIdNum());
             String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
             if (code == 6) {
-                TrackingController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
+                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
             }
         }
     }

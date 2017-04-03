@@ -1,20 +1,21 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import com.google.gson.Gson;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.model.CustomerType;
+import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.utils.CustomerGroup;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,17 +37,21 @@ public class AdminController {
         return MyLogger.logs;
     }
 
-    @RequestMapping(value = "/getallsites", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/getallcustomers", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String[] getAllNameOfSites(
-            @RequestParam String password) {
+    public String getAllNameOfCustomers(@RequestParam String password) {
         if (isAdminPasswordWrong(password)){
-            return new String[]{"Wrong password"};
+            return "Wrong password";
         }
-        List<String> list = TrackingController.sites.stream().map(Site::getName).collect(Collectors.toList());
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
+
+        ArrayList<CustomerGroup> types = new ArrayList<>();
+        for (Site customer : MainController.sites) {
+            types.add(new CustomerGroup(customer.getName(), customer.type));
+        }
+        for (TelephonyCustomer customer : MainController.telephonyCustomers) {
+            types.add(new CustomerGroup(customer.getName(), customer.type));
+        }
+        return new Gson().toJson(types);
     }
 
 
@@ -85,7 +90,7 @@ public class AdminController {
 
         Site site = null;
         try {
-            site = TrackingController.getSiteByName(name);
+            site = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + name + " В базе нет. Создаём новый.");
         }
@@ -93,15 +98,15 @@ public class AdminController {
 
         try {
             if (site != null) { // такой сайт есть. Обновляем.
-                Main.mySqlDao.editSite(newSite);
-                TrackingController.sites.remove(TrackingController.getSiteByName(newSite.getName()));
-                TrackingController.sites.add(newSite);
+                Main.sitesDao.editSite(newSite);
+                MainController.sites.remove(MainController.getSiteByName(newSite.getName()));
+                MainController.sites.add(newSite);
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " изменён");
                 return "Updated";
             } else { // сайта не существует. Создаём.
-                Main.mySqlDao.saveSite(newSite);
-                TrackingController.sites.add(newSite);
-                Main.mySqlDao.createOrCleanStatisticsTables();
+                Main.sitesDao.saveSite(newSite);
+                MainController.sites.add(newSite);
+                Main.sitesDao.createOrCleanStatisticsTables();
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " добавлен");
                 return "Added";
             }
@@ -123,16 +128,16 @@ public class AdminController {
 
         Site site = null;
         try {
-            site = TrackingController.getSiteByName(name);
+            site = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.ELSE, site.getName() + " не найден в БД");
             return "Not found in db";
         }
 
         try {
-            Main.mySqlDao.deleteSite(site.getName());
-            TrackingController.sites.remove(site);
-            Main.mySqlDao.createOrCleanStatisticsTables();
+            Main.sitesDao.deleteSite(site.getName());
+            MainController.sites.remove(site);
+            Main.sitesDao.createOrCleanStatisticsTables();
             MyLogger.log(LogCategory.ELSE, site.getName() + " удалён");
             return "Deleted";
         } catch (Exception e) {
@@ -146,11 +151,14 @@ public class AdminController {
     @RequestMapping(value = "/script/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getScript(@PathVariable String name) {
-         return "<script src=\"https://"
-                 + Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT")
-                 + "/tracking/script/"
-                 + name
-                 + "\"></script>";
+//         return "<script src=\"https://"
+//                 + Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT")
+//                 + "/tracking/script/"
+//                 + name
+//                 + "\"></script>";
+
+        // Локальный хост
+          return "<script src=\"http://78.159.55.63:8080/tracking/script/" + name + "\"></script>";
     }
 
 

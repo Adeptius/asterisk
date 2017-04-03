@@ -1,12 +1,14 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import com.google.gson.Gson;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.tracking.MainController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -21,16 +23,29 @@ import java.util.stream.Collectors;
 @RequestMapping("/status")
 public class StatusController {
 
-    @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "application/json")
+
+
+
+    @RequestMapping(value = "/telephonyinfo", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Site getSiteByName(@RequestParam String name,
-                              @RequestParam String password) {
-       if (isPasswordWrong(name,password)){
-            return new Site("Wrong password",null,"Wrong password","Wrong password","Wrong password",null,"Wrong password",0);
+    public String getTelephonyByName(@RequestParam String name, @RequestParam String password) {
+       if (isTelephonyPasswordWrong(name,password)){
+            return "Wrong password";
         }
 
-        Site site = TrackingController.getSiteByName(name);
-        return site;
+        TelephonyCustomer telephonyCustomer = MainController.getTelephonyCustomerByName(name);
+        return new Gson().toJson(telephonyCustomer);
+    }
+
+
+    @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String getSiteByName(@RequestParam String name, @RequestParam String password) {
+       if (isSitePasswordWrong(name,password)){
+            return "Wrong password";
+        }
+        Site site = MainController.getSiteByName(name);
+        return new Gson().toJson(site);
     }
 
     @RequestMapping(value = "/history", method = RequestMethod.POST, produces = "application/json")
@@ -40,7 +55,7 @@ public class StatusController {
                                          @RequestParam String dateTo,
                                          @RequestParam String direction,
                                          @RequestParam String password) {
-        if (isPasswordWrong(name,password)){
+        if (isSitePasswordWrong(name,password)){
             ArrayList<Statistic> list = new ArrayList<>();
             Statistic statistic = new Statistic();
             statistic.setDate("Wrong password");
@@ -55,8 +70,8 @@ public class StatusController {
             return list;
         }
         try {
-            if (TrackingController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
-                List<Statistic> list = Main.mySqlDao.getStatisticOfRange(name, dateFrom, dateTo,direction);
+            if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
+                List<Statistic> list = Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo,direction);
                 return list;
             }
         } catch (Exception e) {
@@ -106,8 +121,20 @@ public class StatusController {
 
 
 
-    private static boolean isPasswordWrong(String sitename, String password){
-        String currentSitePass = TrackingController.getSiteByName(sitename).getPassword();
+    // TODO переделать на класс родителя
+    private static boolean isSitePasswordWrong(String sitename, String password){
+        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
+        if (password.equals(currentSitePass)){
+            return false;
+        }
+        if (password.equals("pthy0eds")){
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isTelephonyPasswordWrong(String sitename, String password){
+        String currentSitePass = MainController.getTelephonyCustomerByName(sitename).getPassword();
         if (password.equals(currentSitePass)){
             return false;
         }

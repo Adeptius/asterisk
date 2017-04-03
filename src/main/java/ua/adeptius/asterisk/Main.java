@@ -1,12 +1,16 @@
 package ua.adeptius.asterisk;
 
 
-import ua.adeptius.asterisk.tracking.TrackingController;
-import ua.adeptius.asterisk.dao.MySqlDao;
+import ua.adeptius.asterisk.dao.TelephonyDao;
+import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.dao.SitesDao;
 import ua.adeptius.asterisk.monitor.AsteriskMonitor;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.monitor.PhonesWatcher;
 import ua.adeptius.asterisk.dao.Settings;
+
+import java.util.List;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
@@ -14,18 +18,29 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 public class Main {
 
     public static AsteriskMonitor monitor;
-    public static MySqlDao mySqlDao;
+    public static SitesDao sitesDao;
+    public static TelephonyDao telephonyDao;
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
         main.init();
+//        main.telephonyInit();
+
+    }
+
+    private void telephonyInit() {
+        Settings.load(this.getClass());
+
+
+
     }
 
     private void init() {
         Settings.load(this.getClass());
-        mySqlDao = new MySqlDao();
+
+        telephonyDao = new TelephonyDao();
         try {
-            mySqlDao.init();
+            telephonyDao.init();
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
@@ -33,10 +48,25 @@ public class Main {
         }
 
         try {
-            TrackingController.sites = mySqlDao.getSites();
-//            for (Site site : TrackingController.sites) {
-//                System.out.println(site.getRules());
+            MainController.telephonyCustomers = telephonyDao.getTelephonyCustomers();
+//            for (TelephonyCustomer telephonyCustomer : MainController.telephonyCustomers) {
+//                System.out.println(telephonyCustomer);
 //            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sitesDao = new SitesDao();
+        try {
+            sitesDao.init();
+        } catch (Exception e) {
+            e.printStackTrace();
+            MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL Sites");
+            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL Sites");
+        }
+
+        try {
+            MainController.sites = sitesDao.getSites();
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");
@@ -46,7 +76,7 @@ public class Main {
         new PhonesWatcher();
 
         try {
-            mySqlDao.createOrCleanStatisticsTables();
+            sitesDao.createOrCleanStatisticsTables();
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ");

@@ -4,7 +4,7 @@ package ua.adeptius.asterisk.controllers;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.tracking.TrackingController;
+import ua.adeptius.asterisk.tracking.MainController;
 
 
 @Controller
@@ -17,8 +17,8 @@ public class WebController {
                      @PathVariable String googleid,
                      @PathVariable String ip,
                      @PathVariable String pagerequest) {
-        Site site = TrackingController.getSiteByName(sitename);
-        String phone = TrackingController.getFreeNumberFromSite(site, googleid, ip, pagerequest);
+        Site site = MainController.getSiteByName(sitename);
+        String phone = MainController.getFreeNumberFromSite(site, googleid, ip, pagerequest);
         return convertPhone(phone);
     }
 

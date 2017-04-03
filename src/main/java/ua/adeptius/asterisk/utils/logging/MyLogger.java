@@ -20,6 +20,13 @@ public class MyLogger {
         }
     }
 
+    public static void logAndThrow(LogCategory category, String message) throws Exception{
+        log(category, message);
+        throw new Exception(message);
+    }
+
+
+
     public static void printException(Exception e) {
         if (true){ // Settings.showDetailedErrorsLogs
             e.printStackTrace();
