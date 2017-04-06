@@ -29,7 +29,7 @@ public class AdminController {
     @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public LinkedList<String> getLogs(@RequestParam String adminPassword) {
-         if (isAdminPasswordWrong(adminPassword)){
+        if (isAdminPasswordWrong(adminPassword)) {
             LinkedList<String> list = new LinkedList<>();
             list.add("Wrong password");
             return list;
@@ -40,7 +40,7 @@ public class AdminController {
     @RequestMapping(value = "/getallcustomers", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String getAllNameOfCustomers(@RequestParam String password) {
-        if (isAdminPasswordWrong(password)){
+        if (isAdminPasswordWrong(password)) {
             return "Wrong password";
         }
 
@@ -52,6 +52,67 @@ public class AdminController {
             types.add(new CustomerGroup(customer.getName(), customer.type));
         }
         return new Gson().toJson(types);
+    }
+
+    @RequestMapping(value = "/telephony/add", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
+    @ResponseBody
+    public String addTelephonyCustomer(@RequestParam String customer, @RequestParam String adminPassword) {
+
+        if (isAdminPasswordWrong(adminPassword)) {
+            return "Error: Wrong password";
+        }
+
+        TelephonyCustomer newCustomer = null;
+        try {
+            newCustomer = new Gson().fromJson(customer, TelephonyCustomer.class);
+        } catch (Exception e) {
+            return "Error: Wrong Syntax";
+        }
+
+        Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(newCustomer.getName());
+        if (!regexMatcher.find()) {
+            return "Error: Name must contains only english letters";
+        }
+
+        TelephonyCustomer found = null;
+        try {
+            found = MainController.getTelephonyCustomerByName(newCustomer.getName());
+        } catch (NoSuchElementException e) {
+            MyLogger.log(LogCategory.DB_OPERATIONS, "Пользователя " + newCustomer + " В базе нет. Создаём нового.");
+        }
+
+
+        try {
+            if (found != null) { // такой пользователь есть. Обновляем.
+                Main.telephonyDao.editTelephonyCustomer(newCustomer);
+                MainController.telephonyCustomers.remove(MainController.getTelephonyCustomerByName(newCustomer.getName()));
+                MainController.telephonyCustomers.add(newCustomer);
+                MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " изменён");
+                return "Updated";
+            } else { // пользователя не существует. Создаём.
+
+                // проверяем нет ли сайта с таким же логином
+                Site site = null;
+                try {
+                    site = MainController.getSiteByName(newCustomer.getName());
+                } catch (NoSuchElementException ignored) {
+                }
+                if (site != null) {  // значит есть сайт с тем же логином
+                    return "Error: Site with same login already present";
+                }
+
+                Main.telephonyDao.saveTelephonyCustomer(newCustomer);
+                MainController.telephonyCustomers.add(newCustomer);
+                // TODO создать таблицу статистики
+//                Main.sitesDao.createOrCleanStatisticsTables();
+                MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " добавлен");
+                return "Added";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            MyLogger.log(LogCategory.ELSE, "Error: " + e);
+            return "Error: " + e;
+        }
     }
 
 
@@ -67,12 +128,12 @@ public class AdminController {
                                 @RequestParam String password,
                                 @RequestParam String adminPassword) {
 
-        if (isAdminPasswordWrong(adminPassword)){
+        if (isAdminPasswordWrong(adminPassword)) {
             return "Error: Wrong password";
         }
 
         Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(name);
-        if (!regexMatcher.find()){
+        if (!regexMatcher.find()) {
             return "Error: Name must contains only english letters";
         }
 
@@ -104,6 +165,17 @@ public class AdminController {
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " изменён");
                 return "Updated";
             } else { // сайта не существует. Создаём.
+
+                // проверяем нет ли телефонии с таким же логином
+                TelephonyCustomer telephonyCustomer = null;
+                try {
+                    telephonyCustomer = MainController.getTelephonyCustomerByName(newSite.getName());
+                } catch (NoSuchElementException ignored) {
+                }
+                if (telephonyCustomer != null) {  // значит есть пользователь телефонии с тем же именем
+                    return "Error: Customer with same login already present";
+                }
+
                 Main.sitesDao.saveSite(newSite);
                 MainController.sites.add(newSite);
                 Main.sitesDao.createOrCleanStatisticsTables();
@@ -120,9 +192,8 @@ public class AdminController {
 
     @RequestMapping(value = "/site/remove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String getSiteByName(@RequestParam String name,
-                                @RequestParam String adminPassword) {
-        if (isAdminPasswordWrong(adminPassword)){
+    public String removeSite(@RequestParam String name, @RequestParam String adminPassword) {
+        if (isAdminPasswordWrong(adminPassword)) {
             return "Wrong password";
         }
 
@@ -130,7 +201,7 @@ public class AdminController {
         try {
             site = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
-            MyLogger.log(LogCategory.ELSE, site.getName() + " не найден в БД");
+            MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
             return "Not found in db";
         }
 
@@ -147,6 +218,35 @@ public class AdminController {
         }
     }
 
+    @RequestMapping(value = "/telephony/remove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
+    @ResponseBody
+    public String removeTelephony(@RequestParam String name, @RequestParam String adminPassword) {
+        if (isAdminPasswordWrong(adminPassword)) {
+            return "Wrong password";
+        }
+
+        TelephonyCustomer customer = null;
+        try {
+            customer = MainController.getTelephonyCustomerByName(name);
+        } catch (NoSuchElementException e) {
+            MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
+            return "Not found in db";
+        }
+
+        try {
+            Main.telephonyDao.deleteTelephonyCustomer(customer.getName());
+            MainController.telephonyCustomers.remove(customer);
+            // TODO почистить таблицы
+//            Main.sitesDao.createOrCleanStatisticsTables();
+            MyLogger.log(LogCategory.ELSE, customer.getName() + " удалён");
+            return "Deleted";
+        } catch (Exception e) {
+            e.printStackTrace();
+            MyLogger.log(LogCategory.ELSE, "Error: " + e);
+            return "Error: " + e;
+        }
+    }
+
 
     @RequestMapping(value = "/script/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
@@ -158,7 +258,7 @@ public class AdminController {
 //                 + "\"></script>";
 
         // Локальный хост
-          return "<script src=\"http://78.159.55.63:8080/tracking/script/" + name + "\"></script>";
+        return "<script src=\"http://78.159.55.63:8080/tracking/script/" + name + "\"></script>";
     }
 
 
@@ -166,7 +266,7 @@ public class AdminController {
     @ResponseBody
     public String getSetting(@RequestParam String name,
                              @RequestParam String adminPassword) {
-        if (isAdminPasswordWrong(adminPassword)){
+        if (isAdminPasswordWrong(adminPassword)) {
             return "Wrong password";
         }
         return Settings.getSetting(name);
@@ -178,20 +278,20 @@ public class AdminController {
     public String setSetting(@RequestParam String name,
                              @RequestParam String value,
                              @RequestParam String adminPassword) {
-        if (isAdminPasswordWrong(adminPassword)){
+        if (isAdminPasswordWrong(adminPassword)) {
             return "Wrong password";
         }
         Settings.setSetting(name, value);
-        if (!name.equals("ACTIVE_SITE")){
+        if (!name.equals("ACTIVE_SITE")) {
             String result = "Сохранено значение " + value + " для " + name;
             MyLogger.log(LogCategory.ELSE, result);
             return result;
-        }else {
+        } else {
             return null;
         }
     }
 
-    private boolean isAdminPasswordWrong(String password){
+    private boolean isAdminPasswordWrong(String password) {
         return !password.equals(ADMIN_PASS);
     }
 }

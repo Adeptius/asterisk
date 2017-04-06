@@ -2,8 +2,6 @@ package ua.adeptius.asterisk.dao;
 
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
 
 import java.sql.Connection;
@@ -12,7 +10,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_ERROR_CONNECTING;
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
@@ -74,8 +71,41 @@ public class TelephonyDao {
     }
 
 
+    public void saveTelephonyCustomer(TelephonyCustomer newCustomer) throws Exception {
+        String sql = DaoHelper.getQueryForSaveTelephonyCustomer(newCustomer);
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+            log(DB_OPERATIONS, newCustomer.getName() + " сохранён");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, "Ошибка сохранения пользователя в БД: " + e);
+            throw new Exception("Ошибка сохранения пользователя в БД: " + e);
+        }
+    }
 
+    public void editTelephonyCustomer(TelephonyCustomer newCustomer) throws Exception {
+        String sql = DaoHelper.getQueryForEditTelephonyCustomer(newCustomer);
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+            log(DB_OPERATIONS, newCustomer.getName() + " сохранён");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, "Ошибка изменения пользователя в БД: " + e);
+            throw new Exception("Ошибка изменения пользователя в БД: " + e);
+        }
+    }
 
-
-
+    public void deleteTelephonyCustomer(String name) throws Exception {
+        String sql = DaoHelper.createSqlQueryForDeleteTelephonyCustomer(name);
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, "Ошибка при удалении пользователя с БД");
+            throw new Exception("Ошибка при удалении пользователя с БД");
+        }
+    }
 }

@@ -2,19 +2,13 @@ package ua.adeptius.asterisk.tracking;
 
 
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.senders.GoogleAnalitycs;
 import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
@@ -23,6 +17,22 @@ public class MainController {
 
     public static List<Site> sites;
     public static List<TelephonyCustomer> telephonyCustomers;
+
+    public static List<Customer> getAllCustomers(){
+        List<Customer> customers = new ArrayList<>();
+        customers.addAll(sites);
+        customers.addAll(telephonyCustomers);
+        return customers;
+    }
+
+    public static Customer getCustomerByName(String name) throws NoSuchElementException {
+        return getAllCustomers().stream().filter(cust -> cust.getName().equals(name)).findFirst().get();
+    }
+
+    public static boolean isLogin(String name, String pass) throws NoSuchElementException  {
+        Customer customer = getCustomerByName(name);
+        return customer.getPassword().equals(pass);
+    }
 
     public static Site getSiteByName(String name) throws NoSuchElementException {
         return sites.stream().filter(site -> site.getName().equals(name)).findFirst().get();
