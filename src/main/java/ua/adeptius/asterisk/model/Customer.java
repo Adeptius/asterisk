@@ -53,6 +53,8 @@ public abstract class Customer {
         }
     }
 
+    public abstract List<String> getAvailableNumbers();
+
     public void setRules(List<Rule> rules) {
         this.rules = rules;
     }

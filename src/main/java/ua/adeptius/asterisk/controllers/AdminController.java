@@ -5,12 +5,9 @@ import com.google.gson.Gson;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.model.CustomerType;
-import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.utils.CustomerGroup;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.tracking.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
@@ -26,21 +23,19 @@ public class AdminController {
     public static final String ADMIN_PASS = "pthy0eds";
 
 
-    @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public LinkedList<String> getLogs(@RequestParam String adminPassword) {
+    public String getLogs(@RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {
-            LinkedList<String> list = new LinkedList<>();
-            list.add("Wrong password");
-            return list;
+            return "Wrong password";
         }
-        return MyLogger.logs;
+        return new Gson().toJson(MyLogger.logs);
     }
 
-    @RequestMapping(value = "/getallcustomers", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/getallcustomers", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public String getAllNameOfCustomers(@RequestParam String password) {
-        if (isAdminPasswordWrong(password)) {
+    public String getAllNameOfCustomers(@RequestParam String adminPassword) {
+        if (isAdminPasswordWrong(adminPassword)) {
             return "Wrong password";
         }
 
@@ -56,15 +51,14 @@ public class AdminController {
 
     @RequestMapping(value = "/telephony/add", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String addTelephonyCustomer(@RequestParam String customer, @RequestParam String adminPassword) {
-
+    public String addTelephonyCustomer(@RequestParam String telephonyCustomer, @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {
             return "Error: Wrong password";
         }
 
-        TelephonyCustomer newCustomer = null;
+        TelephonyCustomer newCustomer;
         try {
-            newCustomer = new Gson().fromJson(customer, TelephonyCustomer.class);
+            newCustomer = new Gson().fromJson(telephonyCustomer, TelephonyCustomer.class);
         } catch (Exception e) {
             return "Error: Wrong Syntax";
         }
@@ -90,7 +84,6 @@ public class AdminController {
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " изменён");
                 return "Updated";
             } else { // пользователя не существует. Создаём.
-
                 // проверяем нет ли сайта с таким же логином
                 Site site = null;
                 try {
@@ -118,42 +111,29 @@ public class AdminController {
 
     @RequestMapping(value = "/site/add", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String getSiteByName(@RequestParam String name,
-                                @RequestParam String phones,
-                                @RequestParam String standartNumber,
-                                @RequestParam String googleAnalyticsTrackingId,
-                                @RequestParam String email,
-                                @RequestParam String blackIps,
-                                @RequestParam int timeToBlock,
-                                @RequestParam String password,
-                                @RequestParam String adminPassword) {
+    public String getSiteByName(@RequestParam String siteCustomer, @RequestParam String adminPassword) {
 
         if (isAdminPasswordWrong(adminPassword)) {
             return "Error: Wrong password";
         }
 
-        Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(name);
+        Site newSite;
+        try {
+            newSite = new Gson().fromJson(siteCustomer, Site.class);
+        } catch (Exception e) {
+            return "Error: Wrong Syntax";
+        }
+
+        Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(newSite.getName());
         if (!regexMatcher.find()) {
             return "Error: Name must contains only english letters";
         }
 
-        List<Phone> phoneList = new ArrayList<>();
-        for (String s : phones.split(",")) {
-            phoneList.add(new Phone(s));
-        }
-        List<String> blackList = new ArrayList<>();
-        for (String s : blackIps.split(",")) {
-            blackList.add(s);
-        }
-
-        Site newSite = new Site(name, phoneList, standartNumber, googleAnalyticsTrackingId, email, blackList, password, timeToBlock);
-
-
         Site site = null;
         try {
-            site = MainController.getSiteByName(name);
+            site = MainController.getSiteByName(newSite.getName());
         } catch (NoSuchElementException e) {
-            MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + name + " В базе нет. Создаём новый.");
+            MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + newSite.getName() + " В базе нет. Создаём новый.");
         }
 
 
@@ -190,60 +170,37 @@ public class AdminController {
     }
 
 
-    @RequestMapping(value = "/site/remove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
+    @RequestMapping(value = "/userremove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
-    public String removeSite(@RequestParam String name, @RequestParam String adminPassword) {
+    public String removeUser(@RequestParam String name, @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {
-            return "Wrong password";
+            return "Error: wrong password";
         }
 
-        Site site = null;
+        Customer customer;
         try {
-            site = MainController.getSiteByName(name);
+            customer = MainController.getCustomerByName(name);
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
-            return "Not found in db";
+            return "Error: user not found in db";
         }
 
         try {
-            Main.sitesDao.deleteSite(site.getName());
-            MainController.sites.remove(site);
-            Main.sitesDao.createOrCleanStatisticsTables();
-            MyLogger.log(LogCategory.ELSE, site.getName() + " удалён");
+            if (customer instanceof Site) {
+                Main.sitesDao.deleteSite(customer.getName());
+                MainController.sites.remove(customer);
+                Main.sitesDao.createOrCleanStatisticsTables();
+            } else {
+                Main.telephonyDao.deleteTelephonyCustomer(customer.getName());
+                MainController.telephonyCustomers.remove(customer);
+//                Main.telephonyDao.createOrCleanStatisticsTables(); TODO удалить таблицу статистики
+            }
+            MyLogger.log(LogCategory.ELSE, customer.getName() + " удалён");
             return "Deleted";
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(LogCategory.ELSE, "Error: " + e.getMessage());
             return "Error: " + e.getMessage();
-        }
-    }
-
-    @RequestMapping(value = "/telephony/remove", method = RequestMethod.POST, produces = {"text/html; charset=UTF-8"})
-    @ResponseBody
-    public String removeTelephony(@RequestParam String name, @RequestParam String adminPassword) {
-        if (isAdminPasswordWrong(adminPassword)) {
-            return "Wrong password";
-        }
-
-        TelephonyCustomer customer = null;
-        try {
-            customer = MainController.getTelephonyCustomerByName(name);
-        } catch (NoSuchElementException e) {
-            MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
-            return "Not found in db";
-        }
-
-        try {
-            Main.telephonyDao.deleteTelephonyCustomer(customer.getName());
-            MainController.telephonyCustomers.remove(customer);
-            // TODO почистить таблицы
-//            Main.sitesDao.createOrCleanStatisticsTables();
-            MyLogger.log(LogCategory.ELSE, customer.getName() + " удалён");
-            return "Deleted";
-        } catch (Exception e) {
-            e.printStackTrace();
-            MyLogger.log(LogCategory.ELSE, "Error: " + e);
-            return "Error: " + e;
         }
     }
 
@@ -257,6 +214,7 @@ public class AdminController {
 //                 + name
 //                 + "\"></script>";
 
+        //TODO сменить адрес
         // Локальный хост
         return "<script src=\"http://78.159.55.63:8080/tracking/script/" + name + "\"></script>";
     }
@@ -267,7 +225,7 @@ public class AdminController {
     public String getSetting(@RequestParam String name,
                              @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {
-            return "Wrong password";
+            return "Error: wrong password";
         }
         return Settings.getSetting(name);
     }
@@ -279,11 +237,11 @@ public class AdminController {
                              @RequestParam String value,
                              @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {
-            return "Wrong password";
+            return "Error: wrong password";
         }
         Settings.setSetting(name, value);
         if (!name.equals("ACTIVE_SITE")) {
-            String result = "Сохранено значение " + value + " для " + name;
+            String result = "Success: saved value " + value + " for " + name;
             MyLogger.log(LogCategory.ELSE, result);
             return result;
         } else {

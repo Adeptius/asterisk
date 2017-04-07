@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.telephony.Rule;
-import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.tracking.MainController;
 
 import java.lang.reflect.Type;
@@ -18,71 +18,76 @@ import java.util.NoSuchElementException;
 @RequestMapping("/rules")
 public class RuleController {
 
+
+
+    @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
+    @ResponseBody
+    public String getAvailableNumbers(@RequestParam String name, @RequestParam String password) {
+
+        if (!MainController.isLogin(name, password)) {
+            return "Error: wrong password";
+        }
+
+        Customer customer = null;
+        try {
+            customer = MainController.getCustomerByName(name);
+        } catch (NoSuchElementException e) {
+            return "Error: no such user";
+        }
+
+        return new Gson().toJson(customer.getAvailableNumbers());
+    }
+
+
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getRules(@RequestParam String name, @RequestParam String password) {
 
-        if (isPasswordWrong(name, password)) {
-            return "Неправильный пароль";
+        if (!MainController.isLogin(name, password)) {
+            return "Error: wrong password";
         }
 
-        Site site = null;
+        Customer customer = null;
         try {
-            site = MainController.getSiteByName(name);
+            customer = MainController.getCustomerByName(name);
         } catch (NoSuchElementException e) {
-            return "Такого сайта не существует";
+            return "Error: no such user";
         }
 
-        List<Rule> rules = site.getRules();
-        String json = new Gson().toJson(rules);
-        return json;
+        List<Rule> rules = customer.getRules();
+        return new Gson().toJson(rules);
     }
 
 
     @RequestMapping(value = "/update", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getRules(@RequestParam String name, @RequestParam String password, @RequestParam String rules) {
-
-        if (isPasswordWrong(name, password)) {
-            return "Неправильный пароль";
+        if (!MainController.isLogin(name, password)) {
+            return "Error: wrong password";
         }
 
-        Site site = null;
+        Customer customer = null;
         try {
-            site = MainController.getSiteByName(name);
+            customer = MainController.getCustomerByName(name);
         } catch (NoSuchElementException e) {
-            return "Такого сайта не существует";
+            return "Error: no such user";
         }
 
         ArrayList<Rule> rulesList = null;
         try {
-            Type listType = new TypeToken<ArrayList<Rule>>() {}.getType();
+            Type listType = new TypeToken<ArrayList<Rule>>() {
+            }.getType();
             rulesList = new Gson().fromJson(rules, listType);
         } catch (Exception e) {
-            return "Неверный синтаксис";
+            return "Error: wrong syntax";
         }
-
-        site.setRules(rulesList);
-
         try {
-            site.saveRules();
-            return "Сохранено";
+            customer.setRules(rulesList);
+            customer.saveRules();
+            return "Success: Saved";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Ошибка записи на сервере";
+            return "Error: DB error";
         }
-    }
-
-
-    private static boolean isPasswordWrong(String sitename, String password) {
-        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
-        if (password.equals(currentSitePass)) {
-            return false;
-        }
-
-        if (password.equals("pthy0eds")) {
-            return false;
-        }
-        return true;
     }
 }

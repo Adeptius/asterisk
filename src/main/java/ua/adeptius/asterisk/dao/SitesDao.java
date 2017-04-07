@@ -263,15 +263,15 @@ public class SitesDao {
             setBlackList(SiteName, s);
             Site site = MainController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
-            return "IP " + ip + " удалён";
+            return "Success: IP " + ip + " unblocked.";
         }else if (s.contains(ip)){
             s = s.replaceAll(ip, "");
             setBlackList(SiteName, s);
             Site site = MainController.getSiteByName(SiteName);
             site.getBlackIps().remove(ip);
-            return "IP " + ip + " удалён";
+            return "Success: IP " + ip + " unblocked.";
         }
-        return "IP " + ip + " не заблокирован";
+        return "Error: IP " + ip + " not blocked.";
     }
 
     private void setBlackList(String sitename, String ip) throws Exception {

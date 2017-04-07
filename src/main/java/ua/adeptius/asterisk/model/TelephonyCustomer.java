@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.model;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class TelephonyCustomer extends Customer{
 
@@ -16,6 +17,11 @@ public class TelephonyCustomer extends Customer{
         this.outerPhones = outerPhones;
     }
 
+    @Override
+    public List<String> getAvailableNumbers() {
+        //TODO написать логику
+        return new ArrayList<>();
+    }
 
     public ArrayList<String> getInnerPhones() {
         return innerPhones;

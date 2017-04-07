@@ -10,6 +10,7 @@ import ua.adeptius.asterisk.utils.logging.MyLogger;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Site extends Customer {
 
@@ -58,6 +59,14 @@ public class Site extends Customer {
 
     public List<String> getBlackIps() {
         return blackIps;
+    }
+
+    @Override
+    public List<String> getAvailableNumbers() {
+        List<String> currentPhones = phones.stream().map(Phone::getNumber).collect(Collectors.toList());
+        List<String> currentNumbersInRules = rules.stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
+        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
+        return list;
     }
 
     @Override

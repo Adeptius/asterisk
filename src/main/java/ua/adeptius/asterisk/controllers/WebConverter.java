@@ -25,8 +25,7 @@ public class WebConverter {
 
     @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public String getSiteByName(@RequestParam String name,
-                              @RequestParam String password) {
+    public String getSiteByName(@RequestParam String name, @RequestParam String password) {
         if (isPasswordWrong(name,password)){
             return "Wrong password";
         }
@@ -126,7 +125,6 @@ public class WebConverter {
                 "</form>";
 
         String url = "/tracking/status/record/"+id+"/"+date;
-//        String url = "http://188.231.188.166/in-443550206-0934027182-20170209-000706-1486591626.2761.wav";
 
         form = form.replaceAll("URL",url);
         return form;

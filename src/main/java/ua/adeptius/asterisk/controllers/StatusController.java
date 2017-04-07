@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.controllers;
 
 
 import com.google.gson.Gson;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
@@ -23,75 +24,60 @@ import java.util.stream.Collectors;
 @RequestMapping("/status")
 public class StatusController {
 
-
-
-
-    @RequestMapping(value = "/telephonyinfo", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/telephonyinfo", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getTelephonyByName(@RequestParam String name, @RequestParam String password) {
-       if (isTelephonyPasswordWrong(name,password)){
-            return "Wrong password";
+        if (!MainController.isTelephonyLogin(name, password)) {
+            return "Error: wrong password";
         }
-
-        TelephonyCustomer telephonyCustomer = MainController.getTelephonyCustomerByName(name);
-        return new Gson().toJson(telephonyCustomer);
+        return new Gson().toJson(MainController.getTelephonyCustomerByName(name));
     }
 
 
-    @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/siteinfo", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getSiteByName(@RequestParam String name, @RequestParam String password) {
-       if (isSitePasswordWrong(name,password)){
-            return "Wrong password";
+        if (!MainController.isSiteLogin(name, password)) {
+            return "Error: wrong password";
         }
-        Site site = MainController.getSiteByName(name);
-        return new Gson().toJson(site);
+
+        try{
+            return new ObjectMapper().writeValueAsString(MainController.getSiteByName(name));
+        }catch (Exception e){
+            return "Error: DB error";
+        }
     }
 
-    @RequestMapping(value = "/history", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/history", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public List<Statistic> getSiteByName(@RequestParam String name,
-                                         @RequestParam String dateFrom,
-                                         @RequestParam String dateTo,
-                                         @RequestParam String direction,
-                                         @RequestParam String password) {
-        if (isSitePasswordWrong(name,password)){
-            ArrayList<Statistic> list = new ArrayList<>();
-            Statistic statistic = new Statistic();
-            statistic.setDate("Wrong password");
-            list.add(statistic);
-            return list;
+    public String getHistory(@RequestParam String name,
+                                @RequestParam String dateFrom,
+                                @RequestParam String dateTo,
+                                @RequestParam String direction,
+                                @RequestParam String password) {
+        if (!MainController.isLogin(name, password)) {  // TODO Это точно будет общий метод?
+            return "Error: wrong password";
         }
-        if (!direction.equals("IN") && !direction.equals("OUT")){
-            ArrayList<Statistic> list = new ArrayList<>();
-            Statistic statistic = new Statistic();
-            statistic.setDate("Wrong direction");
-            list.add(statistic);
-            return list;
+        direction = direction.toUpperCase();
+        if (!direction.equals("IN") && !direction.equals("OUT")) {
+            return "Error: wrong direction";
         }
         try {
-            if (MainController.sites.stream().map(Site::getName).anyMatch(s -> s.equals(name))) {
-                List<Statistic> list = Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo,direction);
-                return list;
-            }
+            return new ObjectMapper().writeValueAsString(Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
         } catch (Exception e) {
-            return new ArrayList<>();
+            return "Error: DB error";
         }
-        return new ArrayList<>();
     }
 
     @RequestMapping(value = "/record/{id}/{date}", method = RequestMethod.GET)
-    public void getFile(
-            @PathVariable String id,
-            @PathVariable String date,
-            HttpServletResponse response) {
+    public void getFile(@PathVariable String id, @PathVariable String date, HttpServletResponse response) {
 
-        String year = date.substring(0,4);
-        String month = date.substring(5,7);
-        String day = date.substring(8,10);
+        String year = date.substring(0, 4);
+        String month = date.substring(5, 7);
+        String day = date.substring(8, 10);
 
         try {
-            File  file = findFile(year, month, day, id);
+            File file = findFile(year, month, day, id);
             response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
             Files.copy(file.toPath(), response.getOutputStream());
             response.flushBuffer();
@@ -103,7 +89,6 @@ public class StatusController {
 
 
     private static File findFile(String year, String month, String day, String id) throws Exception {
-
         Path path = Paths.get("/var/spool/asterisk/monitor/" + year + "/" + month + "/" + day);
 
         List<File> list = Files.walk(path)
@@ -117,30 +102,5 @@ public class StatusController {
             }
         }
         throw new FileNotFoundException();
-    }
-
-
-
-    // TODO переделать на класс родителя
-    private static boolean isSitePasswordWrong(String sitename, String password){
-        String currentSitePass = MainController.getSiteByName(sitename).getPassword();
-        if (password.equals(currentSitePass)){
-            return false;
-        }
-        if (password.equals("pthy0eds")){
-            return false;
-        }
-        return true;
-    }
-
-    private static boolean isTelephonyPasswordWrong(String sitename, String password){
-        String currentSitePass = MainController.getTelephonyCustomerByName(sitename).getPassword();
-        if (password.equals(currentSitePass)){
-            return false;
-        }
-        if (password.equals("pthy0eds")){
-            return false;
-        }
-        return true;
     }
 }
