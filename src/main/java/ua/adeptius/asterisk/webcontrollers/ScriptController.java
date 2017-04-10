@@ -1,11 +1,11 @@
-package ua.adeptius.asterisk.controllers;
+package ua.adeptius.asterisk.webcontrollers;
 
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 

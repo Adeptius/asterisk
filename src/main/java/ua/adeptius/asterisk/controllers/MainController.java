@@ -1,8 +1,8 @@
-package ua.adeptius.asterisk.tracking;
+package ua.adeptius.asterisk.controllers;
 
 
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.controllers.AdminController;
+import ua.adeptius.asterisk.webcontrollers.AdminController;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.senders.GoogleAnalitycs;
@@ -34,7 +34,7 @@ public class MainController {
         if (pass.equals(AdminController.ADMIN_PASS)) {
             return true;
         }
-        Customer customer = null;
+        Customer customer;
         try {
             customer = getCustomerByName(name);
         } catch (NoSuchElementException e) {

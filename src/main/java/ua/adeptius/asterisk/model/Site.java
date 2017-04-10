@@ -15,17 +15,16 @@ import java.util.stream.Collectors;
 public class Site extends Customer {
 
     public final CustomerType type = CustomerType.TRACKING;
-    public Site(String name, List<Phone> phones, String standartNumber, String googleAnalyticsTrackingId, String eMail,
+    public Site(String name,String standartNumber, String googleAnalyticsTrackingId, String eMail,
                 List<String> blackIps, String password, int timeToBlock) {
         super(name, eMail, googleAnalyticsTrackingId, password);
-        this.phones = phones;
         this.standartNumber = standartNumber;
         this.blackIps = blackIps;
         this.timeToBlock = timeToBlock;
     }
 
     private List<String> blackIps;
-    private List<Phone> phones;
+    private List<Phone> phones = new ArrayList<>();
     private String standartNumber;
     private int timeToBlock;
 

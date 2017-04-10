@@ -2,7 +2,7 @@ package ua.adeptius.asterisk.monitor;
 
 import org.asteriskjava.manager.event.HangupEvent;
 import org.asteriskjava.manager.event.NewStateEvent;
-import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;

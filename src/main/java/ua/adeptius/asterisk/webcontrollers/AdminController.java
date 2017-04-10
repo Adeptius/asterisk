@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.controllers;
+package ua.adeptius.asterisk.webcontrollers;
 
 
 import com.google.gson.Gson;
@@ -8,14 +8,13 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.utils.CustomerGroup;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -96,8 +95,7 @@ public class AdminController {
 
                 Main.telephonyDao.saveTelephonyCustomer(newCustomer);
                 MainController.telephonyCustomers.add(newCustomer);
-                // TODO создать таблицу статистики
-//                Main.sitesDao.createOrCleanStatisticsTables();
+                Main.telephonyDao.createOrCleanStatisticsTables();
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " добавлен");
                 return "Added";
             }
@@ -193,7 +191,7 @@ public class AdminController {
             } else {
                 Main.telephonyDao.deleteTelephonyCustomer(customer.getName());
                 MainController.telephonyCustomers.remove(customer);
-//                Main.telephonyDao.createOrCleanStatisticsTables(); TODO удалить таблицу статистики
+                Main.telephonyDao.createOrCleanStatisticsTables();
             }
             MyLogger.log(LogCategory.ELSE, customer.getName() + " удалён");
             return "Deleted";

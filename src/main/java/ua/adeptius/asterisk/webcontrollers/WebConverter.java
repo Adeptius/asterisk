@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.controllers;
+package ua.adeptius.asterisk.webcontrollers;
 
 
 import org.springframework.stereotype.Controller;
@@ -10,7 +10,7 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.Collections;

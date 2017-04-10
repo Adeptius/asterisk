@@ -1,12 +1,10 @@
-package ua.adeptius.asterisk.controllers;
+package ua.adeptius.asterisk.webcontrollers;
 
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.tracking.MainController;
-
-import java.util.NoSuchElementException;
+import ua.adeptius.asterisk.controllers.MainController;
 
 
 @Controller

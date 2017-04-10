@@ -98,7 +98,7 @@ public class DaoHelper {
     }
 
 
-    public static List<String> findTablesThatNeedToDelete(List<Site> sites, List<String> tables) {
+    public static List<String> findTablesThatNeedToDeleteSite(List<Site> sites, List<String> tables) {
         List<String> tablesToDelete = new ArrayList<>();
         List<String> sitesAlreadyHave = sites.stream().map(Site::getName).collect(Collectors.toList());
         for (String table : tables) {
@@ -112,8 +112,33 @@ public class DaoHelper {
     }
 
 
-    public static List<String> findTablesThatNeedToCreate(List<Site> sites, List<String> tables) {
+    public static List<String> findTablesThatNeedToCreateSite(List<Site> sites, List<String> tables) {
         List<String> sitesAlreadyHave = sites.stream().map(Site::getName).collect(Collectors.toList());
+        List<String> sitesNeedToCreate = new ArrayList<>();
+        for (String s : sitesAlreadyHave) {
+            if (!tables.contains("statistic_" + s)) {
+                sitesNeedToCreate.add(s);
+            }
+        }
+        return sitesNeedToCreate;
+    }
+
+  public static List<String> findTablesThatNeedToDeleteTelephony(List<TelephonyCustomer> telephonyCustomers, List<String> tables) {
+        List<String> tablesToDelete = new ArrayList<>();
+        List<String> sitesAlreadyHave = telephonyCustomers.stream().map(TelephonyCustomer::getName).collect(Collectors.toList());
+        for (String table : tables) {
+            String siteNameFromTable = table.substring(10);
+
+            if (!sitesAlreadyHave.contains(siteNameFromTable)) {
+                tablesToDelete.add(table);
+            }
+        }
+        return tablesToDelete;
+    }
+
+
+    public static List<String> findTablesThatNeedToCreateTelephony(List<TelephonyCustomer> telephonyCustomers, List<String> tables) {
+        List<String> sitesAlreadyHave = telephonyCustomers.stream().map(TelephonyCustomer::getName).collect(Collectors.toList());
         List<String> sitesNeedToCreate = new ArrayList<>();
         for (String s : sitesAlreadyHave) {
             if (!tables.contains("statistic_" + s)) {
@@ -127,8 +152,8 @@ public class DaoHelper {
         String name = newCustomer.getName();
         String email = newCustomer.getMail();
         String googleId = newCustomer.getGoogleAnalyticsTrackingId();
-        String innerPhones = getStringFromList(newCustomer.getInnerPhones());
-        String outerPhones = getStringFromList(newCustomer.getOuterPhones());
+        String innerPhones = getStringFromList(newCustomer.getInnerPhonesList());
+        String outerPhones = getStringFromList(newCustomer.getOuterPhonesList());
         String password = newCustomer.getPassword();
 
         return "INSERT INTO " + TelephonyDao.TELEPHONY_TABLE + " VALUES("
@@ -144,8 +169,8 @@ public class DaoHelper {
         String name = newCustomer.getName();
         String email = newCustomer.getMail();
         String googleId = newCustomer.getGoogleAnalyticsTrackingId();
-        String innerPhones = getStringFromList(newCustomer.getInnerPhones());
-        String outerPhones = getStringFromList(newCustomer.getOuterPhones());
+        String innerPhones = getStringFromList(newCustomer.getInnerPhonesList());
+        String outerPhones = getStringFromList(newCustomer.getOuterPhonesList());
         String password = newCustomer.getPassword();
 
         return "UPDATE `" + TelephonyDao.TELEPHONY_TABLE + "` SET "

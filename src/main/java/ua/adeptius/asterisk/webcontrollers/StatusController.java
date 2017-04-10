@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.controllers;
+package ua.adeptius.asterisk.webcontrollers;
 
 
 import com.google.gson.Gson;
@@ -6,18 +6,17 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.model.Statistic;
-import ua.adeptius.asterisk.model.TelephonyCustomer;
-import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.controllers.MainController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Controller
@@ -55,15 +54,26 @@ public class StatusController {
                                 @RequestParam String dateTo,
                                 @RequestParam String direction,
                                 @RequestParam String password) {
-        if (!MainController.isLogin(name, password)) {  // TODO Это точно будет общий метод?
+        if (!MainController.isLogin(name, password)) {
             return "Error: wrong password";
         }
         direction = direction.toUpperCase();
         if (!direction.equals("IN") && !direction.equals("OUT")) {
             return "Error: wrong direction";
         }
+        Customer customer;
+        try{
+            customer = MainController.getCustomerByName(name);
+        }catch (NoSuchElementException e){
+            return "Error: no such User";
+        }
+
         try {
-            return new ObjectMapper().writeValueAsString(Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
+            if (customer instanceof Site){
+                return new ObjectMapper().writeValueAsString(Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
+            }else {
+                return new ObjectMapper().writeValueAsString(Main.telephonyDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
+            }
         } catch (Exception e) {
             return "Error: DB error";
         }

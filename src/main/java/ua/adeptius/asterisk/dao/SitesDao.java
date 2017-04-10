@@ -3,7 +3,7 @@ package ua.adeptius.asterisk.dao;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import ua.adeptius.asterisk.tracking.MainController;
+import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
@@ -58,7 +58,7 @@ public class SitesDao {
             while (set.next()) {
                 sites.add(new Site(
                         set.getString("name"),
-                        DaoHelper.getListFromString(set.getString("phones")).stream().map(Phone::new).collect(Collectors.toList()),
+//                        DaoHelper.getListFromString(set.getString("phones")).stream().map(Phone::new).collect(Collectors.toList()),
                         set.getString("standart_number"),
                         set.getString("tracking_id"),
                         set.getString("email"),
@@ -238,9 +238,9 @@ public class SitesDao {
 
     public void createOrCleanStatisticsTables() throws Exception{
         List<String> tables = getListOfTables();
-        List<String> tablesToDelete = DaoHelper.findTablesThatNeedToDelete(MainController.sites, tables);
+        List<String> tablesToDelete = DaoHelper.findTablesThatNeedToDeleteSite(MainController.sites, tables);
         deleteTables(tablesToDelete);
-        List<String> tablesToCreate = DaoHelper.findTablesThatNeedToCreate(MainController.sites, tables);
+        List<String> tablesToCreate = DaoHelper.findTablesThatNeedToCreateSite(MainController.sites, tables);
         createStatisticTables(tablesToCreate);
     }
 
