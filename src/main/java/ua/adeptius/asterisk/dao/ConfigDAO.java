@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ConfigDAO {
 
-    private static String folder = "C:\\Users\\Владимир\\Desktop\\rules\\";
+    private static String folder = "/var/www/html/admin/modules/core/etc/clients/";
 
     public static void writeToFile(String filename, List<Rule> ruleList) throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
@@ -55,5 +55,9 @@ public class ConfigDAO {
             }
         }
         return filteredEntry;
+    }
+
+    public static void removeFile(String name) throws Exception {
+        Files.delete(Paths.get(folder + name + ".conf"));
     }
 }

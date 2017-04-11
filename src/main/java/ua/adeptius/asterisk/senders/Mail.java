@@ -25,7 +25,7 @@ public class Mail {
         if (pastMinutes < antispam){
             MyLogger.log(ELSE, "Последнее оповещение было отправлено недавно");
         }else {
-            send(site.getMail(), message);
+            send(site.geteMail(), message);
             site.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
         }
     }

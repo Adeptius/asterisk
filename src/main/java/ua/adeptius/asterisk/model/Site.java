@@ -2,7 +2,9 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.ConfigDAO;
+import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -16,18 +18,44 @@ public class Site extends Customer {
 
     public final CustomerType type = CustomerType.TRACKING;
     public Site(String name,String standartNumber, String googleAnalyticsTrackingId, String eMail,
-                List<String> blackIps, String password, int timeToBlock) {
+                List<String> blackIps, String password, int timeToBlock, int outerNumbersCount) throws Exception {
         super(name, eMail, googleAnalyticsTrackingId, password);
         this.standartNumber = standartNumber;
         this.blackIps = blackIps;
         this.timeToBlock = timeToBlock;
+        this.outerNumbersCount = outerNumbersCount;
+        updateNumbers();
+    }
+
+    @Override
+    public void updateNumbers() throws Exception {
+        ArrayList<String> outerPhones = PhonesDao.getCustomersNumbers(name,false);
+        for (String outerPhone : outerPhones) {
+            phones.add(new Phone(outerPhone));
+        }
+        if (outerNumbersCount != phones.size()){
+            List<String> current = phones.stream().map(Phone::getNumber).collect(Collectors.toList());
+            PhonesController.increaseOrDecrease(outerNumbersCount, current,name,false);
+            phones.clear();
+            for (String s : current) {
+                phones.add(new Phone(s));
+            }
+        }
     }
 
     private List<String> blackIps;
     private List<Phone> phones = new ArrayList<>();
     private String standartNumber;
     private int timeToBlock;
+    private int outerNumbersCount;
 
+    public int getOuterNumbersCount() {
+        return outerNumbersCount;
+    }
+
+    public void setOuterNumbersCount(int outerNumbersCount) {
+        this.outerNumbersCount = outerNumbersCount;
+    }
 
     @JsonIgnore
     private long lastEmailTime;

@@ -2,19 +2,26 @@ package ua.adeptius.asterisk.controllers;
 
 
 import ua.adeptius.asterisk.dao.PhonesDao;
-import ua.adeptius.asterisk.exceptions.NotEnogthNumbers;
+import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
+import ua.adeptius.asterisk.model.Customer;
+import ua.adeptius.asterisk.model.Phone;
+import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.utils.logging.LogCategory;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PhonesController {
 
-    public static void increaseOrDecrease(int needCount, ArrayList<String> currentList, String name, boolean innerTable) throws Exception{
+    public static void increaseOrDecrease(int needCount, List<String> currentList, String name, boolean innerTable) throws Exception{
         if (needCount > currentList.size()){ // Если номеров недостаточно
             int needMoreNumbers = needCount - currentList.size();
             ArrayList<String> availableNumbers = PhonesDao.getFreePhones(innerTable); // взяли все свободные номера
             ArrayList<String> preparedNumbers = new ArrayList<>();
             if (availableNumbers.size()<needMoreNumbers){ // Убедились, что их достаточно
-                throw new NotEnogthNumbers();
+                throw new NotEnoughNumbers();
             }
             for (int i = 0; i < needMoreNumbers; i++) { // берём нужное количество
                 preparedNumbers.add(availableNumbers.get(i));
@@ -29,5 +36,40 @@ public class PhonesController {
             }
             PhonesDao.markNumberFree(numbersToRelease, innerTable);
         }
+    }
+
+    public static void releaseAllCustomerNumbers(Customer customer) throws Exception{
+        List<String> inner;
+        List<String> outer;
+        if (customer instanceof Site){
+            outer = ((Site) customer).getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
+            inner = new ArrayList<>();
+        }else {
+            outer = ((TelephonyCustomer) customer).getOuterPhonesList();
+            inner = ((TelephonyCustomer) customer).getInnerPhonesList();
+        }
+        PhonesDao.markNumberFree(outer,false);
+        PhonesDao.markNumberFree(inner, true);
+    }
+
+    public static void scanAndClean() throws Exception{
+        HashMap<String, String> innerMap = PhonesDao.getBusyInnerPhones();
+        HashMap<String, String> outerMap = PhonesDao.getBusyOuterPhones();
+        List<String> users = MainController.getAllCustomers().stream().map(Customer::getName).collect(Collectors.toList());
+        List<String> innerToClean = new ArrayList<>();
+        List<String> outerToClean = new ArrayList<>();
+        for (Map.Entry<String, String> entry : innerMap.entrySet()) {
+            if (!users.contains(entry.getValue())){
+                innerToClean.add(entry.getKey());
+            }
+        }
+        for (Map.Entry<String, String> entry : outerMap.entrySet()) {
+            if (!users.contains(entry.getValue())){
+                outerToClean.add(entry.getKey());
+            }
+        }
+        PhonesDao.markNumberFree(innerToClean,true);
+        PhonesDao.markNumberFree(outerToClean,false);
+        MyLogger.log(LogCategory.DB_OPERATIONS, "Освобождено номеров внешних: " + outerToClean.size() + ", внутренних: " + innerToClean.size());
     }
 }

@@ -29,7 +29,11 @@ public class StatusController {
         if (!MainController.isTelephonyLogin(name, password)) {
             return "Error: wrong password";
         }
-        return new Gson().toJson(MainController.getTelephonyCustomerByName(name));
+        try{
+            return new ObjectMapper().writeValueAsString(MainController.getTelephonyCustomerByName(name));
+        }catch (Exception e){
+            return "Error: DB error";
+        }
     }
 
 
@@ -39,7 +43,6 @@ public class StatusController {
         if (!MainController.isSiteLogin(name, password)) {
             return "Error: wrong password";
         }
-
         try{
             return new ObjectMapper().writeValueAsString(MainController.getSiteByName(name));
         }catch (Exception e){
@@ -49,11 +52,8 @@ public class StatusController {
 
     @RequestMapping(value = "/history", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
-    public String getHistory(@RequestParam String name,
-                                @RequestParam String dateFrom,
-                                @RequestParam String dateTo,
-                                @RequestParam String direction,
-                                @RequestParam String password) {
+    public String getHistory(@RequestParam String name, @RequestParam String dateFrom, @RequestParam String dateTo,
+                                @RequestParam String direction, @RequestParam String password) {
         if (!MainController.isLogin(name, password)) {
             return "Error: wrong password";
         }

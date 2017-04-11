@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.telephony;
 
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +76,7 @@ public class Rule {
         System.out.println(this);
     }
 
+    @JsonIgnore
     public String getConfig() {
         StringBuilder builder = new StringBuilder();
         builder.append("; Start Rule\n");

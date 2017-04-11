@@ -2,9 +2,11 @@ package ua.adeptius.asterisk;
 
 
 import ua.adeptius.asterisk.controllers.PhonesController;
+import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.TelephonyDao;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.SitesDao;
+import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.monitor.AsteriskMonitor;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.monitor.PhonesWatcher;
@@ -49,26 +51,27 @@ public class Main {
         // Загрузка обьектов
         try {
             MainController.telephonyCustomers = telephonyDao.getTelephonyCustomers();
-        } catch (Exception e) {
+        }catch (NotEnoughNumbers e1){
+            e1.printStackTrace();
+            MyLogger.log(DB_OPERATIONS, "НЕДОСТАТОЧНО НОМЕРОВ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ТЕЛЕФОНИИ");
+            throw new RuntimeException("НЕДОСТАТОЧНО НОМЕРОВ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ТЕЛЕФОНИИ");
+        }catch (Exception e) {
             e.printStackTrace();
+            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ ТЕЛЕФОНИИ С БАЗЫ");
+            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ ТЕЛЕФОНИИ С БАЗЫ");
         }
 
         try {
             MainController.sites = sitesDao.getSites();
-        } catch (Exception e) {
+        }catch (NotEnoughNumbers e1){
+            e1.printStackTrace();
+            MyLogger.log(DB_OPERATIONS, "НЕДОСТАТОЧНО НОМЕРОВ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ТРЕКИНГА");
+            throw new RuntimeException("НЕДОСТАТОЧНО НОМЕРОВ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ТРЕКИНГА");
+        }catch (Exception e) {
             e.printStackTrace();
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");
-            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ КОНФИГА С БАЗЫ");
+            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ ТРЕКИНГА С БАЗЫ");
+            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ ТРЕКИНГА С БАЗЫ");
         }
-
-        // Раздаём номера
-//        try {
-//            PhonesController.giveOutNumbers();
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            MyLogger.log(DB_OPERATIONS, "ОШИБКА ВЫДАЧИ НОМЕРОВ");
-//            throw new RuntimeException("ОШИБКА ВЫДАЧИ НОМЕРОВ");
-//        }
 
         // Загрузка наблюдателя. Только для сайтов
         new PhonesWatcher();
@@ -88,6 +91,14 @@ public class Main {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТЕЛЕФОНИИ");
             throw new RuntimeException("ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТЕЛЕФОНИИ");
+        }
+
+        try {
+            PhonesController.scanAndClean();
+        } catch (Exception e) {
+            e.printStackTrace();
+            MyLogger.log(DB_OPERATIONS, "ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
+            throw new RuntimeException("ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
         }
 
         // Мониторинг телефонии

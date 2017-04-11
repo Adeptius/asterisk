@@ -35,16 +35,16 @@ public class PhonesDao {
         return getPhones("SELECT * FROM `outer`");
     }
 
-    public static HashMap<String, String> getBusyOuterPhones() throws Exception {
-        return getPhones("SELECT * FROM telephonydb.`outer` where `busy` not like ''");
-    }
-
     public static HashMap<String, String> getAllInnerPhones() throws Exception {
         return getPhones("SELECT * FROM `inner`");
     }
 
+    public static HashMap<String, String> getBusyOuterPhones() throws Exception {
+        return getPhones("SELECT * FROM `outer` where `busy` not like ''");
+    }
+
     public static HashMap<String, String> getBusyInnerPhones() throws Exception {
-        return getPhones("SELECT * `inner` where `busy` not like ''");
+        return getPhones("SELECT * FROM `inner` where `busy` not like ''");
     }
 
 
@@ -101,7 +101,7 @@ public class PhonesDao {
         }
     }
 
-    public static void markNumberFree(ArrayList<String> numbersToRelease, boolean innerTable) throws Exception {
+    public static void markNumberFree(List<String> numbersToRelease, boolean innerTable) throws Exception {
         String table = innerTable ? "inner" : "outer";
         for (String s : numbersToRelease) {
             String sql = "UPDATE `" + table + "` SET `busy`='' WHERE `number`='" + s + "'";

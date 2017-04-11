@@ -6,6 +6,7 @@ import ua.adeptius.asterisk.dao.PhonesDao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TelephonyCustomer extends Customer{
 
@@ -19,21 +20,39 @@ public class TelephonyCustomer extends Customer{
         super(name, eMail, googleAnalyticsTrackingId, password);
         this.outerNumbersCount = outerNumbersCount;
         this.innerNumbersCount = innerNumbersCount;
-        this.outerPhonesList = PhonesDao.getCustomersNumbers(name,false);
-        this.innerPhonesList = PhonesDao.getCustomersNumbers(name,true);
         updateNumbers();
     }
 
+    @Override
     public void updateNumbers() throws Exception{
+        outerPhonesList = PhonesDao.getCustomersNumbers(name,false);
+        innerPhonesList = PhonesDao.getCustomersNumbers(name,true);
         PhonesController.increaseOrDecrease(innerNumbersCount, innerPhonesList, name, true);
         PhonesController.increaseOrDecrease(outerNumbersCount, outerPhonesList, name, false);
     }
 
-
     @Override
     public List<String> getAvailableNumbers() {
-        //TODO написать логику
-        return new ArrayList<>();
+        List<String> currentPhones = outerPhonesList;
+        List<String> currentNumbersInRules = rules.stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
+        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
+        return list;
+    }
+
+    public int getOuterNumbersCount() {
+        return outerNumbersCount;
+    }
+
+    public int getInnerNumbersCount() {
+        return innerNumbersCount;
+    }
+
+    public void setOuterNumbersCount(int outerNumbersCount) {
+        this.outerNumbersCount = outerNumbersCount;
+    }
+
+    public void setInnerNumbersCount(int innerNumbersCount) {
+        this.innerNumbersCount = innerNumbersCount;
     }
 
     public ArrayList<String> getInnerPhonesList() {

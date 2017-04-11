@@ -30,7 +30,7 @@ public abstract class Customer {
         return name;
     }
 
-    public String getMail() {
+    public String geteMail() {
         return eMail;
     }
 
@@ -45,15 +45,22 @@ public abstract class Customer {
     public void loadRules(){
         try {
             rules = ConfigDAO.readFromFile(name);
-        } catch (NoSuchFileException e) {
-            MyLogger.log(LogCategory.DB_ERROR_CONNECTING,
-                    "Отсутствует конфиг с правилами переадресации для сайта " + name);
+        } catch (NoSuchFileException ignored) {
         } catch (Exception e){
             e.printStackTrace();
         }
     }
 
+    public void removeRulesFile(){
+        try{
+            ConfigDAO.removeFile(name);
+            MyLogger.log(LogCategory.ELSE, "Файл конфига " + name + ".conf удалён.");
+        }catch (Exception ignored){}
+    }
+
     public abstract List<String> getAvailableNumbers();
+
+    public abstract void updateNumbers() throws Exception;
 
     public void setRules(List<Rule> rules) {
         this.rules = rules;
@@ -66,6 +73,8 @@ public abstract class Customer {
     public void saveRules() throws Exception{
         ConfigDAO.writeToFile(name, rules);
     }
+
+
 
     @Override
     public String toString() {

@@ -64,7 +64,8 @@ public class SitesDao {
                         set.getString("email"),
                         DaoHelper.getListFromString(set.getString("black_list_ip")),
                         set.getString("password"),
-                        set.getInt("time_to_block")
+                        set.getInt("time_to_block"),
+                        set.getInt("outer_phones")
                 ));
             }
             return sites;

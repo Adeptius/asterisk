@@ -62,20 +62,21 @@ public class DaoHelper {
 
     public static String createSqlQueryForSaveSite(Site site) {
         String name = site.getName();
-        String email = site.getMail();
+        String email = site.geteMail();
         String standartNumber = site.getStandartNumber();
         String googleId = site.getGoogleAnalyticsTrackingId();
-        String phones = "";
+//        String phones = "";
         String blackList = "";
         String password = site.getPassword();
         String timeToBlock = site.getTimeToBlock() + "";
-        List<Phone> phoneList = site.getPhones();
-        for (Phone phone : phoneList) {
-            phones += "," + phone.getNumber();
-        }
-        if (phones.startsWith(",")) {
-            phones = phones.substring(1);
-        }
+        int outerPhones = site.getOuterNumbersCount();
+//        List<Phone> phoneList = site.getPhones();
+//        for (Phone phone : phoneList) {
+//            phones += "," + phone.getNumber();
+//        }
+//        if (phones.startsWith(",")) {
+//            phones = phones.substring(1);
+//        }
 
         List<String> blackIPList = site.getBlackIps();
         for (String s : blackIPList) {
@@ -85,16 +86,17 @@ public class DaoHelper {
             blackList = blackList.substring(1);
         }
 
-        String sql = "INSERT INTO " + SitesDao.SITE_TABLE + " VALUES("
+
+        return "INSERT INTO " + SitesDao.SITE_TABLE + " VALUES("
                 + "'" + name + "',"
                 + "'" + googleId + "',"
                 + "'" + email + "',"
-                + "'" + phones + "',"
+                + "'',"
                 + "'" + standartNumber + "',"
                 + "'" + blackList + "',"
                 + "'" + timeToBlock + "',"
-                + "'" + password + "')";
-        return sql;
+                + "'" + password + "',"
+                + "'" + outerPhones + "')";
     }
 
 
@@ -150,10 +152,10 @@ public class DaoHelper {
 
     public static String getQueryForSaveTelephonyCustomer(TelephonyCustomer newCustomer) {
         String name = newCustomer.getName();
-        String email = newCustomer.getMail();
+        String email = newCustomer.geteMail();
         String googleId = newCustomer.getGoogleAnalyticsTrackingId();
-        String innerPhones = getStringFromList(newCustomer.getInnerPhonesList());
-        String outerPhones = getStringFromList(newCustomer.getOuterPhonesList());
+        int innerPhones = newCustomer.getInnerNumbersCount();
+        int outerPhones = newCustomer.getOuterNumbersCount();
         String password = newCustomer.getPassword();
 
         return "INSERT INTO " + TelephonyDao.TELEPHONY_TABLE + " VALUES("
@@ -167,10 +169,10 @@ public class DaoHelper {
 
     public static String getQueryForEditTelephonyCustomer(TelephonyCustomer newCustomer) {
         String name = newCustomer.getName();
-        String email = newCustomer.getMail();
+        String email = newCustomer.geteMail();
         String googleId = newCustomer.getGoogleAnalyticsTrackingId();
-        String innerPhones = getStringFromList(newCustomer.getInnerPhonesList());
-        String outerPhones = getStringFromList(newCustomer.getOuterPhonesList());
+        int innerPhones = newCustomer.getInnerNumbersCount();
+        int outerPhones = newCustomer.getOuterNumbersCount();
         String password = newCustomer.getPassword();
 
         return "UPDATE `" + TelephonyDao.TELEPHONY_TABLE + "` SET "
