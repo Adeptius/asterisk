@@ -3,13 +3,8 @@ package ua.adeptius.asterisk.model;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.controllers.PhonesController;
-import ua.adeptius.asterisk.dao.ConfigDAO;
 import ua.adeptius.asterisk.dao.PhonesDao;
-import ua.adeptius.asterisk.telephony.Rule;
-import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
 
-import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

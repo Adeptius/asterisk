@@ -27,7 +27,7 @@ public class Rule {
         }else {
             time = 600;
         }
-        melody = "m(simple)";
+        melody = "simple";
     }
 
 
@@ -43,7 +43,8 @@ public class Rule {
                 time = Integer.parseInt(s); // узнали время
 
                 // мелодия есть только в GSM
-                melody = numbers.substring(numbers.lastIndexOf(",")+1);
+                melody = numbers.substring(numbers.lastIndexOf(",")+3);
+                melody = melody.substring(0, melody.length()-1);
             }
 
             if (line.contains("&")){
@@ -81,7 +82,7 @@ public class Rule {
         StringBuilder builder = new StringBuilder();
         builder.append("; Start Rule\n");
         for (int i = 0; i < from.size(); i++) {
-            String numberFrom = from.get(i);
+            String numberFrom = removeZero(from.get(i)); // удаляем нолик
             builder.append("exten => ").append(numberFrom).append(",1,Noop(${CALLERID(num)})\n");
             builder.append("exten => ").append(numberFrom).append(",n,Gosub(sub-record-check,s,1(in,${EXTEN},force))\n");
             builder.append("exten => ").append(numberFrom).append(",n,Set(__FROM_DID=${EXTEN})\n");
@@ -96,7 +97,7 @@ public class Rule {
                 if (forwardType == QUEUE){ // По очереди
                     for (String numberTo : to) {
                         builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/Intertelekom_main/")
-                                .append(numberTo).append(",").append(time).append(",").append(melody).append(")\n");
+                                .append(numberTo).append(",").append(time).append(",m(").append(melody).append("))\n");
                     }
                 }else if (forwardType == TO_ALL){ // Сразу всем
                     builder.append("exten => ").append(numberFrom).append(",n,Dial(");
@@ -106,7 +107,7 @@ public class Rule {
                             builder.append("&");
                         }
                     }
-                    builder.append(",").append(600).append(",").append(melody).append(")\n");
+                    builder.append(",").append(600).append(",m(").append(melody).append("))\n");
                 }
             }
             builder.append("\n");
@@ -128,7 +129,7 @@ public class Rule {
 
     public void addNumberFrom(String number){
         if (!from.contains(number)){
-            from.add(number);
+            from.add(addZero(number));  // добавляем нолик
         }
     }
 
@@ -193,4 +194,29 @@ public class Rule {
                 ", melody='" + melody + '\'' +
                 '}';
     }
+
+    public static String addZero(String source){
+        try {
+            if (source.length() == 9 && !source.startsWith("0")) {
+                source = "0" + source;
+            }
+        }catch (Exception e){
+            System.out.println("Ошибка добавления нолика. Пришло " + source);
+        }
+        return source;
+    }
+
+    public static String removeZero(String source){
+        try {
+            if (source.length() == 10 && source.startsWith("0")) {
+                source = source.substring(1);
+            }
+        }catch (Exception e){
+            System.out.println("Ошибка добавления нолика. Пришло " + source);
+        }
+        return source;
+    }
+
+
+
 }

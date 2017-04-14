@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
+import ua.adeptius.asterisk.telephony.SipConfig;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -10,8 +12,75 @@ import java.util.List;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
+import static ua.adeptius.asterisk.utils.logging.MyLogger.logAndThrow;
 
 public class PhonesDao {
+
+
+
+    public static void saveSipToDB(SipConfig sipConfig) throws Exception {
+        String sql = "INSERT INTO `inner` (`number`, `busy`, `password`) VALUES ('"
+                + sipConfig.getNumber() + "', '', '" + sipConfig.getPassword() + "');";
+        try (Connection connection = TelephonyDao.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logAndThrow(DB_OPERATIONS, "Ошибка при сохранении SIP номера");
+            throw new Exception("Ошибка при сохранении SIP номера");
+        }
+    }
+
+    public static int getMaxSipNumber() throws Exception {
+        String sql = "SELECT max(number) FROM `inner`";
+        try (Connection connection = TelephonyDao.getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery(sql);
+            while (set.next()) {
+                int num = set.getInt("max(number)");
+                if (num > 2001000) return num;
+            }
+            return 2001000;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logAndThrow(DB_OPERATIONS, "Ошибка при загрузке максимального номера");
+            throw new Exception("Ошибка при загрузке максимального номера");
+        }
+    }
+
+    public static HashMap<String, String> getSipPasswords(String name) throws Exception {
+        HashMap<String, String> sipPasswords = new HashMap<>();
+        String sql = "SELECT `number`, `password` FROM `inner` where `busy`='" + name + "'";
+        try (Connection connection = TelephonyDao.getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery(sql);
+            while (set.next()) {
+                sipPasswords.put(set.getString("number"), set.getString("password"));
+            }
+            return sipPasswords;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logAndThrow(DB_OPERATIONS, "Ошибка при загрузке паролей телефонии с БД");
+            throw new Exception("Ошибка при загрузке паролей телефонии с БД");
+        }
+    }
+
+  public static HashMap<String, String> getAllSipsAndPass() throws Exception {
+        HashMap<String, String> sipPasswords = new HashMap<>();
+        String sql = "SELECT `number`, `password` FROM `inner`";
+        try (Connection connection = TelephonyDao.getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery(sql);
+            while (set.next()) {
+                sipPasswords.put(set.getString("number"), set.getString("password"));
+            }
+            return sipPasswords;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logAndThrow(DB_OPERATIONS, "Ошибка при загрузке номеров SIP с БД");
+            throw new Exception("Ошибка при загрузке номеров SIP с БД");
+        }
+    }
 
     public static ArrayList<String> getCustomersNumbers(String name, boolean innerTable) throws Exception {
         String table = innerTable ? "inner" : "outer";
@@ -115,4 +184,21 @@ public class PhonesDao {
             }
         }
     }
+
+
+    public static void deleteNumbersFromDb(List<String> numbersToRelease, boolean innerTable)throws Exception {
+        String table = innerTable ? "inner" : "outer";
+        for (String s : numbersToRelease) {
+            String sql = "DELETE FROM `" + table + "` WHERE `number`='" + s + "'";
+            try (Connection connection = TelephonyDao.getConnection();
+                 Statement statement = connection.createStatement()) {
+                statement.execute(sql);
+            } catch (Exception e) {
+                e.printStackTrace();
+                log(DB_OPERATIONS, "Ошибка при удалении номера в БД");
+                throw new Exception("Ошибка при удалении номера в БД");
+            }
+        }
+    }
+
 }

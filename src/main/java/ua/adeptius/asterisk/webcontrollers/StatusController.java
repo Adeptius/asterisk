@@ -6,6 +6,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.PhonesDao;
+import ua.adeptius.asterisk.dao.TelephonyDao;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.controllers.MainController;
@@ -29,9 +31,9 @@ public class StatusController {
         if (!MainController.isTelephonyLogin(name, password)) {
             return "Error: wrong password";
         }
-        try{
+        try {
             return new ObjectMapper().writeValueAsString(MainController.getTelephonyCustomerByName(name));
-        }catch (Exception e){
+        } catch (Exception e) {
             return "Error: DB error";
         }
     }
@@ -43,9 +45,9 @@ public class StatusController {
         if (!MainController.isSiteLogin(name, password)) {
             return "Error: wrong password";
         }
-        try{
+        try {
             return new ObjectMapper().writeValueAsString(MainController.getSiteByName(name));
-        }catch (Exception e){
+        } catch (Exception e) {
             return "Error: DB error";
         }
     }
@@ -53,7 +55,7 @@ public class StatusController {
     @RequestMapping(value = "/history", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getHistory(@RequestParam String name, @RequestParam String dateFrom, @RequestParam String dateTo,
-                                @RequestParam String direction, @RequestParam String password) {
+                             @RequestParam String direction, @RequestParam String password) {
         if (!MainController.isLogin(name, password)) {
             return "Error: wrong password";
         }
@@ -62,16 +64,16 @@ public class StatusController {
             return "Error: wrong direction";
         }
         Customer customer;
-        try{
+        try {
             customer = MainController.getCustomerByName(name);
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return "Error: no such User";
         }
 
         try {
-            if (customer instanceof Site){
+            if (customer instanceof Site) {
                 return new ObjectMapper().writeValueAsString(Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
-            }else {
+            } else {
                 return new ObjectMapper().writeValueAsString(Main.telephonyDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
             }
         } catch (Exception e) {
@@ -79,9 +81,19 @@ public class StatusController {
         }
     }
 
+    @RequestMapping(value = "/getMelodies", method = RequestMethod.GET, produces = "text/html; charset=UTF-8")
+    @ResponseBody
+    public String getHistory() {
+        try {
+            return new Gson().toJson(TelephonyDao.getMelodies());
+        } catch (Exception e) {
+            return "Error: DB Error";
+        }
+    }
+
+
     @RequestMapping(value = "/record/{id}/{date}", method = RequestMethod.GET)
     public void getFile(@PathVariable String id, @PathVariable String date, HttpServletResponse response) {
-
         String year = date.substring(0, 4);
         String month = date.substring(5, 7);
         String day = date.substring(8, 10);

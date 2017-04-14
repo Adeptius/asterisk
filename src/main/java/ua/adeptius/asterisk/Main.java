@@ -2,15 +2,13 @@ package ua.adeptius.asterisk;
 
 
 import ua.adeptius.asterisk.controllers.PhonesController;
-import ua.adeptius.asterisk.dao.PhonesDao;
-import ua.adeptius.asterisk.dao.TelephonyDao;
+import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.dao.SitesDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.monitor.AsteriskMonitor;
+import ua.adeptius.asterisk.monitor.CallProcessor;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.monitor.PhonesWatcher;
-import ua.adeptius.asterisk.dao.Settings;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
@@ -100,6 +98,15 @@ public class Main {
             MyLogger.log(DB_OPERATIONS, "ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
             throw new RuntimeException("ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
         }
+
+        // создаём файлы конфигов номеров, если их нет
+        try {
+            SipConfigDao.synchronizeFilesAndDb();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
 
         // Мониторинг телефонии
         Thread thread = new Thread(() -> initMonitor());

@@ -10,9 +10,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConfigDAO {
+public class RulesConfigDAO {
 
-    private static String folder = "/var/www/html/admin/modules/core/etc/clients/";
+    private static String folder = Settings.getSetting("___forwardingRulesFolder");
 
     public static void writeToFile(String filename, List<Rule> ruleList) throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
@@ -58,6 +58,6 @@ public class ConfigDAO {
     }
 
     public static void removeFile(String name) throws Exception {
-        Files.delete(Paths.get(folder + name + ".conf"));
+        Files.deleteIfExists(Paths.get(folder + name + ".conf"));
     }
 }

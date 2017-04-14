@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.model;
 
 
-import ua.adeptius.asterisk.dao.ConfigDAO;
+import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -44,7 +44,7 @@ public abstract class Customer {
 
     public void loadRules(){
         try {
-            rules = ConfigDAO.readFromFile(name);
+            rules = RulesConfigDAO.readFromFile(name);
         } catch (NoSuchFileException ignored) {
         } catch (Exception e){
             e.printStackTrace();
@@ -53,7 +53,7 @@ public abstract class Customer {
 
     public void removeRulesFile(){
         try{
-            ConfigDAO.removeFile(name);
+            RulesConfigDAO.removeFile(name);
             MyLogger.log(LogCategory.ELSE, "Файл конфига " + name + ".conf удалён.");
         }catch (Exception ignored){}
     }
@@ -71,7 +71,11 @@ public abstract class Customer {
     }
 
     public void saveRules() throws Exception{
-        ConfigDAO.writeToFile(name, rules);
+        if (rules.size()==0){
+            RulesConfigDAO.removeFile(name);
+        }else {
+            RulesConfigDAO.writeToFile(name, rules);
+        }
     }
 
 

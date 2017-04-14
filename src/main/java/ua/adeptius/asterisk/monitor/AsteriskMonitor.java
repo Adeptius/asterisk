@@ -1,13 +1,10 @@
 package ua.adeptius.asterisk.monitor;
 
-import org.asteriskjava.manager.event.HangupEvent;
-import org.asteriskjava.manager.event.NewStateEvent;
+import org.asteriskjava.manager.event.*;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
-import org.asteriskjava.manager.event.ManagerEvent;
-import org.asteriskjava.manager.event.NewChannelEvent;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,57 +32,37 @@ public class AsteriskMonitor implements ManagerEventListener {
         managerConnection.sendAction(new StatusAction());
     }
 
-    private HashMap<String, String> phonesFromAndPhonesTo = new HashMap<>();
 
     public void onManagerEvent(ManagerEvent event) {
-        if (!(event instanceof NewChannelEvent) && !(event instanceof HangupEvent) && !(event instanceof NewStateEvent)) {
+//        System.out.println(event);
+        if (!(event instanceof NewChannelEvent)
+                && !(event instanceof HangupEvent)
+                && !(event instanceof NewStateEvent)
+//                && !(event instanceof VarSetEvent)
+                && !(event instanceof NewExtenEvent)) {
             return;
         }
 
-//        System.out.println(event);
-        if (event instanceof NewChannelEvent) {
-            NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-            if (newChannelEvent.getChannel().startsWith("SIP/Intertelekom")) return;
+//        if ((event instanceof VarSetEvent)) {
+//            if (!((VarSetEvent) event).getVariable().equals("DIALEDPEERNUMBER") || ((VarSetEvent) event).getValue().equals("null"))
+//            return; // фильтр для переадресации на GSM
+//        }  ТУТ ЕСТЬ ИНФА НА КОГО ПЕРЕАДРЕСАЦИЯ
 
-//            System.out.println(newChannelEvent);
-            String callerIdNum = addZero(newChannelEvent.getCallerIdNum());
-            String phoneReseive = addZero(newChannelEvent.getExten());
-            phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
-            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
 
-        } else if (event instanceof HangupEvent) {
-            HangupEvent hangupEvent = (HangupEvent) event;
-            if (hangupEvent.getChannel().startsWith("SIP/Intertelekom")) return;
-
-//            System.out.println(hangupEvent);
-            String callUniqueId =  addZero(hangupEvent.getUniqueId());
-            String callerIdNum =  addZero(hangupEvent.getCallerIdNum());
-            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
-            phonesFromAndPhonesTo.remove(callerIdNum);
-
-        } else if (event instanceof NewStateEvent) {
-            NewStateEvent newStateEvent = (NewStateEvent) event;
-            if (newStateEvent.getChannel().startsWith("SIP/Intertelekom")) return;
-
-//            System.out.println(newStateEvent);
-            int code = newStateEvent.getChannelState();
-            String callerIdNum =  addZero(newStateEvent.getCallerIdNum());
-            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-            if (code == 6) {
-                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
-            }
+        if ((event instanceof NewExtenEvent) && !((NewExtenEvent) event).getApplication().equals("Dial")) {
+            return; // фильтр для переадресации на GSM
         }
-    }
 
-    public static String addZero(String source){
-        try {
-            if (source.length() == 9 && !source.startsWith("0")) {
-                source = "0" + source;
-            }
-        }catch (Exception e){
-            System.out.println("Ошибка добавления нолика. Пришло " + source);
+        if ((event instanceof NewStateEvent) && ((NewStateEvent) event).getChannelStateDesc().equals("Ring")) {
+            return; // фильтр для переадресации на GSM
         }
-        return source;
+
+
+//        if (event.toString().contains("4027182") ||
+//                event.toString().contains("5306914") ||
+//                event.toString().contains("443211118") ||
+//                event.toString().contains("8999500")) {
+            CallProcessor.processEvent(event);
+//        }
     }
 }

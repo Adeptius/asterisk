@@ -6,10 +6,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.PhonesController;
-import ua.adeptius.asterisk.dao.ConfigDAO;
+import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.monitor.CallProcessor;
 import ua.adeptius.asterisk.utils.CustomerGroup;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.controllers.MainController;
@@ -86,7 +87,8 @@ public class AdminController {
                 MainController.telephonyCustomers.remove(MainController.getTelephonyCustomerByName(newCustomer.getName()));
                 MainController.telephonyCustomers.add(newCustomer);
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " изменён");
-                ConfigDAO.removeFile(newCustomer.getName());
+                RulesConfigDAO.removeFile(newCustomer.getName());
+                CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Updated";
             } else { // пользователя не существует. Создаём.
                 // проверяем нет ли сайта с таким же логином
@@ -104,16 +106,14 @@ public class AdminController {
                 Main.telephonyDao.createOrCleanStatisticsTables();
                 newCustomer.updateNumbers();
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " добавлен");
+                CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Added";
             }
         } catch (NotEnoughNumbers e){
             try{
                 int freeOuter = PhonesDao.getFreePhones(false).size();
-                int freeInner = PhonesDao.getFreePhones(true).size();
-                MyLogger.log(LogCategory.ELSE, "Error: not enough free numbers. " +
-                        "Available inner: "+freeInner+", outer: "+freeOuter);
-                return "Error: not enough free numbers. " +
-                        "Available inner: "+freeInner+", outer: "+freeOuter;
+                MyLogger.log(LogCategory.ELSE, "Error: not enough free numbers. Available outer: "+freeOuter);
+                return "Error: not enough free numbers. Available outer: "+freeOuter;
             }catch (Exception e2){
                 MyLogger.log(LogCategory.ELSE, "Error: not enough free numbers.");
                 return "Error: not enough free numbers.";
@@ -161,7 +161,8 @@ public class AdminController {
                 MainController.sites.remove(MainController.getSiteByName(newSite.getName()));
                 MainController.sites.add(newSite);
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " изменён");
-                ConfigDAO.removeFile(newSite.getName());
+                RulesConfigDAO.removeFile(newSite.getName());
+                CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Updated";
             } else { // сайта не существует. Создаём.
 
@@ -180,16 +181,14 @@ public class AdminController {
                 Main.sitesDao.createOrCleanStatisticsTables();
                 newSite.updateNumbers();
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " добавлен");
+                CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Added";
             }
         } catch (NotEnoughNumbers e){
             try{
                 int freeOuter = PhonesDao.getFreePhones(false).size();
-                int freeInner = PhonesDao.getFreePhones(true).size();
-                MyLogger.log(LogCategory.ELSE, "Error: not enough free numbers. " +
-                        "Available inner: "+freeInner+", outer: "+freeOuter);
-                return "Error: not enough free numbers. " +
-                        "Available inner: "+freeInner+", outer: "+freeOuter;
+                MyLogger.log(LogCategory.ELSE, "Error: not enough free numbers. Available outer: "+freeOuter);
+                return "Error: not enough free numbers. Available outer: "+freeOuter;
             }catch (Exception e2){
                 MyLogger.log(LogCategory.ELSE, "Error: not enough free numbers.");
                 return "Error: not enough free numbers.";

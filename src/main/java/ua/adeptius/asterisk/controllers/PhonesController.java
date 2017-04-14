@@ -2,11 +2,13 @@ package ua.adeptius.asterisk.controllers;
 
 
 import ua.adeptius.asterisk.dao.PhonesDao;
+import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
@@ -15,13 +17,26 @@ import java.util.stream.Collectors;
 
 public class PhonesController {
 
+    public static void createMoreSipNumbers(int number) throws Exception{
+        int max = PhonesDao.getMaxSipNumber();
+
+        for (int i = 0; i < number; i++) {
+            SipConfig sipConfig = new SipConfig(++max + "");
+            PhonesDao.saveSipToDB(sipConfig);
+            SipConfigDao.writeToFile(sipConfig);
+        }
+    }
+
     public static void increaseOrDecrease(int needCount, List<String> currentList, String name, boolean innerTable) throws Exception{
         if (needCount > currentList.size()){ // Если номеров недостаточно
             int needMoreNumbers = needCount - currentList.size();
             ArrayList<String> availableNumbers = PhonesDao.getFreePhones(innerTable); // взяли все свободные номера
             ArrayList<String> preparedNumbers = new ArrayList<>();
-            if (availableNumbers.size()<needMoreNumbers){ // Убедились, что их достаточно
+            if (availableNumbers.size()<needMoreNumbers && !innerTable){ // Убедились, что их достаточно
                 throw new NotEnoughNumbers();
+            }else if (availableNumbers.size()<needMoreNumbers && innerTable){
+                createMoreSipNumbers(needMoreNumbers);
+                availableNumbers = PhonesDao.getFreePhones(innerTable);
             }
             for (int i = 0; i < needMoreNumbers; i++) { // берём нужное количество
                 preparedNumbers.add(availableNumbers.get(i));
@@ -34,7 +49,14 @@ public class PhonesController {
             for (int i = 0; i < redundantNumbers; i++) {
                 numbersToRelease.add(currentList.remove(currentList.size()-1));
             }
-            PhonesDao.markNumberFree(numbersToRelease, innerTable);
+            if (innerTable){// если это сип, то мы их удаляем с базы и конфиг файлы тоже
+                for (String s : numbersToRelease) {
+                    SipConfigDao.removeFile(s);
+                    PhonesDao.deleteNumbersFromDb(numbersToRelease, true);
+                }
+            }else {
+                PhonesDao.markNumberFree(numbersToRelease, innerTable);
+            }
         }
     }
 
