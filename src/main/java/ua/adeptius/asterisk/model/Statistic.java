@@ -231,4 +231,23 @@ public class Statistic {
             return "";
         }
     }
+
+    @Override
+    public String toString() {
+        return "Statistic{" +
+                "\ncalled=" + called +
+                "\nanswered=" + answered +
+                "\nended=" + ended +
+                "\ntimeToAnswer=" + timeToAnswer +
+                "\nsite=" + site +
+                "\ndirection='" + direction + '\'' +
+                "\nfrom='" + from + '\'' +
+                "\nto='" + to + '\'' +
+                "\ndate='" + date + '\'' +
+                "\ntalkingTime=" + talkingTime +
+                "\ngoogleId='" + googleId + '\'' +
+                "\nreques='" + reques + '\'' +
+                "\ncallUniqueId='" + callUniqueId + '\'' +
+                "\n}";
+    }
 }

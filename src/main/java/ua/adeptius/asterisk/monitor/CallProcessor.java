@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.monitor;
 
 
 import org.asteriskjava.manager.event.*;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
@@ -27,19 +28,29 @@ public class CallProcessor {
     public static void processEvent(ManagerEvent event) {
         if (event instanceof NewChannelEvent) { // если это новый звонок
             NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-            Customer customer = phonesAndCustomers.get(addZero(((NewChannelEvent) event).getExten()));
+//            System.out.println(event);
+            String from = addZero(newChannelEvent.getCallerIdNum());
+            String to = addZero(newChannelEvent.getExten());
+
+
+            Customer customer = phonesAndCustomers.get(to);
+            Call.Direction direction = Call.Direction.IN;
             if (customer == null) {
-                customer = phonesAndCustomers.get(addZero(((NewChannelEvent) event).getCallerIdNum()));
+                customer = phonesAndCustomers.get(from);
+                direction = Call.Direction.OUT;
                 if (customer == null) {
                     return;
                 }
             }
+            // тут вычислять направление звонка
+
             Call call = new Call();
             call.setId(newChannelEvent.getUniqueId());
             call.setTo(newChannelEvent.getExten());
             call.setFrom(newChannelEvent.getCallerIdNum());
             call.setCustomer(customer);
             call.setCalled(newChannelEvent.getDateReceived());
+            call.setDirection(direction);
             calls.put(newChannelEvent.getUniqueId(), call);
 
         } else if (event instanceof NewStateEvent) { // если это ответ на звонок
@@ -108,9 +119,12 @@ public class CallProcessor {
 
 
     private static void processCall(Call call){
-
-
-
+        Customer customer = call.getCustomer();
+        if (customer instanceof Site){
+            MainController.onNewSiteCall(call);
+        }else if (customer instanceof TelephonyCustomer){
+            MainController.onNewTelephonyCall(call);
+        }
     }
 
 

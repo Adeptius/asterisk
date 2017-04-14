@@ -15,6 +15,15 @@ public class Call {
     private Date answered;
     private Date ended;
     private CallState callState;
+    private Direction direction;
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
 
     public CallState getCallState() {
         return callState;
@@ -94,6 +103,12 @@ public class Call {
     public enum CallState{
         ANSWERED, BUSY
     }
+
+    public enum Direction{
+        IN, OUT
+    }
+
+
 
     @Override
     public String toString() {
