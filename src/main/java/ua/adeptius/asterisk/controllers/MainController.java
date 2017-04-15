@@ -2,10 +2,10 @@ package ua.adeptius.asterisk.controllers;
 
 
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.TelephonyDao;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.webcontrollers.AdminController;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.senders.GoogleAnalitycs;
 import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -119,15 +119,6 @@ public class MainController {
         return site.getStandartNumber();
     }
 
-//    public static Site whosePhone(String phone) {
-//        for (Site site : sites) {
-//            if (site.getPhones().stream().map(Phone::getNumber).anyMatch(s -> s.equals(phone))) {
-//                return site;
-//            }
-//        }
-//        return null;
-//    }
-
     public static Phone getPhoneByNumber(String number) {
         for (Site site : sites) {
             List<Phone> phones = site.getPhones();
@@ -142,139 +133,14 @@ public class MainController {
 
     public static void onNewSiteCall(Call call) {
         Site site = (Site) call.getCustomer();
-        System.out.println("Пришел call: " + call);
         Phone phone = getPhoneByNumber(call.getTo());
-
         String googleId = phone.getGoogleId();
-        String request = phone.getUtmRequest();
-
-        Statistic statistic = new Statistic();
-        statistic.setFrom(call.getFrom());
-        statistic.setTo(call.getTo());
-        statistic.setSite(site);
-        statistic.setDirection(call.getDirection().toString());
-        statistic.setCalled(call.getCalled()!=null? call.getCalled().getTime() : 0);
-        statistic.setAnswered(call.getAnswered()!=null?call.getAnswered().getTime() : 0);
-        statistic.setEnded(call.getEnded()!=null?call.getEnded().getTime() : 0);
-        statistic.setGoogleId(googleId);
-        statistic.setRequest(request);
-        statistic.setCallUniqueId(call.getId());
-        System.out.println("Конвертировал в статистику: " + statistic);
-
-        String report = statistic.getSite().getName()
-                + ": Закончен разговор "
-                + statistic.getFrom()
-                + " с "
-                + statistic.getTo()
-                + " ответил за: "
-                + statistic.getTimeToAnswer()
-                + ", время разговора: "
-                + statistic.getTimeToAnswerForWebInSeconds();
-        MyLogger.log(PHONE_TIME_REPORT, report);
-        Main.sitesDao.saveStatisticToTable(site, statistic);
-
+        String request = phone.getUtmRequest() == null ? "" : phone.getUtmRequest();
         new GoogleAnalitycs(site, googleId, call.getFrom()).start();
-        // NULL POINTER в дате!!
+        Main.sitesDao.saveCall(call, googleId, request);
     }
 
     public static void onNewTelephonyCall(Call call) {
-
+        TelephonyDao.saveCall(call);
     }
-
-
-//    private static HashMap<String, Statistic> phonesTime = new HashMap<>();
-//
-//    public static void onNewCall(LogCategory category, String phoneFrom, String phoneTo, String callUniqueId) {
-//
-//        Site site;
-//        if ((site = whosePhone(phoneTo)) != null) { // Если входящий звонок
-//            if (category == INCOMING_CALL) {
-//                String googleId = site.getPhones().stream().filter(phone -> phone.getNumber().equals(phoneTo)).findFirst().get().getGoogleId();
-//                MyLogger.log(INCOMING_CALL, site.getName() + ": входящий звонок c " + phoneFrom + " на " + phoneTo);
-//                new GoogleAnalitycs(site, googleId, phoneFrom).start();
-//                Statistic statistic = new Statistic();
-//                statistic.setFrom(phoneFrom);
-//                statistic.setTo(phoneTo);
-//                statistic.setCalled(new GregorianCalendar().getTimeInMillis());
-//                statistic.setSite(site);
-//                statistic.setDirection("IN");
-//                phonesTime.put(phoneFrom, statistic);
-//            } else if (category == ANSWER_CALL) {
-//                MyLogger.log(ANSWER_CALL, site.getName() + ": " + phoneTo + " ответил на звонок " + phoneFrom);
-//                try {
-//                    Statistic statistic = phonesTime.get(phoneFrom);
-//                    statistic.setAnswered(new GregorianCalendar().getTimeInMillis());
-//                } catch (NullPointerException ignored) {
-//                }
-//            } else if (category == ENDED_CALL) {
-//                MyLogger.log(ENDED_CALL, site.getName() + ": " + phoneTo + " закончил разговор " + phoneFrom);
-//
-//                try {
-//                    Phone phone = getPhoneByNumber(phoneTo);
-//                    String googleId = phone.getGoogleId();
-//                    String request = phone.getUtmRequest();
-//                    Statistic statistic = phonesTime.get(phoneFrom);
-//                    statistic.setEnded(new GregorianCalendar().getTimeInMillis());
-//                    statistic.setGoogleId(googleId);
-//                    statistic.setRequest(request);
-//                    statistic.setCallUniqueId(callUniqueId);
-//
-//                    String report = statistic.getSite().getName()
-//                            + ": Закончен разговор "
-//                            + statistic.getFrom()
-//                            + " с "
-//                            + statistic.getTo()
-//                            + " ответил за: "
-//                            + statistic.getTimeToAnswer()
-//                            + ", время разговора: "
-//                            + statistic.getTimeToAnswerForWebInSeconds();
-//                    MyLogger.log(PHONE_TIME_REPORT, report);
-//                    Main.sitesDao.saveStatisticToTable(site, statistic);
-//
-//                } catch (NullPointerException ignored) {
-//                }
-//            }
-//        } else if ((site = whosePhone(phoneFrom)) != null) { // если это исходящий звонок
-//            if (category == INCOMING_CALL) {
-//                MyLogger.log(INCOMING_CALL, site.getName() + ": входящий звонок c " + phoneFrom + " на " + phoneTo);
-//                Statistic statistic = new Statistic();
-//                statistic.setFrom(phoneFrom);
-//                statistic.setTo(phoneTo);
-//                statistic.setCalled(new GregorianCalendar().getTimeInMillis());
-//                statistic.setSite(site);
-//                statistic.setDirection("OUT");
-//                phonesTime.put(phoneFrom, statistic);
-//            } else if (category == ANSWER_CALL) {
-//                MyLogger.log(ANSWER_CALL, site.getName() + ": " + phoneTo + " ответил на звонок " + phoneFrom);
-//                try {
-//                    Statistic statistic = phonesTime.get(phoneFrom);
-//                    statistic.setAnswered(new GregorianCalendar().getTimeInMillis());
-//                } catch (NullPointerException ignored) {
-//                    // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки
-//                }
-//            } else if (category == ENDED_CALL) {
-//                MyLogger.log(ENDED_CALL, site.getName() + ": " + phoneTo + " закончил разговор " + phoneFrom);
-//                try {
-//                    Statistic statistic = phonesTime.get(phoneFrom);
-//                    statistic.setEnded(new GregorianCalendar().getTimeInMillis());
-//                    statistic.setCallUniqueId(callUniqueId);
-//
-//                    String report = statistic.getSite().getName()
-//                            + ": Закончен разговор "
-//                            + statistic.getFrom()
-//                            + " с "
-//                            + statistic.getTo()
-//                            + ", время разговора: "
-//                            + statistic.getTimeToAnswerForWebInSeconds();
-//                    MyLogger.log(PHONE_TIME_REPORT, report);
-//                    Main.sitesDao.saveStatisticToTable(site, statistic);
-//                } catch (NullPointerException e) {
-//                    e.printStackTrace();
-//                    // Тут вылетит ошибка только если в момент запуска сервера уже были активные звонки
-//                }
-//            }
-//        } else if (category == INCOMING_CALL) {
-//            MyLogger.log(INCOMING_CALL_NOT_REGISTER, "Не зарегистрировано: входящий звонок с " + phoneFrom + " на " + phoneTo);
-//        }
-//    }
 }

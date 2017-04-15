@@ -3,19 +3,26 @@ package ua.adeptius.asterisk.monitor;
 
 import ua.adeptius.asterisk.model.Customer;
 
-import java.util.Date;
+import java.text.SimpleDateFormat;
+
 
 public class Call {
 
     private String id;
     private String from;
     private String to;
-    private Customer customer;
-    private Date called;
-    private Date answered;
-    private Date ended;
+    private String called;
+    private int answered;
+    private int ended;
     private CallState callState;
     private Direction direction;
+
+    private transient Customer customer;
+    private transient long calledMillis;
+
+    public void setDateForDb(long millis) {
+        called = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(millis);
+    }
 
     public Direction getDirection() {
         return direction;
@@ -33,27 +40,35 @@ public class Call {
         this.callState = callState;
     }
 
-    public Date getCalled() {
+    public String getCalled() {
         return called;
     }
 
-    public void setCalled(Date called) {
+    public void setCalled(String called) {
         this.called = called;
     }
 
-    public Date getAnswered() {
+    public long getCalledMillis() {
+        return calledMillis;
+    }
+
+    public void setCalledMillis(long calledMillis) {
+        this.calledMillis = calledMillis;
+    }
+
+    public int getAnswered() {
         return answered;
     }
 
-    public void setAnswered(Date answered) {
+    public void setAnswered(int answered) {
         this.answered = answered;
     }
 
-    public Date getEnded() {
+    public int getEnded() {
         return ended;
     }
 
-    public void setEnded(Date ended) {
+    public void setEnded(int ended) {
         this.ended = ended;
     }
 
@@ -101,7 +116,7 @@ public class Call {
     }
 
     public enum CallState{
-        ANSWERED, BUSY
+        ANSWERED, BUSY, FAIL
     }
 
     public enum Direction{
@@ -109,17 +124,18 @@ public class Call {
     }
 
 
-
     @Override
     public String toString() {
         return "Call{" +
-                "id='" + id + '\'' +
-                ", from='" + from + '\'' +
-                ", to='" + to + '\'' +
-                ", customer=" + customer.getName() +
-                ", called=" + called +
-                ", answered=" + answered +
-                ", ended=" + ended +
-                '}';
+                "\nid='" + id + '\'' +
+                "\nfrom='" + from + '\'' +
+                "\nto='" + to + '\'' +
+                "\ncustomer=" + customer.getName() +
+                "\ncalled=" + called +
+                "\nanswered=" + answered +
+                "\nended=" + ended +
+                "\ncallState=" + callState +
+                "\ndirection=" + direction +
+                "\n}";
     }
 }

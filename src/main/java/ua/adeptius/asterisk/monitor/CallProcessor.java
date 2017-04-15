@@ -2,13 +2,13 @@ package ua.adeptius.asterisk.monitor;
 
 
 import org.asteriskjava.manager.event.*;
-import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,20 +18,19 @@ import static ua.adeptius.asterisk.monitor.Call.CallState.BUSY;
 
 public class CallProcessor {
 
-
-    private static HashMap<String, String> phonesFromAndPhonesTo = new HashMap<>();
-
+    //TODO нужно ли чистить мапу?
     private static HashMap<String, Call> calls = new HashMap<>();
-
     private static HashMap<String, Customer> phonesAndCustomers = new HashMap<>();
 
     public static void processEvent(ManagerEvent event) {
+
+//        System.out.println(event);
+
         if (event instanceof NewChannelEvent) { // если это новый звонок
             NewChannelEvent newChannelEvent = (NewChannelEvent) event;
 //            System.out.println(event);
             String from = addZero(newChannelEvent.getCallerIdNum());
             String to = addZero(newChannelEvent.getExten());
-
 
             Customer customer = phonesAndCustomers.get(to);
             Call.Direction direction = Call.Direction.IN;
@@ -39,31 +38,39 @@ public class CallProcessor {
                 customer = phonesAndCustomers.get(from);
                 direction = Call.Direction.OUT;
                 if (customer == null) {
+//                    System.out.println("Связь не обнаружена:");
+//                    System.out.println(event);
                     return;
                 }
             }
             // тут вычислять направление звонка
-
+//            System.out.println("Звонок для " + customer.getName());
             Call call = new Call();
             call.setId(newChannelEvent.getUniqueId());
             call.setTo(newChannelEvent.getExten());
             call.setFrom(newChannelEvent.getCallerIdNum());
             call.setCustomer(customer);
-            call.setCalled(newChannelEvent.getDateReceived());
+            // добавление 3 секунды из-за погрешности
+            long time = 5000 + newChannelEvent.getDateReceived().getTime();
+            call.setCalledMillis(time);
+            call.setDateForDb(time);
             call.setDirection(direction);
             calls.put(newChannelEvent.getUniqueId(), call);
+
 
         } else if (event instanceof NewStateEvent) { // если это ответ на звонок
             NewStateEvent newStateEvent = (NewStateEvent) event;
             Call call = calls.get(newStateEvent.getUniqueId());
             if (call == null) return;
             if (newStateEvent.getChannelState() == 6) { // Если ответили
-                call.setAnswered(newStateEvent.getDateReceived());
+                int answeredIn = (int) (newStateEvent.getDateReceived().getTime() - call.getCalledMillis())/1000;
+                call.setAnswered(answeredIn);
             }
             if (newStateEvent.getChannelStateDesc().equals("Up")){
                 call.setCallState(ANSWERED);
             }else{ // newStateEvent.getChannelStateDesc().equals("Busy")
                 call.setCallState(BUSY);
+                call.setAnswered(0);
             }
 
         } else if (event instanceof NewExtenEvent) { // если это ответ на звонок
@@ -73,48 +80,31 @@ public class CallProcessor {
             redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1, redirectedTo.indexOf(","));
             call.setTo(redirectedTo);
 //            System.out.println("RedirectedTo: " + redirectedTo);
+//            System.out.println(call);
 
         } else if (event instanceof HangupEvent) { // если это конец звонка
-            Call call = calls.get(((HangupEvent) event).getUniqueId());
+            HangupEvent hangupEvent = (HangupEvent) event;
+            Call call = calls.get(hangupEvent.getUniqueId());
+//            System.out.println("Looking for id " + hangupEvent.getUniqueId());
+//            System.out.println(call);
             if (call == null) return;
-            call.setEnded(event.getDateReceived());
+
+            if ("Call Rejected".equals(hangupEvent.getCauseTxt())){
+                call.setCallState(Call.CallState.BUSY);
+            }
+            if (call.getCallState() == null){
+                call.setCallState(Call.CallState.FAIL);
+            }
+            if (call.getCallState() == ANSWERED){
+                int ended = (int) ((event.getDateReceived().getTime() - call.getCalledMillis())/1000)-call.getAnswered();
+                call.setEnded(ended);
+            }else {
+                call.setEnded(0);
+            }
+
+            System.out.println(call);
             processCall(call);
         }
-
-
-//        if (event instanceof NewChannelEvent) {
-//            NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-//            if (newChannelEvent.getChannel().startsWith("SIP/Intertelekom")) return;
-//
-////            System.out.println(newChannelEvent);
-//            String callerIdNum = addZero(newChannelEvent.getCallerIdNum());
-//            String phoneReseive = addZero(newChannelEvent.getExten());
-//            phonesFromAndPhonesTo.put(callerIdNum, phoneReseive);
-//            MainController.onNewCall(INCOMING_CALL, callerIdNum, phoneReseive, "");
-//
-//        } else if (event instanceof HangupEvent) {
-//            HangupEvent hangupEvent = (HangupEvent) event;
-//            if (hangupEvent.getChannel().startsWith("SIP/Intertelekom")) return;
-//
-////            System.out.println(hangupEvent);
-//            String callUniqueId =  addZero(hangupEvent.getUniqueId());
-//            String callerIdNum =  addZero(hangupEvent.getCallerIdNum());
-//            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-//            MainController.onNewCall(ENDED_CALL, callerIdNum, phoneReseive, callUniqueId);
-//            phonesFromAndPhonesTo.remove(callerIdNum);
-//
-//        } else if (event instanceof NewStateEvent) {
-//            NewStateEvent newStateEvent = (NewStateEvent) event;
-//            if (newStateEvent.getChannel().startsWith("SIP/Intertelekom")) return;
-//
-////            System.out.println(newStateEvent);
-//            int code = newStateEvent.getChannelState();
-//            String callerIdNum =  addZero(newStateEvent.getCallerIdNum());
-//            String phoneReseive = phonesFromAndPhonesTo.get(callerIdNum);
-//            if (code == 6) {
-//                MainController.onNewCall(ANSWER_CALL, callerIdNum, phoneReseive, "");
-//            }
-//        }
     }
 
 
@@ -150,7 +140,8 @@ public class CallProcessor {
                 }
             } else if (customer instanceof TelephonyCustomer) {
                 TelephonyCustomer telephonyCustomer = (TelephonyCustomer) customer;
-                List<String> phones = telephonyCustomer.getOuterPhonesList();
+                List<String> phones = new ArrayList<>();
+                phones.addAll(telephonyCustomer.getOuterPhonesList());
                 phones.addAll(telephonyCustomer.getInnerPhonesList());
                 for (String phone : phones) {
                     phonesAndCustomers.put(phone, customer);

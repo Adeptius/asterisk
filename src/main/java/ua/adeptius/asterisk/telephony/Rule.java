@@ -63,8 +63,7 @@ public class Rule {
 
                 if (destinationType == SIP){
                     String s = numbers;
-                    s = s.substring(s.indexOf("direct,")+7);
-                    s = s.substring(0, s.indexOf(","));
+                    s = s.substring(s.indexOf("SIP/")+4);
                     addNumberTo(s);
                 }else {
                     String s = numbers.substring(0, numbers.indexOf(","));
@@ -91,7 +90,7 @@ public class Rule {
 
             if (destinationType == SIP){
                 for (String sipTo : to) {
-                    builder.append("exten => ").append(numberFrom).append(",n(dest-ext),Goto(from-did-direct,").append(sipTo).append(",1)\n");
+                    builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/").append(sipTo).append(")\n");
                 }
             }else if (destinationType == GSM){
                 if (forwardType == QUEUE){ // По очереди

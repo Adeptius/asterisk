@@ -2,9 +2,11 @@ package ua.adeptius.asterisk.dao;
 
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.monitor.Call;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -177,7 +179,7 @@ public class TelephonyDao {
     public void createStatisticTables(List<String> tablesToCreate) throws Exception {
         for (String s : tablesToCreate) {
             s = "statistic_" + s;
-            String sql = DaoHelper.createSqlQueryForCtreatingStatisticTable(s);
+            String sql = DaoHelper.createSqlQueryForCtreatingStatisticTableTelephony(s);
             try (Connection connection = getConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
@@ -222,5 +224,25 @@ public class TelephonyDao {
         }
         log(DB_OPERATIONS, "Ошибка при загрузке данных с БД");
         throw new Exception("Ошибка при загрузке данных с БД");
+    }
+
+
+    public static void saveCall(Call call) {
+        String sql = "INSERT INTO `statistic_"+call.getCustomer().getName()+"` VALUES ('"
+                +call.getCalled()+"', '"
+                +call.getDirection()+"', '"
+                +call.getFrom()+"', '"
+                +call.getTo()+"', '"
+                +call.getCallState()+"', '"
+                +call.getAnswered()+"', '"
+                +call.getEnded()+"', '"
+                +call.getId()+"');";
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception  e) {
+            e.printStackTrace();
+            log(DB_OPERATIONS, call.getCustomer().getName() + ": Ошибка при сохранении отчета в БД ");
+        }
     }
 }

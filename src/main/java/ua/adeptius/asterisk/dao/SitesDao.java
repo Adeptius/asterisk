@@ -7,6 +7,7 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Statistic;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.monitor.Call;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -216,24 +217,24 @@ public class SitesDao {
         }
     }
 
-
-    public void saveStatisticToTable(Site site, Statistic statistic) {
-        String sql = "INSERT INTO `statistic_"+site.getName()+"` VALUES ('"
-                +statistic.getDateForDb()+"', '"
-                +statistic.getDirection()+"', '"
-                +statistic.getTo()+"', '"
-                +statistic.getFrom()+"', '"
-                +statistic.getTimeToAnswerInSeconds()+"', '"
-                +statistic.getSpeakTimeInSeconds()+"', '"
-                +statistic.getGoogleId()+"', '"
-                +statistic.getCallUniqueId()+"', '"
-                +statistic.getRequest()+"');";
+    public void saveCall(Call call, String googleId, String request) {
+        String sql = "INSERT INTO `statistic_"+call.getCustomer().getName()+"` VALUES ('"
+                +call.getCalled()+"', '"
+                +call.getDirection()+"', '"
+                +call.getFrom()+"', '"
+                +call.getTo()+"', '"
+                +call.getCallState()+"', '"
+                +call.getAnswered()+"', '"
+                +call.getEnded()+"', '"
+                +call.getId()+"', '"
+                +googleId+"', '"
+                +request+"');";
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception  e) {
             e.printStackTrace();
-            log(DB_OPERATIONS, site.getName() + ": Ошибка при сохранении отчета в БД ");
+            log(DB_OPERATIONS, call.getCustomer().getName() + ": Ошибка при сохранении отчета в БД ");
         }
     }
 

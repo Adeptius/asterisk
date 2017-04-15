@@ -31,7 +31,7 @@ public class Phone {
     }
 
     public void setUtmRequest(String utmRequest) {
-        this.utmRequest = utmRequest;
+        this.utmRequest = filterUtmMarks(utmRequest);
     }
 
     public void markFree() {
@@ -96,6 +96,45 @@ public class Phone {
         return updatedTime;
     }
 
+
+    private static String filterUtmMarks(String s) {
+        if (s == null || "".equals(s)) { // если параметров нет вообще
+            return s;
+        }
+        if (!s.contains("=")) { // если почему-то не пусто но и параметра нет
+            return "";
+        }
+        String[] keys = new String[]{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "pm_source", "pm_block", "pm_position"};
+        String result = "";
+        if (s.contains("&")) { // если параметров несколько
+            String[] splitted = s.split("&");
+            for (int i = 0; i < splitted.length; i++) {
+                if (splitted[i].contains("=")) { // защита, если попадёт хрен знает что вместо ключ=значение
+                    String currentKey = splitted[i].substring(0, splitted[i].indexOf("="));
+                    for (int j = 0; j < keys.length; j++) {
+                        if (currentKey.equals(keys[j])) {
+                            String currentValue = splitted[i].substring(splitted[i].indexOf("=") + 1);
+                            if (!currentValue.equals("")) { // если значение не пустое.
+                                if (!result.equals("")) { // вначале & добавлять не нужно
+                                    result += "&";
+                                }
+                                result += splitted[i];
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        } else {// если параметр 1
+            for (int i = 0; i < keys.length; i++) {
+                String key = s.substring(0, s.indexOf("="));
+                if (keys[i].equals(key)) {
+                    return s;
+                }
+            }
+            return "";
+        }
+    }
 
     @Override
     public String toString() {
