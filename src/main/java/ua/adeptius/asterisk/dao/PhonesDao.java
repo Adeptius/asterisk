@@ -16,12 +16,10 @@ import static ua.adeptius.asterisk.utils.logging.MyLogger.logAndThrow;
 
 public class PhonesDao {
 
-
-
     public static void saveSipToDB(SipConfig sipConfig) throws Exception {
         String sql = "INSERT INTO `inner` (`number`, `busy`, `password`) VALUES ('"
                 + sipConfig.getNumber() + "', '', '" + sipConfig.getPassword() + "');";
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception e) {
@@ -33,7 +31,7 @@ public class PhonesDao {
 
     public static int getMaxSipNumber() throws Exception {
         String sql = "SELECT max(number) FROM `inner`";
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             while (set.next()) {
@@ -51,7 +49,7 @@ public class PhonesDao {
     public static HashMap<String, String> getSipPasswords(String name) throws Exception {
         HashMap<String, String> sipPasswords = new HashMap<>();
         String sql = "SELECT `number`, `password` FROM `inner` where `busy`='" + name + "'";
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             while (set.next()) {
@@ -68,7 +66,7 @@ public class PhonesDao {
   public static HashMap<String, String> getAllSipsAndPass() throws Exception {
         HashMap<String, String> sipPasswords = new HashMap<>();
         String sql = "SELECT `number`, `password` FROM `inner`";
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             while (set.next()) {
@@ -85,7 +83,7 @@ public class PhonesDao {
     public static ArrayList<String> getCustomersNumbers(String name, boolean innerTable) throws Exception {
         String table = innerTable ? "inner" : "outer";
         String query = "SELECT `number` FROM `" + table + "` where `busy` like '" + name + "'";
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(query);
             ArrayList<String> list = new ArrayList<>();
@@ -118,7 +116,7 @@ public class PhonesDao {
 
 
     private static HashMap<String, String> getPhones(String query) throws Exception {
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(query);
             HashMap<String, String> map = new HashMap<>();
@@ -135,8 +133,8 @@ public class PhonesDao {
 
     public static ArrayList<String> getFreePhones(boolean innerTable) throws Exception {
         String table = innerTable ? "inner" : "outer";
-        String query = "SELECT * FROM telephonydb.`" + table + "` where `busy` like ''";
-        try (Connection connection = TelephonyDao.getConnection();
+        String query = "SELECT * FROM `" + table + "` where `busy` like ''";
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ArrayList<String> list = new ArrayList<>();
             ResultSet set = statement.executeQuery(query);
@@ -160,7 +158,7 @@ public class PhonesDao {
     private static void markNumberBusy(String name, String number, boolean innerTable) throws Exception {
         String table = innerTable ? "inner" : "outer";
         String sql = "UPDATE `" + table + "` SET `busy`='" + name + "' WHERE `number`='" + number + "';";
-        try (Connection connection = TelephonyDao.getConnection();
+        try (Connection connection = MySqlDao.getTrackingConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception e) {
@@ -174,7 +172,7 @@ public class PhonesDao {
         String table = innerTable ? "inner" : "outer";
         for (String s : numbersToRelease) {
             String sql = "UPDATE `" + table + "` SET `busy`='' WHERE `number`='" + s + "'";
-            try (Connection connection = TelephonyDao.getConnection();
+            try (Connection connection = MySqlDao.getTrackingConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
             } catch (Exception e) {
@@ -190,7 +188,7 @@ public class PhonesDao {
         String table = innerTable ? "inner" : "outer";
         for (String s : numbersToRelease) {
             String sql = "DELETE FROM `" + table + "` WHERE `number`='" + s + "'";
-            try (Connection connection = TelephonyDao.getConnection();
+            try (Connection connection = MySqlDao.getTrackingConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
             } catch (Exception e) {

@@ -1,9 +1,12 @@
 package ua.adeptius.asterisk.dao;
 
 
+import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.monitor.Call;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +74,7 @@ public class DaoHelper {
 
 
     public static String createSqlQueryForDeleteSite(String site) {
-        return "DELETE from " + SitesDao.SITE_TABLE + " WHERE name = '" + site + "'";
+        return "DELETE from sites WHERE name = '" + site + "'";
     }
 
     public static String createSqlQueryForSaveSite(Site site) {
@@ -93,7 +96,7 @@ public class DaoHelper {
         }
 
 
-        return "INSERT INTO " + SitesDao.SITE_TABLE + " VALUES("
+        return "INSERT INTO sites VALUES("
                 + "'" + name + "',"
                 + "'" + googleId + "',"
                 + "'" + email + "',"
@@ -131,7 +134,7 @@ public class DaoHelper {
         return sitesNeedToCreate;
     }
 
-  public static List<String> findTablesThatNeedToDeleteTelephony(List<TelephonyCustomer> telephonyCustomers, List<String> tables) {
+    public static List<String> findTablesThatNeedToDeleteTelephony(List<TelephonyCustomer> telephonyCustomers, List<String> tables) {
         List<String> tablesToDelete = new ArrayList<>();
         List<String> sitesAlreadyHave = telephonyCustomers.stream().map(TelephonyCustomer::getName).collect(Collectors.toList());
         for (String table : tables) {
@@ -164,7 +167,7 @@ public class DaoHelper {
         int outerPhones = newCustomer.getOuterNumbersCount();
         String password = newCustomer.getPassword();
 
-        return "INSERT INTO " + TelephonyDao.TELEPHONY_TABLE + " VALUES("
+        return "INSERT INTO telephony_users VALUES("
                 + "'" + name + "',"
                 + "'" + password + "',"
                 + "'" + email + "',"
@@ -181,7 +184,7 @@ public class DaoHelper {
         int outerPhones = newCustomer.getOuterNumbersCount();
         String password = newCustomer.getPassword();
 
-        return "UPDATE `" + TelephonyDao.TELEPHONY_TABLE + "` SET "
+        return "UPDATE `telephony_users` SET "
                 + "`password`='" + password + "', "
                 + "`email`='" + email + "', "
                 + "`tracking_id`='" + googleId + "', "
@@ -192,6 +195,6 @@ public class DaoHelper {
     }
 
     public static String createSqlQueryForDeleteTelephonyCustomer(String name) {
-        return "DELETE from " + TelephonyDao.TELEPHONY_TABLE + " WHERE name = '" + name + "'";
+        return "DELETE from telephony_users WHERE name = '" + name + "'";
     }
 }

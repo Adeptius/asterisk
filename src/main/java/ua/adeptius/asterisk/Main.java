@@ -16,8 +16,8 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 public class Main {
 
     public static AsteriskMonitor monitor;
-    public static SitesDao sitesDao;
-    public static TelephonyDao telephonyDao;
+//    public static SitesDao sitesDao;
+//    public static TelephonyDao telephonyDao;
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
@@ -28,27 +28,34 @@ public class Main {
         Settings.load(this.getClass());
 
         //загрузка DAO
-        telephonyDao = new TelephonyDao();
+//        telephonyDao = new TelephonyDao();
+//        try {
+//            telephonyDao.init();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
+//            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
+//        }
+
+//        sitesDao = new SitesDao();
+//        try {
+//            sitesDao.init();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL Sites");
+//            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL Sites");
+//        }
+
         try {
-            telephonyDao.init();
+            MySqlDao.init();
         } catch (Exception e) {
             e.printStackTrace();
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
-            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL");
         }
 
-        sitesDao = new SitesDao();
-        try {
-            sitesDao.init();
-        } catch (Exception e) {
-            e.printStackTrace();
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА  ЗАГРУЗКИ ДРАЙВЕРА MYSQL Sites");
-            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ДРАЙВЕРА MYSQL Sites");
-        }
 
         // Загрузка обьектов
         try {
-            MainController.telephonyCustomers = telephonyDao.getTelephonyCustomers();
+            MainController.telephonyCustomers = MySqlCalltrackDao.getTelephonyCustomers();
         }catch (NotEnoughNumbers e1){
             e1.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "НЕДОСТАТОЧНО НОМЕРОВ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ТЕЛЕФОНИИ");
@@ -60,7 +67,7 @@ public class Main {
         }
 
         try {
-            MainController.sites = sitesDao.getSites();
+            MainController.sites = MySqlCalltrackDao.getSites();
         }catch (NotEnoughNumbers e1){
             e1.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "НЕДОСТАТОЧНО НОМЕРОВ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ТРЕКИНГА");
@@ -75,16 +82,16 @@ public class Main {
         new PhonesWatcher();
 
         // создание и удаление таблиц статистики
-        try {
-            sitesDao.createOrCleanStatisticsTables();
-        } catch (Exception e) {
-            e.printStackTrace();
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТРЕКИНГА");
-            throw new RuntimeException("ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТРЕКИНГА");
-        }
+//        try {
+//            sitesDao.createOrCleanStatisticsTables();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТРЕКИНГА");
+//            throw new RuntimeException("ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТРЕКИНГА");
+//        }
 
         try {
-            telephonyDao.createOrCleanStatisticsTables();
+            MySqlStatisticDao.createOrCleanStatisticsTables();
         } catch (Exception e) {
             e.printStackTrace();
             MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТЕЛЕФОНИИ");

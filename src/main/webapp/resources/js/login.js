@@ -12,7 +12,7 @@ function checkLogin() {
 }
 
 function isLoginAndPasswordRight(login,password) {
-    $.post('/tracking/userconfig/checklogin',
+    $.post('/tracking/checklogin',
         {login: login, password: password}, function (data) {
             $.cookie("tracklog",login);
             $.cookie("trackpass",password);

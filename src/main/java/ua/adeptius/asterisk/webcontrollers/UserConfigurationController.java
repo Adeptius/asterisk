@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,7 +25,7 @@ public class UserConfigurationController {
         }
 
         try {
-            Main.sitesDao.setTimeToBlock(name, time);
+            MySqlCalltrackDao.setTimeToBlock(name, time);
             MainController.getSiteByName(name).setTimeToBlock(time);
             return "Success: Time to block set: " + time + " minutes";
         } catch (Exception e) {
@@ -44,7 +45,7 @@ public class UserConfigurationController {
             Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip.trim());
             regexMatcher.find();
             regexMatcher.group();
-            Main.sitesDao.addIpToBlackList(name, ip.trim());
+            MySqlCalltrackDao.addIpToBlackList(name, ip.trim());
             return "Success: IP " + ip + " blocked.";
         } catch (Exception e) {
             return "Error: DB error or wrong IP";
@@ -63,7 +64,7 @@ public class UserConfigurationController {
             Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip);
             regexMatcher.find();
             regexMatcher.group();
-            return Main.sitesDao.deleteFromBlackList(name, ip);
+            return MySqlCalltrackDao.deleteFromBlackList(name, ip);
         } catch (Exception e) {
             return "Error: DB error or wrong IP";
         }

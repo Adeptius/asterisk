@@ -31,6 +31,9 @@ public class CallProcessor {
 //            System.out.println(event);
             String from = addZero(newChannelEvent.getCallerIdNum());
             String to = addZero(newChannelEvent.getExten());
+            if ("s".equals(to)){
+                return; // отбой странной ерунды при редиректе на сип
+            }
 
             Customer customer = phonesAndCustomers.get(to);
             Call.Direction direction = Call.Direction.IN;
@@ -51,7 +54,7 @@ public class CallProcessor {
             call.setFrom(newChannelEvent.getCallerIdNum());
             call.setCustomer(customer);
             // добавление 3 секунды из-за погрешности
-            long time = 5000 + newChannelEvent.getDateReceived().getTime();
+            long time = 2000 + newChannelEvent.getDateReceived().getTime();
             call.setCalledMillis(time);
             call.setDateForDb(time);
             call.setDirection(direction);
@@ -74,10 +77,15 @@ public class CallProcessor {
             }
 
         } else if (event instanceof NewExtenEvent) { // если это ответ на звонок
-            Call call = calls.get(((NewExtenEvent) event).getUniqueId());
+            NewExtenEvent newExtenEvent = (NewExtenEvent) event;
+            Call call = calls.get(newExtenEvent.getUniqueId());
             if (call == null) return;
-            String redirectedTo = ((NewExtenEvent) event).getAppData();
-            redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1, redirectedTo.indexOf(","));
+            String redirectedTo = newExtenEvent.getAppData();
+            if (redirectedTo.contains(",")){
+                redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1, redirectedTo.indexOf(","));
+            }else {
+                redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1);
+            }
             call.setTo(redirectedTo);
 //            System.out.println("RedirectedTo: " + redirectedTo);
 //            System.out.println(call);

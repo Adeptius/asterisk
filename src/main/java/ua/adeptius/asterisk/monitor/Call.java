@@ -16,12 +16,30 @@ public class Call {
     private int ended;
     private CallState callState;
     private Direction direction;
+    private String googleId;
+    private String utm;
 
     private transient Customer customer;
     private transient long calledMillis;
 
     public void setDateForDb(long millis) {
         called = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(millis);
+    }
+
+    public String getGoogleId() {
+        return googleId==null?"":googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getUtm() {
+        return utm==null ? "":utm;
+    }
+
+    public void setUtm(String utm) {
+        this.utm = utm;
     }
 
     public Direction getDirection() {

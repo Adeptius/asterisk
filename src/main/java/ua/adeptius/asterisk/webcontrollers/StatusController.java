@@ -6,11 +6,14 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
+import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.TelephonyDao;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.monitor.Call;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -71,11 +74,7 @@ public class StatusController {
         }
 
         try {
-            if (customer instanceof Site) {
-                return new ObjectMapper().writeValueAsString(Main.sitesDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
-            } else {
-                return new ObjectMapper().writeValueAsString(Main.telephonyDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
-            }
+            return new Gson().toJson(MySqlStatisticDao.getStatisticOfRange(name, dateFrom, dateTo, direction));
         } catch (Exception e) {
             return "Error: DB error";
         }
@@ -85,7 +84,7 @@ public class StatusController {
     @ResponseBody
     public String getHistory() {
         try {
-            return new Gson().toJson(TelephonyDao.getMelodies());
+            return new Gson().toJson(MySqlCalltrackDao.getMelodies());
         } catch (Exception e) {
             return "Error: DB Error";
         }

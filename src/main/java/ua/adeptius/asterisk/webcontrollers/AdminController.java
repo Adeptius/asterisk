@@ -6,8 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.PhonesController;
-import ua.adeptius.asterisk.dao.RulesConfigDAO;
-import ua.adeptius.asterisk.dao.PhonesDao;
+import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.monitor.CallProcessor;
@@ -15,7 +14,6 @@ import ua.adeptius.asterisk.utils.CustomerGroup;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
-import ua.adeptius.asterisk.dao.Settings;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -83,7 +81,7 @@ public class AdminController {
         try {
             if (found != null) { // такой пользователь есть. Обновляем.
                 newCustomer.updateNumbers();
-                Main.telephonyDao.editTelephonyCustomer(newCustomer);
+                MySqlCalltrackDao.editTelephonyCustomer(newCustomer);
                 MainController.telephonyCustomers.remove(MainController.getTelephonyCustomerByName(newCustomer.getName()));
                 MainController.telephonyCustomers.add(newCustomer);
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " изменён");
@@ -101,9 +99,9 @@ public class AdminController {
                     return "Error: Site with same login already present";
                 }
 
-                Main.telephonyDao.saveTelephonyCustomer(newCustomer);
+                MySqlCalltrackDao.saveTelephonyCustomer(newCustomer);
                 MainController.telephonyCustomers.add(newCustomer);
-                Main.telephonyDao.createOrCleanStatisticsTables();
+                MySqlStatisticDao.createOrCleanStatisticsTables();
                 newCustomer.updateNumbers();
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " добавлен");
                 CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
@@ -157,7 +155,7 @@ public class AdminController {
         try {
             if (site != null) { // такой сайт есть. Обновляем.
                 newSite.updateNumbers();
-                Main.sitesDao.editSite(newSite);
+                MySqlCalltrackDao.editSite(newSite);
                 MainController.sites.remove(MainController.getSiteByName(newSite.getName()));
                 MainController.sites.add(newSite);
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " изменён");
@@ -176,9 +174,9 @@ public class AdminController {
                     return "Error: Customer with same login already present";
                 }
 
-                Main.sitesDao.saveSite(newSite);
+                MySqlCalltrackDao.saveSite(newSite);
                 MainController.sites.add(newSite);
-                Main.sitesDao.createOrCleanStatisticsTables();
+                MySqlStatisticDao.createOrCleanStatisticsTables();
                 newSite.updateNumbers();
                 MyLogger.log(LogCategory.ELSE, newSite.getName() + " добавлен");
                 CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
@@ -218,13 +216,13 @@ public class AdminController {
 
         try {
             if (customer instanceof Site) {
-                Main.sitesDao.deleteSite(customer.getName());
+                MySqlCalltrackDao.deleteSite(customer.getName());
                 MainController.sites.remove(customer);
-                Main.sitesDao.createOrCleanStatisticsTables();
+                MySqlStatisticDao.createOrCleanStatisticsTables();
             } else {
-                Main.telephonyDao.deleteTelephonyCustomer(customer.getName());
+                MySqlCalltrackDao.deleteTelephonyCustomer(customer.getName());
                 MainController.telephonyCustomers.remove(customer);
-                Main.telephonyDao.createOrCleanStatisticsTables();
+                MySqlStatisticDao.createOrCleanStatisticsTables();
             }
             PhonesController.releaseAllCustomerNumbers(customer);
             customer.removeRulesFile();

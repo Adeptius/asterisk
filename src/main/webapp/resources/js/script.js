@@ -7,7 +7,7 @@ $(document).ready(function () {
 
     setToday();
 
-    $.post('/tracking/userconfig/checklogin',
+    $.post('/tracking/checklogin',
         {login: loginFromCoockie, password: passwordFromCoockie}, function (data) {
             if (data == 'true'){
                 processAllIfAuthIsOk(loginFromCoockie, passwordFromCoockie);

@@ -35,7 +35,7 @@ public class Rule {
         for (String line : lines) {
             String numbers = line.substring(line.indexOf("(")+1, line.lastIndexOf(")")); // получаем то, что содержится в скобках
 
-            if (line.contains("Goto")){// определяем сип ли это
+            if (!line.contains("m(")){// определяем сип ли это. m( бывает только в GSM
                 destinationType = SIP;
             }else { // время есть только в GSM
                 String s = line.substring(0, line.lastIndexOf(","));

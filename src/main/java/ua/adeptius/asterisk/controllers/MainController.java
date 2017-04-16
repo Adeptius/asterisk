@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.controllers;
 
 
 import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.dao.TelephonyDao;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.webcontrollers.AdminController;
@@ -136,11 +137,14 @@ public class MainController {
         Phone phone = getPhoneByNumber(call.getTo());
         String googleId = phone.getGoogleId();
         String request = phone.getUtmRequest() == null ? "" : phone.getUtmRequest();
+        call.setGoogleId(googleId);
+        call.setGoogleId(request);
+
         new GoogleAnalitycs(site, googleId, call.getFrom()).start();
-        Main.sitesDao.saveCall(call, googleId, request);
+        MySqlStatisticDao.saveCall(call);
     }
 
     public static void onNewTelephonyCall(Call call) {
-        TelephonyDao.saveCall(call);
+        MySqlStatisticDao.saveCall(call);
     }
 }
