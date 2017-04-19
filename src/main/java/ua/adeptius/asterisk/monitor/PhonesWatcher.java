@@ -1,11 +1,10 @@
 package ua.adeptius.asterisk.monitor;
 
 
-import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -18,7 +17,7 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.NUMBER_FREE;
 
 public class PhonesWatcher extends Thread {
 
-    List<Site> sites = MainController.sites;
+    List<OldSite> oldSites = MainController.oldSites;
 
     public PhonesWatcher() {
         setDaemon(true);
@@ -38,17 +37,17 @@ public class PhonesWatcher extends Thread {
     }
 
     private void checkAllPhones(){
-        for (Site site : sites) {
-            List<Phone> phones = site.getPhones();
+        for (OldSite oldSite : oldSites) {
+            List<Phone> phones = oldSite.getPhones();
             for (Phone phone : phones) {
                 if (!phone.isFree()) { // если телефон не простаивает
-                    processBusyPhone(site, phone);
+                    processBusyPhone(oldSite, phone);
                 }
             }
         }
     }
 
-    private void processBusyPhone(Site site, Phone phone){
+    private void processBusyPhone(OldSite oldSite, Phone phone){
         long currentTime = new GregorianCalendar().getTimeInMillis();
         long phoneTime = phone.getUpdatedTime();
 
@@ -56,7 +55,7 @@ public class PhonesWatcher extends Thread {
         long past = currentTime - phoneTime;
         int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
         if (past > timeToDeleteOldPhones) {
-            MyLogger.log(NUMBER_FREE, site.getName()+": номер " + phone.getNumber() + " освободился. Был занят " + phone.getBusyTimeText());
+            MyLogger.log(NUMBER_FREE, oldSite.getName()+": номер " + phone.getNumber() + " освободился. Был занят " + phone.getBusyTimeText());
             phone.markFree();
         }
 
@@ -66,16 +65,16 @@ public class PhonesWatcher extends Thread {
             phone.setBusyTime(past);
         }
 
-        long timeToBlock = site.getTimeToBlock()*60*1000;
+        long timeToBlock = oldSite.getTimeToBlock()*60*1000;
 
         if (past > timeToBlock){
 //            site.getBlackIps().add(phone.getIp());
             try {
-                MyLogger.log(ELSE, site.getName() + ": IP " + phone.getIp() + " заблокирован по времени.");
-                MySqlCalltrackDao.addIpToBlackList(site.getName(), phone.getIp());
+                MyLogger.log(ELSE, oldSite.getName() + ": IP " + phone.getIp() + " заблокирован по времени.");
+                MySqlCalltrackDao.addIpToBlackList(oldSite.getName(), phone.getIp());
                 phone.markFree();
             } catch (Exception e) {
-                MyLogger.log(DB_OPERATIONS, site.getName() + ": ошибка добавления " + phone.getIp() + " в БД");
+                MyLogger.log(DB_OPERATIONS, oldSite.getName() + ": ошибка добавления " + phone.getIp() + " в БД");
             }
         }
     }

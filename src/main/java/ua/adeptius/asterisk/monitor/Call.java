@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.monitor;
 
 
 import ua.adeptius.asterisk.model.Customer;
+import ua.adeptius.asterisk.newmodel.User;
 
 import java.text.SimpleDateFormat;
 
@@ -18,8 +19,9 @@ public class Call {
     private Direction direction;
     private String googleId;
     private String utm;
+    private String firstCall;
 
-    private transient Customer customer;
+    private transient User user;
     private transient long calledMillis;
 
     public void setDateForDb(long millis) {
@@ -28,6 +30,14 @@ public class Call {
 
     public String getGoogleId() {
         return googleId==null?"":googleId;
+    }
+
+    public String getFirstCall() {
+        return firstCall;
+    }
+
+    public void setFirstCall(String firstCall) {
+        this.firstCall = firstCall;
     }
 
     public void setGoogleId(String googleId) {
@@ -90,12 +100,12 @@ public class Call {
         this.ended = ended;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public User getUser() {
+        return user;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getFrom() {
@@ -147,8 +157,9 @@ public class Call {
         return "Call{" +
                 "\nid='" + id + '\'' +
                 "\nfrom='" + from + '\'' +
+                "\nfirstCall='" + firstCall + '\'' +
                 "\nto='" + to + '\'' +
-                "\ncustomer=" + customer.getName() +
+                "\ncustomer=" + user.getLogin() +
                 "\ncalled=" + called +
                 "\nanswered=" + answered +
                 "\nended=" + ended +

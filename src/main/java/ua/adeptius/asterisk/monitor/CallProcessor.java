@@ -3,10 +3,8 @@ package ua.adeptius.asterisk.monitor;
 
 import org.asteriskjava.manager.event.*;
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.newmodel.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +18,7 @@ public class CallProcessor {
 
     //TODO нужно ли чистить мапу?
     private static HashMap<String, Call> calls = new HashMap<>();
-    private static HashMap<String, Customer> phonesAndCustomers = new HashMap<>();
+    private static HashMap<String, User> phonesAndUsers = new HashMap<>();
 
     public static void processEvent(ManagerEvent event) {
 
@@ -35,12 +33,12 @@ public class CallProcessor {
                 return; // отбой странной ерунды при редиректе на сип
             }
 
-            Customer customer = phonesAndCustomers.get(to);
+            User user = phonesAndUsers.get(to);
             Call.Direction direction = Call.Direction.IN;
-            if (customer == null) {
-                customer = phonesAndCustomers.get(from);
+            if (user == null) {
+                user = phonesAndUsers.get(from);
                 direction = Call.Direction.OUT;
-                if (customer == null) {
+                if (user == null) {
 //                    System.out.println("Связь не обнаружена:");
 //                    System.out.println(event);
                     return;
@@ -51,8 +49,9 @@ public class CallProcessor {
             Call call = new Call();
             call.setId(newChannelEvent.getUniqueId());
             call.setTo(newChannelEvent.getExten());
+            call.setFirstCall(newChannelEvent.getExten());
             call.setFrom(newChannelEvent.getCallerIdNum());
-            call.setCustomer(customer);
+            call.setUser(user);
             // добавление 3 секунды из-за погрешности
             long time = 2000 + newChannelEvent.getDateReceived().getTime();
             call.setCalledMillis(time);
@@ -116,13 +115,14 @@ public class CallProcessor {
     }
 
 
-    private static void processCall(Call call){
-        Customer customer = call.getCustomer();
-        if (customer instanceof Site){
-            MainController.onNewSiteCall(call);
-        }else if (customer instanceof TelephonyCustomer){
-            MainController.onNewTelephonyCall(call);
-        }
+    private static void processCall(Call call){ // TODO обработать
+        User user = call.getUser();
+
+//        if (customer instanceof OldSite){
+//            MainController.onNewSiteCall(call);
+//        }else if (customer instanceof TelephonyCustomer){
+//            MainController.onNewTelephonyCall(call);
+//        }
     }
 
 
@@ -137,24 +137,13 @@ public class CallProcessor {
         return source;
     }
 
-    public static void updatePhonesHashMap() {
-        phonesAndCustomers.clear();
-        List<Customer> allCustomers = MainController.getAllCustomers();
-        for (Customer customer : allCustomers) {
-            if (customer instanceof Site) {
-                List<String> phones = ((Site) customer).getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
-                for (String phone : phones) {
-                    phonesAndCustomers.put(phone, customer);
-                }
-            } else if (customer instanceof TelephonyCustomer) {
-                TelephonyCustomer telephonyCustomer = (TelephonyCustomer) customer;
-                List<String> phones = new ArrayList<>();
-                phones.addAll(telephonyCustomer.getOuterPhonesList());
-                phones.addAll(telephonyCustomer.getInnerPhonesList());
-                for (String phone : phones) {
-                    phonesAndCustomers.put(phone, customer);
-                }
-            }
+    public static void updatePhonesHashMap() { //TODO везде повставлять
+        phonesAndUsers.clear();
+        for (User user : MainController.users) {
+            List<String> numbers = user.getSite()==null? new ArrayList<>() : user.getSite().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
+            numbers.addAll(user.getTelephony()==null? new ArrayList<>() : user.getTelephony().getOuterPhonesList());
+            numbers.addAll(user.getTelephony()==null? new ArrayList<>() : user.getTelephony().getInnerPhonesList());
+            numbers.forEach(s -> phonesAndUsers.put(s, user));
         }
     }
 }

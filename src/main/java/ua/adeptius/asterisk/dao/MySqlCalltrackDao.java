@@ -2,7 +2,7 @@ package ua.adeptius.asterisk.dao;
 
 
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
 
 import java.sql.Connection;
@@ -17,14 +17,14 @@ import static ua.adeptius.asterisk.utils.logging.MyLogger.logAndThrow;
 
 public class MySqlCalltrackDao extends MySqlDao {
 
-    public static List<Site> getSites() throws Exception {
-        List<Site> sites = new ArrayList<>();
+    public static List<OldSite> getSites() throws Exception {
+        List<OldSite> oldSites = new ArrayList<>();
         String sql = "SELECT * FROM users_calltracking";
         try (Connection connection = getTrackingConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             while (set.next()) {
-                sites.add(new Site(
+                oldSites.add(new OldSite(
                         set.getString("name"),
                         set.getString("standart_number"),
                         set.getString("tracking_id"),
@@ -35,7 +35,7 @@ public class MySqlCalltrackDao extends MySqlDao {
                         set.getInt("outer_phones")
                 ));
             }
-            return sites;
+            return oldSites;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,12 +55,12 @@ public class MySqlCalltrackDao extends MySqlDao {
         throw new Exception("Ошибка при удалении сайтов с БД");
     }
 
-    public static void saveSite(Site site) throws Exception {
-        String sql = DaoHelper.createSqlQueryForSaveSite(site);
+    public static void saveSite(OldSite oldSite) throws Exception {
+        String sql = DaoHelper.createSqlQueryForSaveSite(oldSite);
         try (Connection connection = getTrackingConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
-            log(DB_OPERATIONS, site.getName() + " сохранён");
+            log(DB_OPERATIONS, oldSite.getName() + " сохранён");
         } catch (Exception e) {
             e.printStackTrace();
             log(DB_OPERATIONS, "Ошибка сохранения сайта в БД: " + e.getMessage());
@@ -69,10 +69,10 @@ public class MySqlCalltrackDao extends MySqlDao {
     }
 
     //TODO сделать атомарным
-    public static void editSite(Site site) throws Exception {
+    public static void editSite(OldSite oldSite) throws Exception {
         Connection connection = getTrackingConnection();
-        String sqlDelete = DaoHelper.createSqlQueryForDeleteSite(site.getName());
-        String sqlSave = DaoHelper.createSqlQueryForSaveSite(site);
+        String sqlDelete = DaoHelper.createSqlQueryForDeleteSite(oldSite.getName());
+        String sqlSave = DaoHelper.createSqlQueryForSaveSite(oldSite);
         try (Statement deleteStatement = connection.createStatement();
              Statement addStatement = connection.createStatement()) {
             connection.setAutoCommit(false);
@@ -83,8 +83,8 @@ public class MySqlCalltrackDao extends MySqlDao {
             if (connection != null) {
                 connection.rollback();
             }
-            log(DB_OPERATIONS, "Ошибка изменения сайта в базе" + site.getName());
-            throw new Exception("Ошибка изменения сайта " + site.getName() + " в базу: " + e.getMessage());
+            log(DB_OPERATIONS, "Ошибка изменения сайта в базе" + oldSite.getName());
+            throw new Exception("Ошибка изменения сайта " + oldSite.getName() + " в базу: " + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.setAutoCommit(true);
@@ -95,8 +95,8 @@ public class MySqlCalltrackDao extends MySqlDao {
 
     // TODO как-то переделать работу с черным списком
     public static void addIpToBlackList(String siteName, String ip) throws Exception {
-        Site site = MainController.getSiteByName(siteName);
-        site.getBlackIps().add(ip);
+        OldSite oldSite = MainController.getSiteByName(siteName);
+        oldSite.getBlackIps().add(ip);
         String s = getBlackList(siteName);
         s += "," + ip;
         if (s.length() > 1500){
@@ -112,14 +112,14 @@ public class MySqlCalltrackDao extends MySqlDao {
         if (s.contains(","+ip)){
             s = s.replaceAll(","+ip, "");
             setBlackList(SiteName, s);
-            Site site = MainController.getSiteByName(SiteName);
-            site.getBlackIps().remove(ip);
+            OldSite oldSite = MainController.getSiteByName(SiteName);
+            oldSite.getBlackIps().remove(ip);
             return "Success: IP " + ip + " unblocked.";
         }else if (s.contains(ip)){
             s = s.replaceAll(ip, "");
             setBlackList(SiteName, s);
-            Site site = MainController.getSiteByName(SiteName);
-            site.getBlackIps().remove(ip);
+            OldSite oldSite = MainController.getSiteByName(SiteName);
+            oldSite.getBlackIps().remove(ip);
             return "Success: IP " + ip + " unblocked.";
         }
         return "Error: IP " + ip + " not blocked.";

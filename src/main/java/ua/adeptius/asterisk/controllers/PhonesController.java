@@ -6,8 +6,9 @@ import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
+import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -63,8 +64,8 @@ public class PhonesController {
     public static void releaseAllCustomerNumbers(Customer customer) throws Exception{
         List<String> inner;
         List<String> outer;
-        if (customer instanceof Site){
-            outer = ((Site) customer).getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
+        if (customer instanceof OldSite){
+            outer = ((OldSite) customer).getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
             inner = new ArrayList<>();
         }else {
             outer = ((TelephonyCustomer) customer).getOuterPhonesList();
@@ -77,7 +78,7 @@ public class PhonesController {
     public static void scanAndClean() throws Exception{
         HashMap<String, String> innerMap = PhonesDao.getBusyInnerPhones();
         HashMap<String, String> outerMap = PhonesDao.getBusyOuterPhones();
-        List<String> users = MainController.getAllCustomers().stream().map(Customer::getName).collect(Collectors.toList());
+        List<String> users = MainController.users.stream().map(User::getLogin).collect(Collectors.toList());
         List<String> innerToClean = new ArrayList<>();
         List<String> outerToClean = new ArrayList<>();
         for (Map.Entry<String, String> entry : innerMap.entrySet()) {
@@ -92,6 +93,6 @@ public class PhonesController {
         }
         PhonesDao.markNumberFree(innerToClean,true);
         PhonesDao.markNumberFree(outerToClean,false);
-        MyLogger.log(LogCategory.DB_OPERATIONS, "Освобождено номеров внешних: " + outerToClean.size() + ", внутренних: " + innerToClean.size());
+        MyLogger.log(LogCategory.DB_OPERATIONS, "Синхронизация БД освобождено номеров внешних " + outerToClean.size() + ", внутренних " + innerToClean.size());
     }
 }

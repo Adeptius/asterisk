@@ -6,12 +6,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.dao.DaoHelper;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -34,7 +32,7 @@ public class WebConverter {
             return "Wrong password";
         }
 
-        Site site = MainController.getSiteByName(name);
+        OldSite oldSite = MainController.getSiteByName(name);
         StringBuilder builder = new StringBuilder();
         builder.append(
                 "    <tr>\n" +
@@ -44,7 +42,7 @@ public class WebConverter {
                         "        <th>Время</th>\n" +
                         "    </tr>\n" +
                         "    \n");
-        for (Phone phone : site.getPhones()) {
+        for (Phone phone : oldSite.getPhones()) {
             builder.append("<tr>\n            ");
             builder.append("<td class='statusNumber'>" + phone.getNumber() + "</td>");
             builder.append("<td>" + phone.getGoogleId() + "</td>");
@@ -84,7 +82,7 @@ public class WebConverter {
 
         Customer customer;
         try {
-            customer = MainController.getCustomerByName(name);
+            customer = MainController.getUserByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such user";
         }
@@ -151,13 +149,13 @@ public class WebConverter {
         if (!MainController.isSiteLogin(name, password)) {
             return "Error: wrong password";
         }
-        Site site;
+        OldSite oldSite;
         try {
-            site = MainController.getSiteByName(name);
+            oldSite = MainController.getSiteByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such user";
         }
-        List<String> list = site.getBlackIps();
+        List<String> list = oldSite.getBlackIps();
         StringBuilder sb = new StringBuilder();
         for (String s : list) {
             sb.append(s).append("\n");

@@ -1,8 +1,9 @@
 package ua.adeptius.asterisk.senders;
 
 
+import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.model.Site;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -18,26 +19,45 @@ import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
 public class GoogleAnalitycs extends Thread {
 
     private static final String GOOGLE_URL = "http://www.google-analytics.com/collect";
-    private String phone;
-    private Site site;
+    private User user;
+    private Call call;
     private String clientGoogleId;
 
-    public GoogleAnalitycs(Site site, String clientGoogleId, String phone) {
-        this.clientGoogleId = clientGoogleId;
-        this.phone = phone;
-        this.site = site;
+
+    public GoogleAnalitycs(Call call) {
+        this.clientGoogleId = call.getGoogleId();
+        this.user = call.getUser();
+        this.call = call;
+
+        String id = user.getTrackingId();
+        if (id !=null && !"".equals(id) && call.getDirection() == Call.Direction.IN){
+            start();
+        }
     }
 
     @Override
     public void run() {
         List<String> params = new ArrayList<>();
         params.add("v=1");
-        params.add("tid=" + site.getGoogleAnalyticsTrackingId()); // Tracking ID / Property ID.
-        params.add("cid=" + clientGoogleId); // Client ID.
+        params.add("tid=" + user.getTrackingId()); // Tracking ID / Property ID.
         params.add("t=event"); // Hit Type.
-        params.add("ec=calltracking"); // Category
+
+//        if (customer instanceof OldSite){  TODO придумать обработку
+//            params.add("ec=calltracking"); // Category
+//        }else {
+//            params.add("ec=ip_telephony"); // Category
+//        }
+
+        if (clientGoogleId.equals("")){
+            params.add("cid="+getGoogleId(call.getFrom())); // Client ID.
+        }else {
+            params.add("cid=" + clientGoogleId); // Client ID.
+        }
+
+
+
         params.add("ea=new call"); // Event
-        params.add("el=" + phone); // Label
+        params.add("el=" + call.getDirection()); // Label
 
         try {
             String url = GOOGLE_URL;
@@ -60,5 +80,20 @@ public class GoogleAnalitycs extends Thread {
         } catch (Exception e) {
             log(LogCategory.ERROR_SENDING_ANALYTICS, "Не удалось отправить данные в Google Analitycs " + e);
         }
+    }
+
+    private static String getGoogleId(String number){
+        int numberLength = number.length();
+        int moreLetters = 10-numberLength;
+        String googleId = number;
+        for (int i = 0; i < moreLetters; i++) {
+            googleId += "0";
+        }
+        if (googleId.length()>10){
+            googleId = googleId.substring(0,10);
+        }
+        googleId = googleId + ".0000000000";
+        return googleId;
+
     }
 }

@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
+import ua.adeptius.asterisk.model.Phone;
+import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.telephony.Rule;
 
 import java.io.BufferedWriter;
@@ -9,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RulesConfigDAO {
 
@@ -59,5 +62,47 @@ public class RulesConfigDAO {
 
     public static void removeFile(String name) throws Exception {
         Files.deleteIfExists(Paths.get(folder + name + ".conf"));
+    }
+
+    public static void removeFileIfNeeded(User user) throws Exception {
+        List<String> customerNumbers = new ArrayList<>();
+        List<Rule> rulesToDelete = new ArrayList<>();
+        List<Rule> currentRules = user.getRules();
+
+        if (user.getSite() != null){
+            customerNumbers.addAll(user.getSite().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
+            for (Rule rule : currentRules) {
+                List<String> from = rule.getFrom();
+                for (String s : from) {
+                    if (!customerNumbers.contains(s)){
+                        rulesToDelete.add(rule);
+                        break;
+                    }
+                }
+            }
+        }
+        if (user.getTelephony() != null) {
+            customerNumbers.addAll(user.getTelephony().getInnerPhonesList());
+            customerNumbers.addAll(user.getTelephony().getOuterPhonesList());
+            for (Rule currentRule : currentRules) {
+                List<String> numbersInRules = new ArrayList<>();
+                numbersInRules.addAll(currentRule.getFrom());
+                numbersInRules.addAll(currentRule.getTo());
+                for (String numbersInRule : numbersInRules) {
+                    if (!customerNumbers.contains(numbersInRule)) {
+                        rulesToDelete.add(currentRule);
+                        break;
+                    }
+                }
+            }
+        }
+
+        currentRules.removeAll(rulesToDelete);
+
+        if (currentRules.size() == 0){
+            Files.deleteIfExists(Paths.get(folder + user.getLogin() + ".conf"));
+        }else {
+            user.saveRules();
+        }
     }
 }

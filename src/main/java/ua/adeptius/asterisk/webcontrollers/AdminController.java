@@ -4,7 +4,6 @@ package ua.adeptius.asterisk.webcontrollers;
 import com.google.gson.Gson;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
@@ -43,7 +42,7 @@ public class AdminController {
         }
 
         ArrayList<CustomerGroup> types = new ArrayList<>();
-        for (Site customer : MainController.sites) {
+        for (OldSite customer : MainController.oldSites) {
             types.add(new CustomerGroup(customer.getName(), customer.type));
         }
         for (TelephonyCustomer customer : MainController.telephonyCustomers) {
@@ -81,21 +80,22 @@ public class AdminController {
         try {
             if (found != null) { // такой пользователь есть. Обновляем.
                 newCustomer.updateNumbers();
+                newCustomer.setRules(found.getRules());
                 MySqlCalltrackDao.editTelephonyCustomer(newCustomer);
                 MainController.telephonyCustomers.remove(MainController.getTelephonyCustomerByName(newCustomer.getName()));
                 MainController.telephonyCustomers.add(newCustomer);
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " изменён");
-                RulesConfigDAO.removeFile(newCustomer.getName());
+                RulesConfigDAO.removeFileIfNeeded(newCustomer);
                 CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Updated";
             } else { // пользователя не существует. Создаём.
                 // проверяем нет ли сайта с таким же логином
-                Site site = null;
+                OldSite oldSite = null;
                 try {
-                    site = MainController.getSiteByName(newCustomer.getName());
+                    oldSite = MainController.getSiteByName(newCustomer.getName());
                 } catch (NoSuchElementException ignored) {
                 }
-                if (site != null) {  // значит есть сайт с тем же логином
+                if (oldSite != null) {  // значит есть сайт с тем же логином
                     return "Error: Site with same login already present";
                 }
 
@@ -132,34 +132,35 @@ public class AdminController {
             return "Error: Wrong password";
         }
 
-        Site newSite;
+        OldSite newOldSite;
         try {
-            newSite = new Gson().fromJson(siteCustomer, Site.class);
+            newOldSite = new Gson().fromJson(siteCustomer, OldSite.class);
         } catch (Exception e) {
             return "Error: Wrong Syntax";
         }
 
-        Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(newSite.getName());
+        Matcher regexMatcher = Pattern.compile("[a-z|A-Z]+").matcher(newOldSite.getName());
         if (!regexMatcher.find()) {
             return "Error: Name must contains only english letters";
         }
 
-        Site site = null;
+        OldSite oldSite = null;
         try {
-            site = MainController.getSiteByName(newSite.getName());
+            oldSite = MainController.getSiteByName(newOldSite.getName());
         } catch (NoSuchElementException e) {
-            MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + newSite.getName() + " В базе нет. Создаём новый.");
+            MyLogger.log(LogCategory.DB_OPERATIONS, "Сайта " + newOldSite.getName() + " В базе нет. Создаём новый.");
         }
 
 
         try {
-            if (site != null) { // такой сайт есть. Обновляем.
-                newSite.updateNumbers();
-                MySqlCalltrackDao.editSite(newSite);
-                MainController.sites.remove(MainController.getSiteByName(newSite.getName()));
-                MainController.sites.add(newSite);
-                MyLogger.log(LogCategory.ELSE, newSite.getName() + " изменён");
-                RulesConfigDAO.removeFile(newSite.getName());
+            if (oldSite != null) { // такой сайт есть. Обновляем.
+                newOldSite.updateNumbers();
+                newOldSite.setRules(oldSite.getRules()); // перекидываем правила со старого на новый
+                MySqlCalltrackDao.editSite(newOldSite);
+                MainController.oldSites.remove(MainController.getSiteByName(newOldSite.getName()));
+                MainController.oldSites.add(newOldSite);
+                MyLogger.log(LogCategory.ELSE, newOldSite.getName() + " изменён");
+                RulesConfigDAO.removeFileIfNeeded(newOldSite);
                 CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Updated";
             } else { // сайта не существует. Создаём.
@@ -167,18 +168,18 @@ public class AdminController {
                 // проверяем нет ли телефонии с таким же логином
                 TelephonyCustomer telephonyCustomer = null;
                 try {
-                    telephonyCustomer = MainController.getTelephonyCustomerByName(newSite.getName());
+                    telephonyCustomer = MainController.getTelephonyCustomerByName(newOldSite.getName());
                 } catch (NoSuchElementException ignored) {
                 }
                 if (telephonyCustomer != null) {  // значит есть пользователь телефонии с тем же именем
                     return "Error: Customer with same login already present";
                 }
 
-                MySqlCalltrackDao.saveSite(newSite);
-                MainController.sites.add(newSite);
+                MySqlCalltrackDao.saveSite(newOldSite);
+                MainController.oldSites.add(newOldSite);
                 MySqlStatisticDao.createOrCleanStatisticsTables();
-                newSite.updateNumbers();
-                MyLogger.log(LogCategory.ELSE, newSite.getName() + " добавлен");
+                newOldSite.updateNumbers();
+                MyLogger.log(LogCategory.ELSE, newOldSite.getName() + " добавлен");
                 CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
                 return "Added";
             }
@@ -208,16 +209,16 @@ public class AdminController {
 
         Customer customer;
         try {
-            customer = MainController.getCustomerByName(name);
+            customer = MainController.getUserByName(name);
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
             return "Error: user not found in db";
         }
 
         try {
-            if (customer instanceof Site) {
+            if (customer instanceof OldSite) {
                 MySqlCalltrackDao.deleteSite(customer.getName());
-                MainController.sites.remove(customer);
+                MainController.oldSites.remove(customer);
                 MySqlStatisticDao.createOrCleanStatisticsTables();
             } else {
                 MySqlCalltrackDao.deleteTelephonyCustomer(customer.getName());

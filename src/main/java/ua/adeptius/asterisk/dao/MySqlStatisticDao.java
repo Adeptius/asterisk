@@ -2,8 +2,9 @@ package ua.adeptius.asterisk.dao;
 
 
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -97,7 +98,7 @@ public class MySqlStatisticDao extends MySqlDao {
     }
 
     public static void saveCall(Call call) {
-        String sql = "INSERT INTO `" + call.getCustomer().getName() + "` VALUES ('"
+        String sql = "INSERT INTO `" + call.getUser().getLogin() + "` VALUES ('"
                 + call.getCalled() + "', '"
                 + call.getDirection() + "', '"
                 + call.getFrom() + "', '"
@@ -113,28 +114,18 @@ public class MySqlStatisticDao extends MySqlDao {
             statement.execute(sql);
         } catch (Exception e) {
             e.printStackTrace();
-            log(DB_OPERATIONS, call.getCustomer().getName() + ": Ошибка при сохранении отчета в БД ");
+            log(DB_OPERATIONS, call.getUser().getLogin() + ": Ошибка при сохранении отчета в БД ");
         }
     }
 
 
     public static void createOrCleanStatisticsTables() throws Exception {
         List<String> tables = getListOfTables(); // Taблицы в БД
-        List<String> customerNames = MainController.getAllCustomers().stream().map(Customer::getName).collect(Collectors.toList());
+        List<String> customerNames = MainController.users.stream().map(User::getLogin).collect(Collectors.toList());
         List<String> tablesToDelete = tables.stream().filter(table -> !customerNames.contains(table)).collect(Collectors.toList());
         List<String> tablesToCreate = customerNames.stream().filter(name -> !tables.contains(name)).collect(Collectors.toList());
+        MyLogger.log(DB_OPERATIONS, "Синхронизация таблиц статистики. Создано: " + tablesToCreate.size() + ", удалено: " + tablesToDelete.size());
         deleteTables(tablesToDelete);
         createStatisticTables(tablesToCreate);
     }
-
-//    public void createOrCleanStatisticsTables() throws Exception {
-//        List<String> tables = getListOfTables();
-//        List<String> tablesToDelete = DaoHelper.findTablesThatNeedToDeleteTelephony(MainController.telephonyCustomers, tables);
-//        deleteTables(tablesToDelete);
-//        List<String> tablesToCreate = DaoHelper.findTablesThatNeedToCreateTelephony(MainController.telephonyCustomers, tables);
-//        createStatisticTables(tablesToCreate);
-//
-//    }
-
-
 }

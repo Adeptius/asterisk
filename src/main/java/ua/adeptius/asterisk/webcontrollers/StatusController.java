@@ -5,15 +5,10 @@ import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
-import ua.adeptius.asterisk.dao.PhonesDao;
-import ua.adeptius.asterisk.dao.TelephonyDao;
 import ua.adeptius.asterisk.model.Customer;
-import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.controllers.MainController;
-import ua.adeptius.asterisk.monitor.Call;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -68,7 +63,7 @@ public class StatusController {
         }
         Customer customer;
         try {
-            customer = MainController.getCustomerByName(name);
+            customer = MainController.getUserByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such User";
         }

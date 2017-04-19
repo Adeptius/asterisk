@@ -1,17 +1,12 @@
 package ua.adeptius.asterisk.dao;
 
 
-import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.model.Customer;
-import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.model.TelephonyCustomer;
-import ua.adeptius.asterisk.monitor.Call;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DaoHelper {
 
@@ -59,35 +54,22 @@ public class DaoHelper {
                 "PRIMARY KEY (`date`));";
     }
 
-    public static String createSqlQueryForCtreatingStatisticTableTelephony(String name) {
-        return "CREATE TABLE `" + name + "` (  " +
-                "`date` VARCHAR(20) NOT NULL,  " +
-                "`direction` VARCHAR(3) NOT NULL,  " +
-                "`from` VARCHAR(45) NULL,  " +
-                "`to` VARCHAR(45) NULL,  " +
-                "`callState` VARCHAR(8) NOT NULL,  " +
-                "`time_to_answer` INT NULL,  " +
-                "`talking_time` INT NULL,  " +
-                "`call_id` VARCHAR(45) NULL,  " +
-                "PRIMARY KEY (`date`));";
-    }
-
 
     public static String createSqlQueryForDeleteSite(String site) {
-        return "DELETE from sites WHERE name = '" + site + "'";
+        return "DELETE from users_calltracking WHERE name = '" + site + "'";
     }
 
-    public static String createSqlQueryForSaveSite(Site site) {
-        String name = site.getName();
-        String email = site.geteMail();
-        String standartNumber = site.getStandartNumber();
-        String googleId = site.getGoogleAnalyticsTrackingId();
+    public static String createSqlQueryForSaveSite(OldSite oldSite) {
+        String name = oldSite.getName();
+        String email = oldSite.geteMail();
+        String standartNumber = oldSite.getStandartNumber();
+        String googleId = oldSite.getGoogleAnalyticsTrackingId();
         String blackList = "";
-        String password = site.getPassword();
-        String timeToBlock = site.getTimeToBlock() + "";
-        int outerPhones = site.getOuterNumbersCount();
+        String password = oldSite.getPassword();
+        String timeToBlock = oldSite.getTimeToBlock() + "";
+        int outerPhones = oldSite.getOuterNumbersCount();
 
-        List<String> blackIPList = site.getBlackIps();
+        List<String> blackIPList = oldSite.getBlackIps();
         for (String s : blackIPList) {
             blackList += "," + s;
         }
@@ -96,11 +78,10 @@ public class DaoHelper {
         }
 
 
-        return "INSERT INTO sites VALUES("
+        return "INSERT INTO users_calltracking VALUES("
                 + "'" + name + "',"
                 + "'" + googleId + "',"
                 + "'" + email + "',"
-                + "'',"
                 + "'" + standartNumber + "',"
                 + "'" + blackList + "',"
                 + "'" + timeToBlock + "',"
@@ -108,56 +89,6 @@ public class DaoHelper {
                 + "'" + outerPhones + "')";
     }
 
-
-    public static List<String> findTablesThatNeedToDeleteSite(List<Site> sites, List<String> tables) {
-        List<String> tablesToDelete = new ArrayList<>();
-        List<String> sitesAlreadyHave = sites.stream().map(Site::getName).collect(Collectors.toList());
-        for (String table : tables) {
-            String siteNameFromTable = table.substring(10);
-
-            if (!sitesAlreadyHave.contains(siteNameFromTable)) {
-                tablesToDelete.add(table);
-            }
-        }
-        return tablesToDelete;
-    }
-
-
-    public static List<String> findTablesThatNeedToCreateSite(List<Site> sites, List<String> tables) {
-        List<String> sitesAlreadyHave = sites.stream().map(Site::getName).collect(Collectors.toList());
-        List<String> sitesNeedToCreate = new ArrayList<>();
-        for (String s : sitesAlreadyHave) {
-            if (!tables.contains("statistic_" + s)) {
-                sitesNeedToCreate.add(s);
-            }
-        }
-        return sitesNeedToCreate;
-    }
-
-    public static List<String> findTablesThatNeedToDeleteTelephony(List<TelephonyCustomer> telephonyCustomers, List<String> tables) {
-        List<String> tablesToDelete = new ArrayList<>();
-        List<String> sitesAlreadyHave = telephonyCustomers.stream().map(TelephonyCustomer::getName).collect(Collectors.toList());
-        for (String table : tables) {
-            String siteNameFromTable = table.substring(10);
-
-            if (!sitesAlreadyHave.contains(siteNameFromTable)) {
-                tablesToDelete.add(table);
-            }
-        }
-        return tablesToDelete;
-    }
-
-
-    public static List<String> findTablesThatNeedToCreateTelephony(List<TelephonyCustomer> telephonyCustomers, List<String> tables) {
-        List<String> sitesAlreadyHave = telephonyCustomers.stream().map(TelephonyCustomer::getName).collect(Collectors.toList());
-        List<String> sitesNeedToCreate = new ArrayList<>();
-        for (String s : sitesAlreadyHave) {
-            if (!tables.contains("statistic_" + s)) {
-                sitesNeedToCreate.add(s);
-            }
-        }
-        return sitesNeedToCreate;
-    }
 
     public static String getQueryForSaveTelephonyCustomer(TelephonyCustomer newCustomer) {
         String name = newCustomer.getName();
@@ -167,7 +98,7 @@ public class DaoHelper {
         int outerPhones = newCustomer.getOuterNumbersCount();
         String password = newCustomer.getPassword();
 
-        return "INSERT INTO telephony_users VALUES("
+        return "INSERT INTO users_telephony VALUES("
                 + "'" + name + "',"
                 + "'" + password + "',"
                 + "'" + email + "',"
@@ -184,7 +115,7 @@ public class DaoHelper {
         int outerPhones = newCustomer.getOuterNumbersCount();
         String password = newCustomer.getPassword();
 
-        return "UPDATE `telephony_users` SET "
+        return "UPDATE `users_telephony` SET "
                 + "`password`='" + password + "', "
                 + "`email`='" + email + "', "
                 + "`tracking_id`='" + googleId + "', "
@@ -195,6 +126,6 @@ public class DaoHelper {
     }
 
     public static String createSqlQueryForDeleteTelephonyCustomer(String name) {
-        return "DELETE from telephony_users WHERE name = '" + name + "'";
+        return "DELETE from users_telephony WHERE name = '" + name + "'";
     }
 }

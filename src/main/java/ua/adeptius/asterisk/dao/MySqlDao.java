@@ -22,6 +22,7 @@ public class MySqlDao {
         statisticDataSource.setMaxPoolSize(2);
         statisticDataSource.setAcquireIncrement(0);
 
+
         trackingDataSource = new ComboPooledDataSource();
         trackingDataSource.setDriverClass("com.mysql.jdbc.Driver");
         trackingDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("___dbAdress") + "calltrackdb");

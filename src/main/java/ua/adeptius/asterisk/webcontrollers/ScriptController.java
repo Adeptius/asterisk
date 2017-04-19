@@ -4,7 +4,7 @@ package ua.adeptius.asterisk.webcontrollers;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
@@ -18,9 +18,9 @@ public class ScriptController {
     @RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     @ResponseBody
     public String getScript(@PathVariable String name) {
-        Site site = null;
+        OldSite oldSite = null;
         try {
-            site = MainController.getSiteByName(name);
+            oldSite = MainController.getSiteByName(name);
             String script = "function loadScript(url,callback){var head=document.getElementsByTagName('head')[0];var script=document.createElement('script');" +
                     "script.type='text/javascript';script.src=url;script.onreadystatechange=callback;" +
                     "script.onload=callback;head.appendChild(script)}var runMyCodeAfterJQueryLoaded=function(){(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;" +
@@ -53,8 +53,8 @@ public class ScriptController {
 //                    "loadScript(\"https://code.jquery.com/jquery-1.12.4.min.js\",runMyCodeAfterJQueryLoaded);";
 
             script = script.replaceAll("SERVERADDRESS",Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT"));
-            script = script.replaceAll("SITENAME", site.getName());
-            script = script.replaceAll("GOOGLETRACKINGID",site.getGoogleAnalyticsTrackingId());
+            script = script.replaceAll("SITENAME", oldSite.getName());
+            script = script.replaceAll("GOOGLETRACKINGID", oldSite.getGoogleAnalyticsTrackingId());
             script = script.replaceAll("TIMETOUPDATE",Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
             return script;
         } catch (NoSuchElementException e) {

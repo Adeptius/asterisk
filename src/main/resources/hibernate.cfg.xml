@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+  <session-factory>
+    <property name="connection.url">jdbc:mysql://194.44.37.30:3306/calltrackdb</property>
+    <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+    <property name="connection.username">adapteus</property>
+    <property name="connection.password">adapteus4k</property>
+    <mapping class="ua.adeptius.asterisk.newmodel.User"/>
+    <mapping class="ua.adeptius.asterisk.newmodel.Site"/>
+    <mapping class="ua.adeptius.asterisk.newmodel.Telephony"/>
+
+    <!-- DB schema will be updated if needed -->
+    <!-- <property name="hbm2ddl.auto">update</property> -->
+  </session-factory>
+</hibernate-configuration>

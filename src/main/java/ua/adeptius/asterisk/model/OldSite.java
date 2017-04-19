@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Site extends Customer {
+public class OldSite extends Customer {
 
     public final CustomerType type = CustomerType.TRACKING;
-    public Site(String name,String standartNumber, String googleAnalyticsTrackingId, String eMail,
-                List<String> blackIps, String password, int timeToBlock, int outerNumbersCount) throws Exception {
+    public OldSite(String name, String standartNumber, String googleAnalyticsTrackingId, String eMail,
+                   List<String> blackIps, String password, int timeToBlock, int outerNumbersCount) throws Exception {
         super(name, eMail, googleAnalyticsTrackingId, password);
         this.standartNumber = standartNumber;
         this.blackIps = blackIps;

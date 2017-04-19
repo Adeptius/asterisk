@@ -32,7 +32,7 @@ public class RuleController {
 
         Customer customer;
         try {
-            customer = MainController.getCustomerByName(name);
+            customer = MainController.getUserByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such user";
         }
@@ -51,7 +51,7 @@ public class RuleController {
 
         Customer customer;
         try {
-            customer = MainController.getCustomerByName(name);
+            customer = MainController.getUserByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such user";
         }
@@ -70,7 +70,7 @@ public class RuleController {
 
         Customer customer;
         try {
-            customer = MainController.getCustomerByName(name);
+            customer = MainController.getUserByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such user";
         }

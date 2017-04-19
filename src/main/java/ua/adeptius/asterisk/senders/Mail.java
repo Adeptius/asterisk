@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.senders;
 
 
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.OldSite;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -16,8 +16,8 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
 public class Mail {
 
-    public void checkTimeAndSendEmail(Site site, String message){
-        long lastEmail = site.getLastEmailTime();
+    public void checkTimeAndSendEmail(OldSite oldSite, String message){
+        long lastEmail = oldSite.getLastEmailTime();
         long currentTime = new GregorianCalendar().getTimeInMillis();
         long pastTime = currentTime - lastEmail;
         int pastMinutes = (int) (pastTime / 1000 / 60);
@@ -25,8 +25,8 @@ public class Mail {
         if (pastMinutes < antispam){
             MyLogger.log(ELSE, "Последнее оповещение было отправлено недавно");
         }else {
-            send(site.geteMail(), message);
-            site.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
+            send(oldSite.geteMail(), message);
+            oldSite.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
         }
     }
 
