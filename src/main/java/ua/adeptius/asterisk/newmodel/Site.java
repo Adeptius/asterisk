@@ -1,11 +1,13 @@
 package ua.adeptius.asterisk.newmodel;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.model.Phone;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,9 @@ public class Site {
     @PrimaryKeyJoinColumn
     private User user;
 
+    @JsonIgnore
+    @Transient
+    private long lastEmailTime;
 
     @Transient
     private List<Phone> phones = new ArrayList<>();
@@ -59,6 +64,19 @@ public class Site {
         List<String> currentNumbersInRules = user.getRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
         List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
         return list;
+    }
+
+    public List<String> getBlackListAsList(){
+        return Arrays.asList(blackList.split(","));
+    }
+
+
+    public long getLastEmailTime() {
+        return lastEmailTime;
+    }
+
+    public void setLastEmailTime(long lastEmailTime) {
+        this.lastEmailTime = lastEmailTime;
     }
 
     public List<Phone> getPhones() {

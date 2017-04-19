@@ -1,7 +1,6 @@
 package ua.adeptius.asterisk.monitor;
 
 
-import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.newmodel.User;
 
 import java.text.SimpleDateFormat;

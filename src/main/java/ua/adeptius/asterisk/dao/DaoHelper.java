@@ -1,12 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
-import ua.adeptius.asterisk.model.OldSite;
-import ua.adeptius.asterisk.model.TelephonyCustomer;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class DaoHelper {
 
@@ -55,77 +51,77 @@ public class DaoHelper {
     }
 
 
-    public static String createSqlQueryForDeleteSite(String site) {
-        return "DELETE from users_calltracking WHERE name = '" + site + "'";
-    }
+//    public static String createSqlQueryForDeleteSite(String site) {
+//        return "DELETE from users_calltracking WHERE name = '" + site + "'";
+//    }
 
-    public static String createSqlQueryForSaveSite(OldSite oldSite) {
-        String name = oldSite.getName();
-        String email = oldSite.geteMail();
-        String standartNumber = oldSite.getStandartNumber();
-        String googleId = oldSite.getGoogleAnalyticsTrackingId();
-        String blackList = "";
-        String password = oldSite.getPassword();
-        String timeToBlock = oldSite.getTimeToBlock() + "";
-        int outerPhones = oldSite.getOuterNumbersCount();
+//    public static String createSqlQueryForSaveSite(OldSite oldSite) {
+//        String name = oldSite.getName();
+//        String email = oldSite.geteMail();
+//        String standartNumber = oldSite.getStandartNumber();
+//        String googleId = oldSite.getGoogleAnalyticsTrackingId();
+//        String blackList = "";
+//        String password = oldSite.getPassword();
+//        String timeToBlock = oldSite.getTimeToBlock() + "";
+//        int outerPhones = oldSite.getOuterNumbersCount();
+//
+//        List<String> blackIPList = oldSite.getBlackIps();
+//        for (String s : blackIPList) {
+//            blackList += "," + s;
+//        }
+//        if (blackList.startsWith(",")) {
+//            blackList = blackList.substring(1);
+//        }
+//
+//
+//        return "INSERT INTO users_calltracking VALUES("
+//                + "'" + name + "',"
+//                + "'" + googleId + "',"
+//                + "'" + email + "',"
+//                + "'" + standartNumber + "',"
+//                + "'" + blackList + "',"
+//                + "'" + timeToBlock + "',"
+//                + "'" + password + "',"
+//                + "'" + outerPhones + "')";
+//    }
 
-        List<String> blackIPList = oldSite.getBlackIps();
-        for (String s : blackIPList) {
-            blackList += "," + s;
-        }
-        if (blackList.startsWith(",")) {
-            blackList = blackList.substring(1);
-        }
 
-
-        return "INSERT INTO users_calltracking VALUES("
-                + "'" + name + "',"
-                + "'" + googleId + "',"
-                + "'" + email + "',"
-                + "'" + standartNumber + "',"
-                + "'" + blackList + "',"
-                + "'" + timeToBlock + "',"
-                + "'" + password + "',"
-                + "'" + outerPhones + "')";
-    }
-
-
-    public static String getQueryForSaveTelephonyCustomer(TelephonyCustomer newCustomer) {
-        String name = newCustomer.getName();
-        String email = newCustomer.geteMail();
-        String googleId = newCustomer.getGoogleAnalyticsTrackingId();
-        int innerPhones = newCustomer.getInnerNumbersCount();
-        int outerPhones = newCustomer.getOuterNumbersCount();
-        String password = newCustomer.getPassword();
-
-        return "INSERT INTO users_telephony VALUES("
-                + "'" + name + "',"
-                + "'" + password + "',"
-                + "'" + email + "',"
-                + "'" + googleId + "',"
-                + "'" + innerPhones + "',"
-                + "'" + outerPhones + "')";
-    }
-
-    public static String getQueryForEditTelephonyCustomer(TelephonyCustomer newCustomer) {
-        String name = newCustomer.getName();
-        String email = newCustomer.geteMail();
-        String googleId = newCustomer.getGoogleAnalyticsTrackingId();
-        int innerPhones = newCustomer.getInnerNumbersCount();
-        int outerPhones = newCustomer.getOuterNumbersCount();
-        String password = newCustomer.getPassword();
-
-        return "UPDATE `users_telephony` SET "
-                + "`password`='" + password + "', "
-                + "`email`='" + email + "', "
-                + "`tracking_id`='" + googleId + "', "
-                + "`inner_phones`='" + innerPhones + "', "
-                + "`outer_phones`='" + outerPhones + "' "
-                + "WHERE "
-                + "`name`='" + name + "'";
-    }
-
-    public static String createSqlQueryForDeleteTelephonyCustomer(String name) {
-        return "DELETE from users_telephony WHERE name = '" + name + "'";
-    }
+//    public static String getQueryForSaveTelephonyCustomer(TelephonyCustomer newCustomer) {
+//        String name = newCustomer.getName();
+//        String email = newCustomer.geteMail();
+//        String googleId = newCustomer.getGoogleAnalyticsTrackingId();
+//        int innerPhones = newCustomer.getInnerNumbersCount();
+//        int outerPhones = newCustomer.getOuterNumbersCount();
+//        String password = newCustomer.getPassword();
+//
+//        return "INSERT INTO users_telephony VALUES("
+//                + "'" + name + "',"
+//                + "'" + password + "',"
+//                + "'" + email + "',"
+//                + "'" + googleId + "',"
+//                + "'" + innerPhones + "',"
+//                + "'" + outerPhones + "')";
+//    }
+//
+//    public static String getQueryForEditTelephonyCustomer(TelephonyCustomer newCustomer) {
+//        String name = newCustomer.getName();
+//        String email = newCustomer.geteMail();
+//        String googleId = newCustomer.getGoogleAnalyticsTrackingId();
+//        int innerPhones = newCustomer.getInnerNumbersCount();
+//        int outerPhones = newCustomer.getOuterNumbersCount();
+//        String password = newCustomer.getPassword();
+//
+//        return "UPDATE `users_telephony` SET "
+//                + "`password`='" + password + "', "
+//                + "`email`='" + email + "', "
+//                + "`tracking_id`='" + googleId + "', "
+//                + "`inner_phones`='" + innerPhones + "', "
+//                + "`outer_phones`='" + outerPhones + "' "
+//                + "WHERE "
+//                + "`name`='" + name + "'";
+//    }
+//
+//    public static String createSqlQueryForDeleteTelephonyCustomer(String name) {
+//        return "DELETE from users_telephony WHERE name = '" + name + "'";
+//    }
 }

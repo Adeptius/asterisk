@@ -38,16 +38,9 @@ public class AsteriskMonitor implements ManagerEventListener {
         if (!(event instanceof NewChannelEvent)
                 && !(event instanceof HangupEvent)
                 && !(event instanceof NewStateEvent)
-//                && !(event instanceof VarSetEvent)
                 && !(event instanceof NewExtenEvent)) {
             return;
         }
-
-//        if ((event instanceof VarSetEvent)) {
-//            if (!((VarSetEvent) event).getVariable().equals("DIALEDPEERNUMBER") || ((VarSetEvent) event).getValue().equals("null"))
-//            return; // фильтр для переадресации на GSM
-//        }  ТУТ ЕСТЬ ИНФА НА КОГО ПЕРЕАДРЕСАЦИЯ
-
 
         if ((event instanceof NewExtenEvent) && !((NewExtenEvent) event).getApplication().equals("Dial")) {
             return; // фильтр для переадресации на GSM
@@ -56,13 +49,6 @@ public class AsteriskMonitor implements ManagerEventListener {
         if ((event instanceof NewStateEvent) && ((NewStateEvent) event).getChannelStateDesc().equals("Ring")) {
             return; // фильтр для переадресации на GSM
         }
-
-
-//        if (event.toString().contains("4027182") ||
-//                event.toString().contains("5306914") ||
-//                event.toString().contains("443211118") ||
-//                event.toString().contains("8999500")) {
-            CallProcessor.processEvent(event);
-//        }
+        CallProcessor.processEvent(event);
     }
 }

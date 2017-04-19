@@ -27,8 +27,6 @@ public class Telephony {
     @PrimaryKeyJoinColumn
     private User user;
 
-
-
     @Transient
     private ArrayList<String> innerPhonesList = new ArrayList<>();
 

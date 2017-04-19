@@ -4,10 +4,7 @@ package ua.adeptius.asterisk.controllers;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
-import ua.adeptius.asterisk.model.Customer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.OldSite;
-import ua.adeptius.asterisk.model.TelephonyCustomer;
 import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
@@ -61,16 +58,18 @@ public class PhonesController {
         }
     }
 
-    public static void releaseAllCustomerNumbers(Customer customer) throws Exception{
-        List<String> inner;
-        List<String> outer;
-        if (customer instanceof OldSite){
-            outer = ((OldSite) customer).getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
-            inner = new ArrayList<>();
-        }else {
-            outer = ((TelephonyCustomer) customer).getOuterPhonesList();
-            inner = ((TelephonyCustomer) customer).getInnerPhonesList();
+    public static void releaseAllCustomerNumbers(User user) throws Exception{
+        List<String> inner = new ArrayList<>();
+        List<String> outer = new ArrayList<>();
+
+        if (user.getSite() !=null){
+            outer.addAll(user.getSite().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
         }
+        if (user.getTelephony() != null){
+            outer.addAll(user.getTelephony().getOuterPhonesList());
+            inner.addAll(user.getTelephony().getInnerPhonesList());
+        }
+
         PhonesDao.markNumberFree(outer,false);
         PhonesDao.markNumberFree(inner, true);
     }

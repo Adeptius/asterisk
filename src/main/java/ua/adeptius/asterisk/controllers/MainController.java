@@ -3,6 +3,8 @@ package ua.adeptius.asterisk.controllers;
 
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.newmodel.Site;
+import ua.adeptius.asterisk.newmodel.Telephony;
 import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.webcontrollers.AdminController;
 import ua.adeptius.asterisk.model.*;
@@ -11,14 +13,12 @@ import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
 @SuppressWarnings("Duplicates")
 public class MainController {
-
-    public static List<OldSite> oldSites;
-    public static List<TelephonyCustomer> telephonyCustomers;
 
     public static List<User> users;
 
@@ -26,7 +26,11 @@ public class MainController {
         return users.stream().filter(user -> user.getLogin().equals(name)).findFirst().get();
     }
 
-    public static boolean isLogin(String name, String pass) {
+    public static List<Site> getAllSites(){
+        return users.stream().filter(user -> user.getSite() != null).map(User::getSite).collect(Collectors.toList());
+    }
+
+    public static boolean isLogin(String name, String pass) { // TODO А может сразу возвращать юзера?
         if (pass.equals(AdminController.ADMIN_PASS)) {
             return true;
         }
@@ -39,50 +43,27 @@ public class MainController {
         return user.getPassword().equals(pass);
     }
 
-    public static boolean isTelephonyLogin(String name, String pass) {
-        if (pass.equals(AdminController.ADMIN_PASS)) {
-            return true;
-        }
-
-        try {
-            return getTelephonyCustomerByName(name).getPassword().equals(pass);
-        } catch (NoSuchElementException e) {
-            return false;
-        }
+    public static Site getSiteByName(String name) throws NoSuchElementException {
+        return getUserByName(name).getSite();
     }
 
-    public static boolean isSiteLogin(String name, String pass) {
-        if (pass.equals(AdminController.ADMIN_PASS)) {
-            return true;
-        }
-        try {
-            return getSiteByName(name).getPassword().equals(pass);
-        } catch (NoSuchElementException e) {
-            return false;
-        }
+    public static Telephony getTelephonyByName(String name) throws NoSuchElementException {
+        return getUserByName(name).getTelephony();
     }
 
-    public static OldSite getSiteByName(String name) throws NoSuchElementException {
-        return oldSites.stream().filter(site -> site.getName().equals(name)).findFirst().get();
-    }
-
-    public static TelephonyCustomer getTelephonyCustomerByName(String name) throws NoSuchElementException {
-        return telephonyCustomers.stream().filter(tc -> tc.getName().equals(name)).findFirst().get();
-    }
-
-    public static String getFreeNumberFromSite(OldSite oldSite, String googleId, String ip, String pageRequest) throws NoSuchElementException {
+    public static String getFreeNumberFromSite(Site site, String googleId, String ip, String pageRequest) throws NoSuchElementException {
 
         //Проверка не находится ли пользователь в черном списке
-        if (oldSite.getBlackIps().stream().anyMatch(s -> s.equals(ip))) {
-            MyLogger.log(BLOCKED_BY_IP, oldSite.getName() + ": пользователь с ip " + ip + " исключен. Выдан стандартный номер.");
-            return oldSite.getStandartNumber();
+        if (site.getBlackListAsList().stream().anyMatch(s -> s.equals(ip))) {
+            MyLogger.log(BLOCKED_BY_IP, site.getLogin() + ": пользователь с ip " + ip + " исключен. Выдан стандартный номер.");
+            return site.getStandartNumber();
         }
 
-        List<Phone> phones = oldSite.getPhones();
+        List<Phone> phones = site.getPhones();
         // проверка: выдан ли номер пользователю по googleID
         for (Phone phone : phones) {
             if (phone.getGoogleId().equals(googleId)) {
-                MyLogger.log(REPEATED_REQUEST, oldSite.getName() + ": пользователю " + googleId + " уже выдан номер " + phone.getNumber());
+                MyLogger.log(REPEATED_REQUEST, site.getLogin() + ": пользователю " + googleId + " уже выдан номер " + phone.getNumber());
                 phone.extendTime();
                 return phone.getNumber();
             }
@@ -91,32 +72,32 @@ public class MainController {
 //         проверка: выдан ли номер пользователю по ip
         for (Phone phone : phones) {
             if (phone.getIp().equals(ip)) {
-                MyLogger.log(REPEATED_REQUEST, oldSite.getName() + ": пользователю c ip " + ip + " уже выдан номер " + phone.getNumber());
+                MyLogger.log(REPEATED_REQUEST, site.getLogin() + ": пользователю c ip " + ip + " уже выдан номер " + phone.getNumber());
                 phone.extendTime();
                 return phone.getNumber();
             }
         }
 
-        MyLogger.log(REQUEST_NUMBER, oldSite.getName() + ": запрос номера googleId: " + googleId);
+        MyLogger.log(REQUEST_NUMBER, site.getLogin() + ": запрос номера googleId: " + googleId);
         for (Phone phone : phones) {
             if (phone.isFree()) {
                 phone.setGoogleId(googleId);
                 phone.setIp(ip);
-                MyLogger.log(SENDING_NUMBER, oldSite.getName() + ": новому пользователю выдан номер: " + phone.getNumber());
+                MyLogger.log(SENDING_NUMBER, site.getLogin() + ": новому пользователю выдан номер: " + phone.getNumber());
                 phone.extendTime();
                 phone.setUtmRequest(pageRequest);
                 return phone.getNumber();
             }
         }
 
-        MyLogger.log(NO_NUMBERS_LEFT, oldSite.getName() + ": нет свободных номеров.");
-        new Mail().checkTimeAndSendEmail(oldSite, "Закончились свободные номера");
-        return oldSite.getStandartNumber();
+        MyLogger.log(NO_NUMBERS_LEFT, site.getLogin() + ": нет свободных номеров.");
+        new Mail().checkTimeAndSendEmail(site, "Закончились свободные номера");
+        return site.getStandartNumber();
     }
 
     public static Phone getPhoneByNumber(String number) {
-        for (OldSite oldSite : oldSites) {
-            List<Phone> phones = oldSite.getPhones();
+        for (Site site : getAllSites()) {
+            List<Phone> phones = site.getPhones();
             for (Phone phone : phones) {
                 if (number.length() > 1 && phone.getNumber().endsWith(number)) {
                     return phone;

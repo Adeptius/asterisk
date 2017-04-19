@@ -29,7 +29,7 @@ public class TelephonyController {
 
         TelephonyCustomer customer;
         try {
-           customer = MainController.getTelephonyCustomerByName(name);
+           customer = MainController.getTelephonyByName(name);
         } catch (NoSuchElementException e) {
             return "Error: no such User";
         }

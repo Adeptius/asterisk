@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
-import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.utils.CustomerGroup;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -72,7 +70,7 @@ public class AdminController {
 
         TelephonyCustomer found = null;
         try {
-            found = MainController.getTelephonyCustomerByName(newCustomer.getName());
+            found = MainController.getTelephonyByName(newCustomer.getName());
         } catch (NoSuchElementException e) {
             MyLogger.log(LogCategory.DB_OPERATIONS, "Пользователя " + newCustomer.getName() + " В базе нет. Создаём нового.");
         }
@@ -82,7 +80,7 @@ public class AdminController {
                 newCustomer.updateNumbers();
                 newCustomer.setRules(found.getRules());
                 MySqlCalltrackDao.editTelephonyCustomer(newCustomer);
-                MainController.telephonyCustomers.remove(MainController.getTelephonyCustomerByName(newCustomer.getName()));
+                MainController.telephonyCustomers.remove(MainController.getTelephonyByName(newCustomer.getName()));
                 MainController.telephonyCustomers.add(newCustomer);
                 MyLogger.log(LogCategory.ELSE, newCustomer.getName() + " изменён");
                 RulesConfigDAO.removeFileIfNeeded(newCustomer);
@@ -168,7 +166,7 @@ public class AdminController {
                 // проверяем нет ли телефонии с таким же логином
                 TelephonyCustomer telephonyCustomer = null;
                 try {
-                    telephonyCustomer = MainController.getTelephonyCustomerByName(newOldSite.getName());
+                    telephonyCustomer = MainController.getTelephonyByName(newOldSite.getName());
                 } catch (NoSuchElementException ignored) {
                 }
                 if (telephonyCustomer != null) {  // значит есть пользователь телефонии с тем же именем

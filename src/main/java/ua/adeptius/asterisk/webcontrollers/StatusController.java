@@ -30,7 +30,7 @@ public class StatusController {
             return "Error: wrong password";
         }
         try {
-            return new ObjectMapper().writeValueAsString(MainController.getTelephonyCustomerByName(name));
+            return new ObjectMapper().writeValueAsString(MainController.getTelephonyByName(name));
         } catch (Exception e) {
             return "Error: DB error";
         }

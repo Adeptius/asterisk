@@ -24,17 +24,4 @@ public class MyLogger {
         log(category, message);
         throw new Exception(message);
     }
-
-
-
-    public static void printException(Exception e) {
-        if (true){ // Settings.showDetailedErrorsLogs
-            e.printStackTrace();
-//            try{
-//                Main.gui.guiController.appendLog(e.toString());
-//            }catch (NullPointerException e2){
-//                e2.printStackTrace();
-//            }
-        }
-    }
 }
