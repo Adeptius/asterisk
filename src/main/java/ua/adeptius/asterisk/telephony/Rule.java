@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.telephony;
 
 
+
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.util.ArrayList;
@@ -18,10 +20,8 @@ public class Rule {
     private DestinationType destinationType = GSM;
     private int time;
     private String melody;
-    private String siteName;
 
-    public Rule(String sitename) {
-        this.siteName = sitename;
+    public Rule() {
         if (forwardType == QUEUE){
             time = 10;
         }else {
@@ -29,6 +29,7 @@ public class Rule {
         }
         melody = "simple";
     }
+
 
 
     public Rule(List<String> lines) {
@@ -215,7 +216,4 @@ public class Rule {
         }
         return source;
     }
-
-
-
 }

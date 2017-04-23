@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.dao;
 
 
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -121,7 +122,7 @@ public class MySqlStatisticDao extends MySqlDao {
 
     public static void createOrCleanStatisticsTables() throws Exception {
         List<String> tables = getListOfTables(); // Taблицы в БД
-        List<String> customerNames = MainController.users.stream().map(User::getLogin).collect(Collectors.toList());
+        List<String> customerNames = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
         List<String> tablesToDelete = tables.stream().filter(table -> !customerNames.contains(table)).collect(Collectors.toList());
         List<String> tablesToCreate = customerNames.stream().filter(name -> !tables.contains(name)).collect(Collectors.toList());
         MyLogger.log(DB_OPERATIONS, "Синхронизация таблиц статистики. Создано: " + tablesToCreate.size() + ", удалено: " + tablesToDelete.size());

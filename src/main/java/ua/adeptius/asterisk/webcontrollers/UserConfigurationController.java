@@ -20,53 +20,56 @@ public class UserConfigurationController {
     @RequestMapping(value = "/setblocktime", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String addToBlackList(@RequestParam String name, @RequestParam String password, @RequestParam int time) {
-        if (!MainController.isSiteLogin(name, password)) {
-            return "Error: wrong password";
-        }
-
-        try {
-            MySqlCalltrackDao.setTimeToBlock(name, time);
-            MainController.getSiteByName(name).setTimeToBlock(time);
-            return "Success: Time to block set: " + time + " minutes";
-        } catch (Exception e) {
-            return "Error: dataBase error or no such site";
-        }
+//        if (!MainController.isSiteLogin(name, password)) {
+//            return "Error: wrong password";
+//        }
+//
+//        try {
+//            MySqlCalltrackDao.setTimeToBlock(name, time);
+//            MainController.getSiteByName(name).setTimeToBlock(time);
+//            return "Success: Time to block set: " + time + " minutes";
+//        } catch (Exception e) {
+//            return "Error: dataBase Error or no such site";
+//        }
+        return "";
     }
 
 
     @RequestMapping(value = "/addtoblacklist", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String addToBlackList(@RequestParam String name, @RequestParam String password, @RequestParam String ip) {
-        if (!MainController.isSiteLogin(name, password)) {
-            return "Error: wrong password";
-        }
-
-        try {
-            Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip.trim());
-            regexMatcher.find();
-            regexMatcher.group();
-            MySqlCalltrackDao.addIpToBlackList(name, ip.trim());
-            return "Success: IP " + ip + " blocked.";
-        } catch (Exception e) {
-            return "Error: DB error or wrong IP";
-        }
+//        if (!MainController.isSiteLogin(name, password)) {
+//            return "Error: wrong password";
+//        }
+//
+//        try {
+//            Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip.trim());
+//            regexMatcher.find();
+//            regexMatcher.group();
+//            MySqlCalltrackDao.addIpToBlackList(name, ip.trim());
+//            return "Success: IP " + ip + " blocked.";
+//        } catch (Exception e) {
+//            return "Error: DB Error or wrong IP";
+//        }
+        return "";
     }
 
 
     @RequestMapping(value = "/removefromblacklist", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String removeFromBlackList(@RequestParam String name, @RequestParam String password, @RequestParam String ip) {
-        if (!MainController.isSiteLogin(name, password)) {
-            return "Error: wrong password";
-        }
-
-        try {
-            Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip);
-            regexMatcher.find();
-            regexMatcher.group();
-            return MySqlCalltrackDao.deleteFromBlackList(name, ip);
-        } catch (Exception e) {
-            return "Error: DB error or wrong IP";
-        }
+//        if (!MainController.isSiteLogin(name, password)) {
+//            return "Error: wrong password";
+//        }
+//
+//        try {
+//            Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip);
+//            regexMatcher.find();
+//            regexMatcher.group();
+//            return MySqlCalltrackDao.deleteFromBlackList(name, ip);
+//        } catch (Exception e) {
+//            return "Error: DB Error or wrong IP";
+//        }
+        return "";
     }
 }

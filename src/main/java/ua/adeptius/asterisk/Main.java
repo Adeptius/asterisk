@@ -1,9 +1,15 @@
 package ua.adeptius.asterisk;
 
 
+import com.google.gson.reflect.TypeToken;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.hibernate.Session;
 import ua.adeptius.asterisk.controllers.PhonesController;
+import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
-import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
+import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.monitor.AsteriskMonitor;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 import ua.adeptius.asterisk.newmodel.*;
@@ -11,6 +17,9 @@ import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.monitor.PhonesWatcher;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -25,6 +34,64 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Main main = new Main();
         main.init();
+//        main.test();
+//        main.test2();
+    }
+
+    private void test2() {
+        try {
+            String json = "[{\"from\":[\"0443211115\"],\"to\":[\"0934027182\"],\"forwardType\":\"QUEUE\",\"destinationType\":\"GSM\",\"time\":10,\"melody\":\"simple\"}]";
+            List<Rule> rules = new ObjectMapper().readValue(json, new TypeReference<List<Rule>>(){});
+
+            for (Rule rule : rules) {
+                System.out.println(rule);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void test() throws Exception {
+
+                Tracking tracking = new Tracking();
+                tracking.setStandartNumber("TestNumber");
+                tracking.setTimeToBlock(30);
+
+//        List<User> users =  HibernateDao.getAllUsers();
+        Session session = HibernateSessionFactory.getSessionFactory().openSession();
+        List<User> list = session.createQuery("select e from User e").list();
+        session.close();
+        User user = list.stream().filter(user1 -> user1.getLogin().equals("newUser3")).findFirst().get();
+        System.out.println("загруженный "+user);
+
+
+
+        session = HibernateSessionFactory.getSessionFactory().openSession();
+        session.beginTransaction();
+
+        session.merge(user);
+
+//        Tracking tracking = new Tracking();
+//        tracking.setUser(user);
+//        user.getTracking().setUser(null);
+        user.setTracking(null);
+
+
+
+//        user.setTracking(null);
+//        user.setTracking(null);
+        System.out.println(user);
+
+
+        session.update(user);
+
+        session.getTransaction().commit();
+        session.close();
+
+//        HibernateDao.removeTelephony(user);
+
+
     }
 
     // select e from Employee e where e.name like :name
@@ -40,9 +107,14 @@ public class Main {
         }
 
 //        Загрузка обьектов
-        MainController.users = HibernateDao.getAllUsers();
+        try {
+            UserContainer.setUsers(HibernateDao.getAllUsers());
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ");
+        }
 
-        for (User user : MainController.users) {
+        for (User user : UserContainer.getUsers()) {
             System.out.println(user);
         }
 
@@ -73,23 +145,25 @@ public class Main {
 
 
         // Инициализация всех номеров телефонов
-        MainController.users.stream().filter(user -> user.getSite() != null).map(User::getSite).forEach(site -> {
+        UserContainer.getUsers().stream().filter(user -> user.getTracking() != null).map(User::getTracking).forEach(site -> {
             try {
                 site.updateNumbers();
             } catch (Exception e) {
                 e.printStackTrace(); // TODO перехватить ошибку недостаточно номеров
+                throw  new RuntimeException("Недостаточно номеров");
             }
         });
-        MainController.users.stream().filter(user -> user.getTelephony() != null).map(User::getTelephony).forEach(telephony -> {
+        UserContainer.getUsers().stream().filter(user -> user.getTelephony() != null).map(User::getTelephony).forEach(telephony -> {
             try {
                 telephony.updateNumbers();
             } catch (Exception e) {
                 e.printStackTrace(); // TODO перехватить ошибку недостаточно номеров
+                throw  new RuntimeException("Недостаточно номеров");
             }
         });
 
         // Загрузка правил
-        MainController.users.forEach(User::loadRules);
+        UserContainer.getUsers().forEach(User::loadRules);
 
 
         CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер

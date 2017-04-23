@@ -5,6 +5,8 @@ import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.model.Phone;
+import ua.adeptius.asterisk.newmodel.Telephony;
+import ua.adeptius.asterisk.newmodel.Tracking;
 import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
@@ -23,6 +25,14 @@ public class PhonesController {
             PhonesDao.saveSipToDB(sipConfig);
             SipConfigDao.writeToFile(sipConfig);
         }
+    }
+
+
+    public static void trimPhones(User user){
+
+
+
+
     }
 
     public static void increaseOrDecrease(int needCount, List<String> currentList, String name, boolean innerTable) throws Exception{
@@ -59,25 +69,28 @@ public class PhonesController {
     }
 
     public static void releaseAllCustomerNumbers(User user) throws Exception{
-        List<String> inner = new ArrayList<>();
-        List<String> outer = new ArrayList<>();
-
-        if (user.getSite() !=null){
-            outer.addAll(user.getSite().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
+        if (user.getTracking() !=null){
+            releaseAllTrackingNumbers(user.getTracking());
         }
         if (user.getTelephony() != null){
-            outer.addAll(user.getTelephony().getOuterPhonesList());
-            inner.addAll(user.getTelephony().getInnerPhonesList());
+            releaseAllTelephonyNumbers(user.getTelephony());
         }
+    }
 
-        PhonesDao.markNumberFree(outer,false);
-        PhonesDao.markNumberFree(inner, true);
+    public static void releaseAllTrackingNumbers(Tracking tracking) throws Exception{
+        PhonesDao.markNumberFree(tracking.getPhones().stream().map(Phone::getNumber)
+                .collect(Collectors.toList()),false);
+    }
+
+    public static void releaseAllTelephonyNumbers(Telephony telephony) throws Exception{
+        PhonesDao.markNumberFree(telephony.getOuterPhonesList(),false);
+        PhonesDao.deleteNumbersFromDb(telephony.getInnerPhonesList(), true);
     }
 
     public static void scanAndClean() throws Exception{
         HashMap<String, String> innerMap = PhonesDao.getBusyInnerPhones();
         HashMap<String, String> outerMap = PhonesDao.getBusyOuterPhones();
-        List<String> users = MainController.users.stream().map(User::getLogin).collect(Collectors.toList());
+        List<String> users = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
         List<String> innerToClean = new ArrayList<>();
         List<String> outerToClean = new ArrayList<>();
         for (Map.Entry<String, String> entry : innerMap.entrySet()) {
@@ -86,7 +99,9 @@ public class PhonesController {
             }
         }
         for (Map.Entry<String, String> entry : outerMap.entrySet()) {
-            if (!users.contains(entry.getValue())){
+            // busyBy - получаем значение после прочерка (trac_newUser или tele_newUser)
+            String busyBy = entry.getValue().substring(entry.getValue().indexOf("_")+1);
+            if (!users.contains(busyBy)){
                 outerToClean.add(entry.getKey());
             }
         }

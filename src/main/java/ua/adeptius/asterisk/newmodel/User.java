@@ -1,11 +1,15 @@
 package ua.adeptius.asterisk.newmodel;
 
+import org.hibernate.annotations.*;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +34,7 @@ public class User {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
-    private Site site;
+    private Tracking tracking;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
@@ -63,6 +67,17 @@ public class User {
         }
     }
 
+    public List<String> getAvailableNumbers(){
+        List<String> numbers = new ArrayList<>();
+        if (telephony != null){
+            numbers.addAll(telephony.getAvailableNumbers());
+        }
+        if (tracking != null){
+            numbers.addAll(tracking.getAvailableNumbers());
+        }
+        return numbers;
+    }
+
     public List<Rule> getRules() {
         return rules;
     }
@@ -79,12 +94,12 @@ public class User {
         this.telephony = telephony;
     }
 
-    public Site getSite() {
-        return site;
+    public Tracking getTracking() {
+        return tracking;
     }
 
-    public void setSite(Site site) {
-        this.site = site;
+    public void setTracking(Tracking tracking) {
+        this.tracking = tracking;
     }
 
     public String getLogin() {
@@ -119,29 +134,6 @@ public class User {
         this.trackingId = trackingId;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        User that = (User) o;
-
-        if (login != null ? !login.equals(that.login) : that.login != null) return false;
-        if (password != null ? !password.equals(that.password) : that.password != null) return false;
-        if (email != null ? !email.equals(that.email) : that.email != null) return false;
-        if (trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = login != null ? login.hashCode() : 0;
-        result = 31 * result + (password != null ? password.hashCode() : 0);
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
-        return result;
-    }
 
 
     @Override
@@ -151,7 +143,7 @@ public class User {
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", trackingId='" + trackingId + '\'' +
-                ", site=" + site +
+                ", tracking=" + tracking +
                 ", telephony=" + telephony +
                 '}';
     }

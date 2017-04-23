@@ -2,8 +2,9 @@ package ua.adeptius.asterisk.monitor;
 
 
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.newmodel.Site;
+import ua.adeptius.asterisk.newmodel.Tracking;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -34,17 +35,17 @@ public class PhonesWatcher extends Thread {
     }
 
     private void checkAllPhones(){
-        for (Site site : MainController.getAllSites()) {
-            List<Phone> phones = site.getPhones();
+        for (Tracking tracking : UserContainer.getAllSites()) {
+            List<Phone> phones = tracking.getPhones();
             for (Phone phone : phones) {
                 if (!phone.isFree()) { // если телефон не простаивает
-                    processBusyPhone(site, phone);
+                    processBusyPhone(tracking, phone);
                 }
             }
         }
     }
 
-    private void processBusyPhone(Site site, Phone phone){
+    private void processBusyPhone(Tracking tracking, Phone phone){
         long currentTime = new GregorianCalendar().getTimeInMillis();
         long phoneTime = phone.getUpdatedTime();
 
@@ -52,7 +53,7 @@ public class PhonesWatcher extends Thread {
         long past = currentTime - phoneTime;
         int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
         if (past > timeToDeleteOldPhones) {
-            MyLogger.log(NUMBER_FREE, site.getLogin() + ": номер " + phone.getNumber() + " освободился. Был занят " + phone.getBusyTimeText());
+            MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": номер " + phone.getNumber() + " освободился. Был занят " + phone.getBusyTimeText());
             phone.markFree();
         }
 
@@ -62,15 +63,15 @@ public class PhonesWatcher extends Thread {
             phone.setBusyTime(past);
         }
 
-        long timeToBlock = site.getTimeToBlock()*60*1000;
+        long timeToBlock = tracking.getTimeToBlock()*60*1000;
 
         if (past > timeToBlock){
             try {
-                MyLogger.log(ELSE, site.getLogin() + ": IP " + phone.getIp() + " заблокирован по времени.");
+                MyLogger.log(ELSE, tracking.getLogin() + ": IP " + phone.getIp() + " заблокирован по времени.");
 //                MySqlCalltrackDao.addIpToBlackList(oldSite.getName(), phone.getIp()); //TODO сделать
                 phone.markFree();
             } catch (Exception e) {
-                MyLogger.log(DB_OPERATIONS, site.getLogin() + ": ошибка добавления " + phone.getIp() + " в БД");
+                MyLogger.log(DB_OPERATIONS, tracking.getLogin() + ": ошибка добавления " + phone.getIp() + " в БД");
             }
         }
     }

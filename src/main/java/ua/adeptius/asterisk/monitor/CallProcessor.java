@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.monitor;
 
 import org.asteriskjava.manager.event.*;
 import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.newmodel.User;
 
@@ -139,8 +140,8 @@ public class CallProcessor {
 
     public static void updatePhonesHashMap() { //TODO везде повставлять
         phonesAndUsers.clear();
-        for (User user : MainController.users) {
-            List<String> numbers = user.getSite()==null? new ArrayList<>() : user.getSite().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
+        for (User user : UserContainer.getUsers()) {
+            List<String> numbers = user.getTracking()==null? new ArrayList<>() : user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
             numbers.addAll(user.getTelephony()==null? new ArrayList<>() : user.getTelephony().getOuterPhonesList());
             numbers.addAll(user.getTelephony()==null? new ArrayList<>() : user.getTelephony().getInnerPhonesList());
             numbers.forEach(s -> phonesAndUsers.put(s, user));

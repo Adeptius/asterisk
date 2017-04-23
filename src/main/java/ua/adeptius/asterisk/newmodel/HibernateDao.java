@@ -10,36 +10,72 @@ import java.util.List;
 public class HibernateDao {
 
     private static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
+    private static Session session;
 
-    public static List<User> getAllUsers() {
-        Session session = sessionFactory.openSession();
+
+    public static List<User> getAllUsers() throws Exception {
+        session = sessionFactory.openSession();
         List<User> list = session.createQuery("select e from User e").list();
-        session.close();
+//        session.close();
         return list;
     }
 
-    @Transactional
-    private void createEntity() {
-        Session session = HibernateSessionFactory.getSessionFactory().openSession();
+
+    public static void saveUser(User user) throws Exception {
+        Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        User user = new User();
-        user.setLogin("e404");
-        user.setEmail("adeptius@gmail.com");
-        user.setPassword("123");
-        user.setTrackingId("someId");
-
-        Site site = new Site();
-        site.setLogin("e404");
-        site.setSiteNumbersCount(2);
-        site.setTimeToBlock(60);
-        site.setUser(user);
-
-        user.setSite(site);
-
         session.save(user);
+
         session.getTransaction().commit();
         session.close();
     }
 
+
+    public static void update(User user) {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.update(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void removeTelephony(User user) {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(user.getTelephony());
+        user.setTelephony(null);
+        session.update(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void removeTracking(User user) {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(user.getTracking());
+        user.setTracking(null);
+        session.update(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void deleteUser(String username) {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        User user = session.get(User.class, username);
+        user.setTelephony(null);
+        user.setTracking(null);
+        session.delete(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
 }

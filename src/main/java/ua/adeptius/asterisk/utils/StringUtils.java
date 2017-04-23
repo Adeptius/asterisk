@@ -1,6 +1,9 @@
 package ua.adeptius.asterisk.utils;
 
 
+import ua.adeptius.asterisk.newmodel.User;
+
+import java.security.MessageDigest;
 
 public class StringUtils {
 

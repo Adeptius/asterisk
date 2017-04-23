@@ -1,8 +1,11 @@
 package ua.adeptius.asterisk.newmodel;
 
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.PhonesDao;
+import ua.adeptius.asterisk.dao.RulesConfigDAO;
+import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ public class Telephony {
     @Column(name = "outerCount")
     private Integer outerCount;
 
+    @JsonIgnore
     @OneToOne
     @PrimaryKeyJoinColumn
     private User user;
@@ -34,12 +38,14 @@ public class Telephony {
     private ArrayList<String> outerPhonesList = new ArrayList<>();
 
     public void updateNumbers() throws Exception{
-        outerPhonesList = PhonesDao.getCustomersNumbers(login,false);
+        outerPhonesList = PhonesDao.getCustomersNumbers("tele_" + login,false);
         innerPhonesList = PhonesDao.getCustomersNumbers(login,true);
+        PhonesController.increaseOrDecrease(outerCount, outerPhonesList, "tele_" + login, false);
         PhonesController.increaseOrDecrease(innerCount, innerPhonesList, login, true);
-        PhonesController.increaseOrDecrease(outerCount, outerPhonesList, login, false);
+        CallProcessor.updatePhonesHashMap();
     }
 
+    @JsonIgnore
     public List<String> getAvailableNumbers() {
         List<String> currentPhones = outerPhonesList;
         List<String> currentNumbersInRules = user.getRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
@@ -93,6 +99,9 @@ public class Telephony {
     }
 
     public void setUser(User user) {
+        if (user != null){
+            this.login = user.getLogin();
+        }
         this.user = user;
     }
 
@@ -108,25 +117,5 @@ public class Telephony {
                 '}';
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
 
-        Telephony telephony = (Telephony) o;
-
-        if (login != null ? !login.equals(telephony.login) : telephony.login != null) return false;
-        if (innerCount != null ? !innerCount.equals(telephony.innerCount) : telephony.innerCount != null) return false;
-        if (outerCount != null ? !outerCount.equals(telephony.outerCount) : telephony.outerCount != null) return false;
-        return user != null ? user.equals(telephony.user) : telephony.user == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = login != null ? login.hashCode() : 0;
-        result = 31 * result + (innerCount != null ? innerCount.hashCode() : 0);
-        result = 31 * result + (outerCount != null ? outerCount.hashCode() : 0);
-        result = 31 * result + (user != null ? user.hashCode() : 0);
-        return result;
-    }
 }
