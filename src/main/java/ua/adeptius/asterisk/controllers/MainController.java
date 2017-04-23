@@ -24,7 +24,7 @@ public class MainController {
     public static String getFreeNumberFromSite(Tracking tracking, String googleId, String ip, String pageRequest) throws NoSuchElementException {
 
         //Проверка не находится ли пользователь в черном списке
-        if (tracking.getBlackListAsList().stream().anyMatch(s -> s.equals(ip))) {
+        if (tracking.getBlackList().stream().anyMatch(s -> s.equals(ip))) {
             MyLogger.log(BLOCKED_BY_IP, tracking.getLogin() + ": пользователь с ip " + ip + " исключен. Выдан стандартный номер.");
             return tracking.getStandartNumber();
         }

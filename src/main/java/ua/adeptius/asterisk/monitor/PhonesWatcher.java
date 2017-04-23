@@ -68,7 +68,7 @@ public class PhonesWatcher extends Thread {
         if (past > timeToBlock){
             try {
                 MyLogger.log(ELSE, tracking.getLogin() + ": IP " + phone.getIp() + " заблокирован по времени.");
-//                MySqlCalltrackDao.addIpToBlackList(oldSite.getName(), phone.getIp()); //TODO сделать
+                tracking.addIpToBlackList(phone.getIp());
                 phone.markFree();
             } catch (Exception e) {
                 MyLogger.log(DB_OPERATIONS, tracking.getLogin() + ": ошибка добавления " + phone.getIp() + " в БД");

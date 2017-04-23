@@ -5,61 +5,65 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 import ua.adeptius.asterisk.newmodel.HibernateController;
-import ua.adeptius.asterisk.newmodel.Telephony;
+import ua.adeptius.asterisk.newmodel.Tracking;
 import ua.adeptius.asterisk.newmodel.User;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Controller
-@RequestMapping("/telephony")
-public class TelephonyController {
+@RequestMapping("/tracking")
+public class TrackingController {
 
 
     @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String setTelephony(@RequestBody Telephony incomeTelephony, HttpServletRequest request) {
+    public String getUserByName(@RequestBody Tracking incomeTracking, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
 
-        if (incomeTelephony.getInnerCount() == null || incomeTelephony.getInnerCount() < 0) {
-            incomeTelephony.setInnerCount(0);
+        //TODO черный список
+
+        if (incomeTracking.getStandartNumber() == null || incomeTracking.getStandartNumber().equals("")) {
+            return new Message(Message.Status.Error, "Wrong standart number").toString();
         }
 
-        if (incomeTelephony.getOuterCount() == null || incomeTelephony.getOuterCount() < 0) {
-            incomeTelephony.setOuterCount(0);
+        if (incomeTracking.getTimeToBlock() == null || incomeTracking.getTimeToBlock() == 0) {
+            incomeTracking.setTimeToBlock(60);
         }
 
-        incomeTelephony.setUser(user);
+        if (incomeTracking.getSiteNumbersCount() == null || incomeTracking.getSiteNumbersCount() < 0) {
+            incomeTracking.setSiteNumbersCount(0);
+        }
+
+        incomeTracking.setUser(user);
 
         try {
-            incomeTelephony.updateNumbers();
+            incomeTracking.updateNumbers();
         } catch (NotEnoughNumbers e) {
             return new Message(Message.Status.Error, "Not enough free numbers").toString();
         } catch (Exception e) {
             return new Message(Message.Status.Error, "Internal error").toString();
         }
-        Telephony backupTelephony = user.getTelephony();
-        user.setTelephony(incomeTelephony);
+        Tracking backupTracking = user.getTracking();
+        user.setTracking(incomeTracking);
         try {
             HibernateController.updateUser(user);
             CallProcessor.updatePhonesHashMap();
             RulesConfigDAO.removeFileIfNeeded(user);
-            return new Message(Message.Status.Success, "Telephony updated").toString();
+            return new Message(Message.Status.Success, "Tracking updated").toString();
         } catch (Exception e) {
             e.printStackTrace();
-            user.setTelephony(backupTelephony);
+            user.setTracking(backupTracking);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -67,18 +71,18 @@ public class TelephonyController {
 
     @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String removeTelephony(HttpServletRequest request) {
+    public String removeTracking(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
-        if (user.getTelephony() == null) {
-            return new Message(Message.Status.Error, "User have not telephony").toString();
+        if (user.getTracking() == null) {
+            return new Message(Message.Status.Error, "User have not tracking").toString();
         }
         try {
-            HibernateController.removeTelephony(user);
+            HibernateController.removeTracking(user);
             RulesConfigDAO.removeFileIfNeeded(user);
-            return new Message(Message.Status.Success, "Telephony removed").toString();
+            return new Message(Message.Status.Success, "Tracking removed").toString();
         } catch (Exception e) {
             e.printStackTrace();
             return new Message(Message.Status.Error, "Internal error").toString();
@@ -93,32 +97,12 @@ public class TelephonyController {
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
-        if (user.getTelephony() == null) {
-            return new Message(Message.Status.Error, "User have no telephony").toString();
+        if (user.getTracking() == null) {
+            return new Message(Message.Status.Error, "User have no tracking").toString();
         }
 
         try {
-            return new ObjectMapper().writeValueAsString(user.getTelephony());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Message(Message.Status.Error, "Internal error").toString();
-        }
-    }
-
-    @RequestMapping(value = "/getSipPasswords", method = RequestMethod.POST, produces = "application/json")
-    @ResponseBody
-    public String getPasswords(HttpServletRequest request) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
-        }
-        if (user.getTelephony() == null){
-            return new Message(Message.Status.Error, "User have not tracking").toString();
-        }
-
-        try {
-            Map<String, String> map = PhonesDao.getSipPasswords(user.getLogin());
-            return new ObjectMapper().writeValueAsString(map);
+            return new ObjectMapper().writeValueAsString(user.getTracking());
         } catch (Exception e) {
             e.printStackTrace();
             return new Message(Message.Status.Error, "Internal error").toString();

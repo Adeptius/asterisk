@@ -1,8 +1,7 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,10 +9,8 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.newmodel.User;
 import ua.adeptius.asterisk.telephony.Rule;
-import ua.adeptius.asterisk.controllers.MainController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,49 +23,38 @@ import static ua.adeptius.asterisk.telephony.DestinationType.*;
 public class RuleController {
 
 
-    @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
+    @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String getAvailableNumbers(@RequestParam String name, @RequestParam String password) {
+    public String getAvailableNumbers(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
 
-//        if (!MainController.isLogin(name, password)) {
-//            return "Error: wrong password";
-//        }
-//
-//        User user;
-//        try {
-//            user = MainController.getUserByName(name);
-//        } catch (NoSuchElementException e) {
-//            return "Error: no such user";
-//        }
-//
-//        return new Gson().toJson(user.getAvailableNumbers());
-        return "";
+        try{
+            return new ObjectMapper().writeValueAsString(user.getAvailableNumbers());
+        }catch (Exception e){
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
     }
 
 
-
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String getRules(@RequestParam String name, @RequestParam String password) {
-
-//        if (!MainController.isLogin(name, password)) {
-//            return "Error: wrong password";
-//        }
-//
-//        User user;
-//        try {
-//            user = MainController.getUserByName(name);
-//        } catch (NoSuchElementException e) {
-//            return "Error: no such user";
-//        }
-//
-//        List<Rule> rules = user.getRules();
-//        return new Gson().toJson(rules);
-        return "";
+    public String getRules(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+        try{
+            return new ObjectMapper().writeValueAsString(user.getRules());
+        }catch (Exception e){
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
     }
 
 
-    @RequestMapping(value = "/update", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String getRules(@RequestBody ArrayList<Rule> newRules, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

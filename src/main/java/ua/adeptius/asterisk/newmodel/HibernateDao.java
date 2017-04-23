@@ -16,7 +16,7 @@ public class HibernateDao {
     public static List<User> getAllUsers() throws Exception {
         session = sessionFactory.openSession();
         List<User> list = session.createQuery("select e from User e").list();
-//        session.close();
+        session.close();
         return list;
     }
 

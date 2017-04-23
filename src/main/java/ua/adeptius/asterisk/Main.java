@@ -149,7 +149,7 @@ public class Main {
             try {
                 site.updateNumbers();
             } catch (Exception e) {
-                e.printStackTrace(); // TODO перехватить ошибку недостаточно номеров
+                e.printStackTrace();
                 throw  new RuntimeException("Недостаточно номеров");
             }
         });
@@ -157,7 +157,7 @@ public class Main {
             try {
                 telephony.updateNumbers();
             } catch (Exception e) {
-                e.printStackTrace(); // TODO перехватить ошибку недостаточно номеров
+                e.printStackTrace();
                 throw  new RuntimeException("Недостаточно номеров");
             }
         });

@@ -1,0 +1,92 @@
+package ua.adeptius.asterisk.webcontrollers;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.MySqlStatisticDao;
+import ua.adeptius.asterisk.dao.RulesConfigDAO;
+import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
+import ua.adeptius.asterisk.json.JsonHistoryQuery;
+import ua.adeptius.asterisk.json.Message;
+import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.monitor.CallProcessor;
+import ua.adeptius.asterisk.newmodel.HibernateController;
+import ua.adeptius.asterisk.newmodel.Tracking;
+import ua.adeptius.asterisk.newmodel.User;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Controller
+@RequestMapping("/history")
+public class HistoryController {
+
+
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+
+        String dateFrom = query.getDateFrom();
+        String dateTo = query.getDateTo();
+        String direction = query.getDirection();
+
+        //TODO валидация данных
+
+        try {
+            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(user.getLogin(), dateFrom, dateTo, direction.toString());
+            return new ObjectMapper().writeValueAsString(calls);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Message(Message.Status.Error, "DB error").toString();
+        }
+    }
+
+
+    @RequestMapping(value = "/record/{id}/{date}", method = RequestMethod.GET)
+    public void getFile(@PathVariable String id, @PathVariable String date, HttpServletResponse response) {
+        String year = date.substring(0, 4);
+        String month = date.substring(5, 7);
+        String day = date.substring(8, 10);
+
+        try {
+            File file = findFile(year, month, day, id);
+            response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
+            Files.copy(file.toPath(), response.getOutputStream());
+            response.flushBuffer();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("File not found");
+        }
+    }
+
+
+    private static File findFile(String year, String month, String day, String id) throws Exception {
+        Path path = Paths.get("/var/spool/asterisk/monitor/" + year + "/" + month + "/" + day);
+
+        List<File> list = Files.walk(path)
+                .filter(Files::isRegularFile)
+                .map(Path::toFile)
+                .collect(Collectors.toList());
+
+        for (File file : list) {
+            if (file.getName().contains(id)) {
+                return file;
+            }
+        }
+        throw new FileNotFoundException();
+    }
+
+
+}

@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.newmodel;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.annotations.*;
+import org.springframework.web.bind.annotation.RequestBody;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
@@ -67,6 +69,7 @@ public class User {
         }
     }
 
+    @JsonIgnore
     public List<String> getAvailableNumbers(){
         List<String> numbers = new ArrayList<>();
         if (telephony != null){

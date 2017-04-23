@@ -77,13 +77,13 @@ public class WebController {
         }
     }
 
-    @RequestMapping(value = "/getMelodies", method = RequestMethod.GET, produces = "text/html; charset=UTF-8")
+    @RequestMapping(value = "/getMelodies", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public String getHistory() {
         try {
             return new Gson().toJson(MySqlCalltrackDao.getMelodies());
         } catch (Exception e) {
-            return "Error: DB Error";
+            return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
 

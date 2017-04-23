@@ -8,9 +8,7 @@ import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -32,8 +30,9 @@ public class Tracking {
     @Column(name = "timeToBlock")
     private Integer timeToBlock;
 
-    @Column(name = "blackList")
-    private String blackList;
+    @JsonIgnore
+    @Column(name = "blackIps")
+    private String blackIps = "";
 
     @JsonIgnore
     @OneToOne
@@ -71,12 +70,51 @@ public class Tracking {
         return list;
     }
 
+    @Transient
+    LinkedList<String> blackLinkedList;
+
     @JsonIgnore
-    public List<String> getBlackListAsList(){
-        if (blackList == null || blackList.isEmpty()){
-            return new ArrayList<>();
+    public LinkedList<String> getBlackList(){
+        if (blackLinkedList == null){
+            blackLinkedList = new LinkedList<>();
+            if (blackIps==null){
+                blackIps = "";
+            }
+            String[] spl = blackIps.split(" ");
+            for (int i = 1; i < spl.length; i++) {
+                blackLinkedList.add(0,spl[i]);
+            }
         }
-        return Arrays.asList(blackList.split(","));
+        return blackLinkedList;
+    }
+
+    public void addIpToBlackList(String ip){
+        getBlackList().add(0, ip);
+        blackIps = (" " + ip) + blackIps;
+        checkBlackListSize();
+    }
+
+    public void removeIpFromBlackList(String ip){
+        List<String> currentList = getBlackList();
+        currentList.removeIf(s -> s.equals(ip));
+        StringBuilder sb = new StringBuilder(200);
+        for (String s : currentList) {
+            sb.append(" ").append(s);
+        }
+        blackIps = sb.toString();
+    }
+
+    private void checkBlackListSize(){
+        if (blackLinkedList.size() >99){
+            for (int i = 0; i < 10; i++) {
+                blackLinkedList.removeLast();
+            }
+        }
+        StringBuilder sb = new StringBuilder(200);
+        for (String s : blackLinkedList) {
+            sb.append(" ").append(s);
+        }
+        blackIps = sb.toString();
     }
 
 
@@ -139,14 +177,13 @@ public class Tracking {
         this.timeToBlock = timeToBlock;
     }
 
-    public String getBlackList() {
-        return blackList;
+    public String getBlackIps() {
+        return blackIps;
     }
 
-    public void setBlackList(String blackList) {
-        this.blackList = blackList;
+    public void setBlackIps(String blackIps) {
+        this.blackIps = blackIps;
     }
-
 
     @Override
     public String toString() {
@@ -155,7 +192,6 @@ public class Tracking {
                 ", siteNumbersCount=" + siteNumbersCount +
                 ", standartNumber='" + standartNumber + '\'' +
                 ", timeToBlock=" + timeToBlock +
-                ", blackList='" + blackList + '\'' +
                 ", user=" + (user==null? "null" : user.getLogin()) +
                 ", phones=" + phones +
                 '}';
