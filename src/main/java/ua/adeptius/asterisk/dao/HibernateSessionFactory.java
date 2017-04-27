@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.newmodel;
+package ua.adeptius.asterisk.dao;
 
 
 import org.hibernate.Session;

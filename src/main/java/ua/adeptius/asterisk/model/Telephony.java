@@ -1,10 +1,9 @@
-package ua.adeptius.asterisk.newmodel;
+package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.PhonesDao;
-import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.persistence.*;
@@ -16,6 +15,7 @@ import java.util.stream.Collectors;
 @Table(name = "telephony", schema = "calltrackdb")
 public class Telephony {
 
+    @JsonIgnore
     @Id
     @Column(name = "login")
     private String login;

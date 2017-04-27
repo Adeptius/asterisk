@@ -1,6 +1,5 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -9,14 +8,11 @@ import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.newmodel.HibernateController;
-import ua.adeptius.asterisk.newmodel.Tracking;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.asterisk.model.Tracking;
+import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.LinkedList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/tracking")
@@ -31,8 +27,6 @@ public class TrackingController {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
 
-        //TODO черный список
-
         if (incomeTracking.getStandartNumber() == null || incomeTracking.getStandartNumber().equals("")) {
             return new Message(Message.Status.Error, "Wrong standart number").toString();
         }
@@ -43,6 +37,9 @@ public class TrackingController {
 
         if (incomeTracking.getSiteNumbersCount() == null || incomeTracking.getSiteNumbersCount() < 0) {
             incomeTracking.setSiteNumbersCount(0);
+        }
+        if (incomeTracking.getBlackIps() == null){
+            incomeTracking.setBlackIps(user.getTracking().getBlackIps());
         }
 
         incomeTracking.setUser(user);
@@ -56,6 +53,7 @@ public class TrackingController {
         }
         Tracking backupTracking = user.getTracking();
         user.setTracking(incomeTracking);
+
         try {
             HibernateController.updateUser(user);
             CallProcessor.updatePhonesHashMap();

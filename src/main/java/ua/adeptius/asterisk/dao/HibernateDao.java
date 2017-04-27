@@ -1,9 +1,11 @@
-package ua.adeptius.asterisk.newmodel;
+package ua.adeptius.asterisk.dao;
 
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.transaction.annotation.Transactional;
+import ua.adeptius.asterisk.model.Telephony;
+import ua.adeptius.asterisk.model.Tracking;
+import ua.adeptius.asterisk.model.User;
 
 import java.util.List;
 
@@ -74,6 +76,29 @@ public class HibernateDao {
         user.setTelephony(null);
         user.setTracking(null);
         session.delete(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void cleanServices() {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<Tracking> trackings = session.createQuery("select t from Tracking t").list();
+        List<Telephony> telephonies = session.createQuery("select t from Telephony t").list();
+
+        for (Telephony telephony : telephonies) {
+            if (telephony.getUser() == null){
+                session.delete(telephony);
+            }
+        }
+
+        for (Tracking tracking : trackings) {
+            if (tracking.getUser() == null){
+                session.delete(tracking);
+            }
+        }
 
         session.getTransaction().commit();
         session.close();

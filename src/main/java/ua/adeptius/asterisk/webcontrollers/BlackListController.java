@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.newmodel.HibernateController;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedList;
@@ -32,7 +32,7 @@ public class BlackListController {
             return new Message(Message.Status.Error, "User have no tracking").toString();
         }
         try {
-            Matcher regexMatcher = Pattern.compile("\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}").matcher(ip.trim());
+            Matcher regexMatcher = Pattern.compile("(\\d{1,3}[.]){3}\\d{1,3}").matcher(ip.trim());
             regexMatcher.find();
             regexMatcher.group();
         }catch (Exception e){

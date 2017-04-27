@@ -5,7 +5,8 @@ import org.asteriskjava.manager.event.*;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +15,12 @@ import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.monitor.Call.CallState.ANSWERED;
 import static ua.adeptius.asterisk.monitor.Call.CallState.BUSY;
+import static ua.adeptius.asterisk.utils.logging.LogCategory.ENDED_CALL;
 
 public class CallProcessor {
 
-    //TODO нужно ли чистить мапу?
-    private static HashMap<String, Call> calls = new HashMap<>();
+
+    public static HashMap<String, Call> calls = new HashMap<>();
     private static HashMap<String, User> phonesAndUsers = new HashMap<>();
 
     public static void processEvent(ManagerEvent event) {
@@ -41,12 +43,9 @@ public class CallProcessor {
                 direction = Call.Direction.OUT;
                 if (user == null) {
 //                    System.out.println("Связь не обнаружена:");
-//                    System.out.println(event);
                     return;
                 }
             }
-            // тут вычислять направление звонка
-//            System.out.println("Звонок для " + customer.getName());
             Call call = new Call();
             call.setId(newChannelEvent.getUniqueId());
             call.setTo(newChannelEvent.getExten());
@@ -87,14 +86,11 @@ public class CallProcessor {
                 redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1);
             }
             call.setTo(redirectedTo);
-//            System.out.println("RedirectedTo: " + redirectedTo);
-//            System.out.println(call);
 
         } else if (event instanceof HangupEvent) { // если это конец звонка
             HangupEvent hangupEvent = (HangupEvent) event;
             Call call = calls.get(hangupEvent.getUniqueId());
-//            System.out.println("Looking for id " + hangupEvent.getUniqueId());
-//            System.out.println(call);
+            calls.remove(hangupEvent.getUniqueId());
             if (call == null) return;
 
             if ("Call Rejected".equals(hangupEvent.getCauseTxt())){
@@ -110,21 +106,47 @@ public class CallProcessor {
                 call.setEnded(0);
             }
 
+            detectService(call);
+            MyLogger.log(ENDED_CALL, call.getUser().getLogin() + ": завершен разговор " + call.getFrom() + " c " + call.getTo());
+
             System.out.println(call);
             processCall(call);
         }
     }
 
-
-    private static void processCall(Call call){ // TODO обработать
+    private static void detectService(Call call) {
         User user = call.getUser();
 
-//        if (customer instanceof OldSite){
-//            MainController.onNewSiteCall(call);
-//        }else if (customer instanceof TelephonyCustomer){
-//            MainController.onNewTelephonyCall(call);
-//        }
+        String from = call.getFrom();
+        String to = call.getTo();
+
+        if (user.getTracking() != null){
+            List<String> list = user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
+            if (list.contains(to) || list.contains(from)){
+                call.setService(Call.Service.TRACKING);
+                return;
+            }
+        }
+
+        if (user.getTelephony() != null) {
+            List<String> inner = user.getTelephony().getInnerPhonesList();
+            List<String> outer = user.getTelephony().getOuterPhonesList();
+            if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)){
+                call.setService(Call.Service.TELEPHONY);
+            }
+        }
     }
+
+
+    private static void processCall(Call call){
+        if (call.getService() == Call.Service.TRACKING){
+            MainController.onNewSiteCall(call);
+        }else if (call.getService() == Call.Service.TELEPHONY){
+            MainController.onNewTelephonyCall(call);
+        }
+    }
+
+
 
 
     public static String addZero(String source) {
@@ -138,7 +160,7 @@ public class CallProcessor {
         return source;
     }
 
-    public static void updatePhonesHashMap() { //TODO везде повставлять
+    public static void updatePhonesHashMap() {
         phonesAndUsers.clear();
         for (User user : UserContainer.getUsers()) {
             List<String> numbers = user.getTracking()==null? new ArrayList<>() : user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());

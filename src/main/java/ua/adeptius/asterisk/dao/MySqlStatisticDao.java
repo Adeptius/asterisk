@@ -1,10 +1,9 @@
 package ua.adeptius.asterisk.dao;
 
 
-import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.monitor.Call;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.sql.Connection;
@@ -21,7 +20,6 @@ public class MySqlStatisticDao extends MySqlDao {
 
 
     public static List<String> getListOfTables() throws Exception {
-//        String sql = "show tables like 'statistic_%'";
         String sql = "SHOW TABLES";
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
@@ -86,7 +84,18 @@ public class MySqlStatisticDao extends MySqlDao {
 
     public static void createStatisticTables(List<String> tablesToCreate) {
         for (String s : tablesToCreate) {
-            String sql = DaoHelper.createSqlQueryForCtreatingStatisticTable(s);
+            String sql = "CREATE TABLE `" + s + "` (  " +
+                    "`date` VARCHAR(20) NOT NULL,  " +
+                    "`direction` VARCHAR(3) NOT NULL,  " +
+                    "`from` VARCHAR(45) NULL,  " +
+                    "`to` VARCHAR(45) NULL,  " +
+                    "`callState` VARCHAR(8) NOT NULL,  " +
+                    "`time_to_answer` INT NULL,  " +
+                    "`talking_time` INT NULL,  " +
+                    "`call_id` VARCHAR(45) NULL,  " +
+                    "`google_id` VARCHAR(45) NULL,  " +
+                    "`utm` VARCHAR(600) NULL,  " +
+                    "PRIMARY KEY (`date`));";
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);

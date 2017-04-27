@@ -5,15 +5,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
-import ua.adeptius.asterisk.dao.RulesConfigDAO;
-import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.monitor.Call;
-import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.newmodel.HibernateController;
-import ua.adeptius.asterisk.newmodel.Tracking;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -42,14 +38,24 @@ public class HistoryController {
         String dateTo = query.getDateTo();
         String direction = query.getDirection();
 
-        //TODO валидация данных
+        if (!direction.equals("IN") && !direction.equals("OUT")) {
+            return new Message(Message.Status.Error, "Wrong direction").toString();
+        }
+
+        if (!Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}").matcher(dateFrom).find()) {
+            return new Message(Message.Status.Error, "Wrong FROM date").toString();
+        }
+
+        if (!Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}").matcher(dateTo).find()) {
+            return new Message(Message.Status.Error, "Wrong TO date").toString();
+        }
 
         try {
             List<Call> calls = MySqlStatisticDao.getStatisticOfRange(user.getLogin(), dateFrom, dateTo, direction.toString());
             return new ObjectMapper().writeValueAsString(calls);
         } catch (Exception e) {
             e.printStackTrace();
-            return new Message(Message.Status.Error, "DB error").toString();
+            return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
 
@@ -87,6 +93,4 @@ public class HistoryController {
         }
         throw new FileNotFoundException();
     }
-
-
 }

@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.senders;
 
 
-import ua.adeptius.asterisk.newmodel.Tracking;
+import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -23,8 +23,9 @@ public class Mail {
         int pastMinutes = (int) (pastTime / 1000 / 60);
         int antispam = Integer.parseInt(Settings.getSetting("MAIL_ANTISPAM"));
         if (pastMinutes < antispam){
-            MyLogger.log(ELSE, "Последнее оповещение было отправлено недавно");
+            MyLogger.log(MAIL_SENDING_ERRORS, tracking.getLogin() + ": последнее оповещение было отправлено недавно");
         }else {
+            MyLogger.log(MAIL_SENDING_LOG,tracking.getLogin() + ": отправляем письмо - нет свободных номеров");
             send(tracking.getUser().getEmail(), message);
             tracking.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
         }

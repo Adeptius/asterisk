@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
 

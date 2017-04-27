@@ -40,23 +40,4 @@ public class MySqlDao {
     protected static Connection getTrackingConnection() throws Exception {
             return trackingDataSource.getConnection();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

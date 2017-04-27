@@ -1,9 +1,9 @@
-package ua.adeptius.asterisk.newmodel;
+package ua.adeptius.asterisk.model;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.hibernate.annotations.*;
-import org.springframework.web.bind.annotation.RequestBody;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
+import ua.adeptius.asterisk.model.Telephony;
+import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -25,6 +25,7 @@ public class User {
     @Column(name = "login")
     private String login;
 
+    @JsonIgnore
     @Column(name = "password")
     private String password;
 
@@ -57,7 +58,7 @@ public class User {
     public void removeRulesFile(){
         try{
             RulesConfigDAO.removeFile(login);
-            MyLogger.log(LogCategory.ELSE, "Файл конфига " + login + ".conf удалён.");
+            MyLogger.log(LogCategory.DB_OPERATIONS, "Файл конфига " + login + ".conf удалён.");
         }catch (Exception ignored){}
     }
 
@@ -130,7 +131,11 @@ public class User {
     }
 
     public String getTrackingId() {
-        return trackingId;
+        if (trackingId != null){
+            return trackingId;
+        }else {
+            return "";
+        }
     }
 
     public void setTrackingId(String trackingId) {

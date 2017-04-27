@@ -1,9 +1,6 @@
 package ua.adeptius.asterisk.utils;
 
 
-import ua.adeptius.asterisk.newmodel.User;
-
-import java.security.MessageDigest;
 
 public class StringUtils {
 
@@ -16,13 +13,13 @@ public class StringUtils {
 
         String sec = String.valueOf(seconds).length() == 1 ? "0"+seconds : ""+seconds;
 
-        String stringedTime = sec + "c";
+        String stringedTime = sec + "s";
         if (minutes != 0){
             String min = String.valueOf(minutes).length() == 1 ? "0"+minutes : ""+minutes;
-            stringedTime = min+ "м " + stringedTime;
+            stringedTime = min+ "m " + stringedTime;
         }
         if (hours != 0){
-            stringedTime = hours + "ч " + stringedTime;
+            stringedTime = hours + "h " + stringedTime;
         }
 
         return stringedTime;

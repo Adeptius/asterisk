@@ -27,7 +27,11 @@ public class Phone {
     private String utmRequest;
 
     public String getUtmRequest() {
-        return utmRequest;
+        if (utmRequest == null){
+            return "";
+        }else {
+            return utmRequest;
+        }
     }
 
     public void setUtmRequest(String utmRequest) {
@@ -46,10 +50,6 @@ public class Phone {
         this.updatedTime = new GregorianCalendar().getTimeInMillis();
     }
 
-//    public void setNumber(String number) {
-//        this.number = number;
-//    }
-
     public void setGoogleId(String googleId) {// если записывается айди - значит он теперь кем-то занят
         this.startedBusy = new GregorianCalendar().getTimeInMillis();
         setBusyTime(0);
@@ -67,10 +67,6 @@ public class Phone {
     public void setBusyTime(long busyTime) {
         this.busyTime = StringUtils.getStringedTime(busyTime);
     }
-
-//    public void setTimeToDie(long updatedTime) {
-//        this.updatedTime = updatedTime;
-//    }
 
     public String getNumber() {
         return number;

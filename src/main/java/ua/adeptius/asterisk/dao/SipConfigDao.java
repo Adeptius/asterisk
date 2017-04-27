@@ -1,7 +1,6 @@
 package ua.adeptius.asterisk.dao;
 
 
-import ua.adeptius.asterisk.telephony.Rule;
 import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
@@ -58,5 +57,16 @@ public class SipConfigDao {
 
     public static void removeFile(String number) throws Exception {
         Files.deleteIfExists(Paths.get(folder + number + ".conf"));
+    }
+
+    public static void removeTelephonyConfigFiles(List<String> numbers) {
+        for (String s : numbers) {
+            try {
+                removeFile(s);
+            }catch (Exception e){
+                e.printStackTrace();
+                MyLogger.log(DB_OPERATIONS, "Ошибка удаления "+s+".conf");
+            }
+        }
     }
 }

@@ -1,10 +1,9 @@
 package ua.adeptius.asterisk.monitor;
 
 
-import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.newmodel.Tracking;
+import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -12,7 +11,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
-import static ua.adeptius.asterisk.utils.logging.LogCategory.ELSE;
 import static ua.adeptius.asterisk.utils.logging.LogCategory.NUMBER_FREE;
 
 public class PhonesWatcher extends Thread {
@@ -67,7 +65,7 @@ public class PhonesWatcher extends Thread {
 
         if (past > timeToBlock){
             try {
-                MyLogger.log(ELSE, tracking.getLogin() + ": IP " + phone.getIp() + " заблокирован по времени.");
+                MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": IP " + phone.getIp() + " заблокирован по времени.");
                 tracking.addIpToBlackList(phone.getIp());
                 phone.markFree();
             } catch (Exception e) {

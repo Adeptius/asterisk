@@ -2,7 +2,7 @@ package ua.adeptius.asterisk.senders;
 
 
 import ua.adeptius.asterisk.monitor.Call;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 
 import java.io.BufferedReader;
@@ -28,25 +28,21 @@ public class GoogleAnalitycs extends Thread {
         this.clientGoogleId = call.getGoogleId();
         this.user = call.getUser();
         this.call = call;
-
-        String id = user.getTrackingId();
-        if (id !=null && !"".equals(id) && call.getDirection() == Call.Direction.IN){
-            start();
-        }
     }
 
     @Override
     public void run() {
+        String userTrackId = user.getTrackingId();
         List<String> params = new ArrayList<>();
         params.add("v=1");
-        params.add("tid=" + user.getTrackingId()); // Tracking ID / Property ID.
+        params.add("tid=" + userTrackId); // Tracking ID / Property ID.
         params.add("t=event"); // Hit Type.
 
-//        if (customer instanceof OldSite){  TODO придумать обработку
-//            params.add("ec=calltracking"); // Category
-//        }else {
-//            params.add("ec=ip_telephony"); // Category
-//        }
+        if (call.getService() == Call.Service.TRACKING){
+            params.add("ec=calltracking"); // Category
+        }else if (call.getService() == Call.Service.TELEPHONY){
+            params.add("ec=ip_telephony"); // Category
+        }
 
         if (clientGoogleId.equals("")){
             params.add("cid="+getGoogleId(call.getFrom())); // Client ID.
@@ -54,11 +50,10 @@ public class GoogleAnalitycs extends Thread {
             params.add("cid=" + clientGoogleId); // Client ID.
         }
 
-
-
         params.add("ea=new call"); // Event
-        params.add("el=" + call.getDirection()); // Label
+//        params.add("el=" + call.getDirection()); // Label
 
+        log(LogCategory.SENDING_ANALYTICS, user.getLogin() + ": отправка в GA на " + userTrackId);
         try {
             String url = GOOGLE_URL;
             URL obj = new URL(url);
@@ -78,7 +73,7 @@ public class GoogleAnalitycs extends Thread {
             String response = in.readLine();
             if (!response.startsWith("GIF")) System.out.println(response);
         } catch (Exception e) {
-            log(LogCategory.ERROR_SENDING_ANALYTICS, "Не удалось отправить данные в Google Analitycs " + e);
+            log(LogCategory.SENDING_ANALYTICS, user.getLogin() + ": не удалось отправить данные в GA");
         }
     }
 

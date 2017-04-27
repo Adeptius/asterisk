@@ -5,9 +5,9 @@ import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.newmodel.Telephony;
-import ua.adeptius.asterisk.newmodel.Tracking;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.Telephony;
+import ua.adeptius.asterisk.model.Tracking;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -25,14 +25,6 @@ public class PhonesController {
             PhonesDao.saveSipToDB(sipConfig);
             SipConfigDao.writeToFile(sipConfig);
         }
-    }
-
-
-    public static void trimPhones(User user){
-
-
-
-
     }
 
     public static void increaseOrDecrease(int needCount, List<String> currentList, String name, boolean innerTable) throws Exception{
@@ -85,6 +77,7 @@ public class PhonesController {
     public static void releaseAllTelephonyNumbers(Telephony telephony) throws Exception{
         PhonesDao.markNumberFree(telephony.getOuterPhonesList(),false);
         PhonesDao.deleteNumbersFromDb(telephony.getInnerPhonesList(), true);
+        SipConfigDao.removeTelephonyConfigFiles(telephony.getInnerPhonesList());
     }
 
     public static void scanAndClean() throws Exception{
@@ -107,6 +100,7 @@ public class PhonesController {
         }
         PhonesDao.markNumberFree(innerToClean,true);
         PhonesDao.markNumberFree(outerToClean,false);
+        SipConfigDao.removeTelephonyConfigFiles(innerToClean);
         MyLogger.log(LogCategory.DB_OPERATIONS, "Синхронизация БД освобождено номеров внешних " + outerToClean.size() + ", внутренних " + innerToClean.size());
     }
 }

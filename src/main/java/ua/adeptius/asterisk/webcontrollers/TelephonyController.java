@@ -1,6 +1,5 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -10,21 +9,19 @@ import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.newmodel.HibernateController;
-import ua.adeptius.asterisk.newmodel.Telephony;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.asterisk.model.Telephony;
+import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/telephony")
 public class TelephonyController {
 
 
+    //TODO переделать
     @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String setTelephony(@RequestBody Telephony incomeTelephony, HttpServletRequest request) {
@@ -113,7 +110,7 @@ public class TelephonyController {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
         if (user.getTelephony() == null){
-            return new Message(Message.Status.Error, "User have not tracking").toString();
+            return new Message(Message.Status.Error, "User have not telephony").toString();
         }
 
         try {

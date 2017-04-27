@@ -1,7 +1,8 @@
 package ua.adeptius.asterisk.monitor;
 
 
-import ua.adeptius.asterisk.newmodel.User;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import ua.adeptius.asterisk.model.User;
 
 import java.text.SimpleDateFormat;
 
@@ -18,10 +19,23 @@ public class Call {
     private Direction direction;
     private String googleId;
     private String utm;
+    @JsonIgnore
     private String firstCall;
+    @JsonIgnore
+    private Service service;
 
+    @JsonIgnore
     private transient User user;
+    @JsonIgnore
     private transient long calledMillis;
+
+    public Service getService() {
+        return service;
+    }
+
+    public void setService(Service service) {
+        this.service = service;
+    }
 
     public void setDateForDb(long millis) {
         called = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(millis);
@@ -148,6 +162,10 @@ public class Call {
 
     public enum Direction{
         IN, OUT
+    }
+
+    public enum Service{
+        TRACKING, TELEPHONY
     }
 
 

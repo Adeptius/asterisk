@@ -40,10 +40,6 @@ public class Settings {
         return Boolean.parseBoolean(map.get(category.toString()));
     }
 
-    public static void setSettingBoolean(String key, boolean value) {
-        setSetting(key, String.valueOf(value));
-    }
-
     public static void setSetting(String key, String value){
         map.put(key, value);
         Properties prop = new Properties();

@@ -1,13 +1,15 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
+import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.Rule;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,7 +49,8 @@ public class RuleController {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
         try{
-            return new ObjectMapper().writeValueAsString(user.getRules());
+            List<Rule> rules = user.getRules();
+            return new ObjectMapper().writeValueAsString(rules);
         }catch (Exception e){
             return new Message(Message.Status.Error, "Internal error").toString();
         }
@@ -72,6 +75,8 @@ public class RuleController {
         List<String> numbersTo = newRules.stream().filter(rule -> rule.getDestinationType() == GSM)
                 .flatMap(rule -> rule.getTo().stream()).collect(Collectors.toList());
 
+
+
         for (String s : numbersTo) {
             Matcher regexMatcher = Pattern.compile("^0\\d{9}$").matcher(s);
             if (!regexMatcher.find()) {
@@ -85,6 +90,16 @@ public class RuleController {
             return new Message(Message.Status.Success, "Saved").toString();
         } catch (Exception e) {
             e.printStackTrace();
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
+    }
+
+    @RequestMapping(value = "/getMelodies", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String getHistory() {
+        try {
+            return new Gson().toJson(MySqlCalltrackDao.getMelodies());
+        } catch (Exception e) {
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }

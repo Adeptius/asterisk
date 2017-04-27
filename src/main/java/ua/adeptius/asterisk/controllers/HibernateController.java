@@ -1,22 +1,15 @@
-package ua.adeptius.asterisk.newmodel;
+package ua.adeptius.asterisk.controllers;
 
 
-import ua.adeptius.asterisk.controllers.PhonesController;
-import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.monitor.CallProcessor;
+import ua.adeptius.asterisk.model.User;
 
 public class HibernateController {
 
     public static void saveNewUser(User user) throws Exception {
         HibernateDao.saveUser(user);
         UserContainer.putUser(user);
-    }
-
-    public static void addTracking(User user, Tracking tracking) throws Exception {
-        tracking.setUser(user);
-        tracking.updateNumbers();
-        user.setTracking(tracking);
-        HibernateDao.update(user);
     }
 
     public static void updateUser(User user) throws Exception {
@@ -37,7 +30,11 @@ public class HibernateController {
     public static void removeUser(User user) throws Exception{
         HibernateDao.deleteUser(user.getLogin());
         PhonesController.releaseAllCustomerNumbers(user);
-        UserContainer.getUsers().remove(user);
+        UserContainer.removeUser(user);
         CallProcessor.updatePhonesHashMap();
+    }
+
+    public static void cleanServices(){
+        HibernateDao.cleanServices();
     }
 }

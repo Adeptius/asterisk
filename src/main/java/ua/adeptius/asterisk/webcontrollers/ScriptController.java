@@ -5,10 +5,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.newmodel.Tracking;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.Tracking;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -18,6 +17,7 @@ import java.util.NoSuchElementException;
 @Controller
 @RequestMapping("/script")
 public class ScriptController {
+
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = {"application/json"})
     @ResponseBody
@@ -30,11 +30,11 @@ public class ScriptController {
             return new Message(Message.Status.Error, "User have not tracking").toString();
         }
         String name = user.getLogin();
-//        String script = "<script src=\"https://"
+//        String script = "<script src=\\\"https://"
 //                + Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT")
 //                + "/tracking/script/"
 //                + name
-//                + "\"></script>";
+//                + "\\\"></script>";
 
         //TODO сменить адрес
         // Локальный хост
@@ -86,7 +86,7 @@ public class ScriptController {
             script = script.replaceAll("TIMETOUPDATE",Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
             return script;
         } catch (NoSuchElementException e) {
-            MyLogger.log(LogCategory.ELSE, name + " не найден в БД");
+            MyLogger.log(LogCategory.DB_OPERATIONS, name + " не найден в БД");
             return "Not found in db";
         }
     }

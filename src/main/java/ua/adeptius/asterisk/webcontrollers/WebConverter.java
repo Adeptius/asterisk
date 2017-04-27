@@ -10,7 +10,6 @@ import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.LinkedList;
 
-@SuppressWarnings("Duplicates")
 @Controller
 @RequestMapping("/converter")
 public class WebConverter {

@@ -1,9 +1,9 @@
 package ua.adeptius.asterisk.controllers;
 
 
-import ua.adeptius.asterisk.newmodel.Telephony;
-import ua.adeptius.asterisk.newmodel.Tracking;
-import ua.adeptius.asterisk.newmodel.User;
+import ua.adeptius.asterisk.model.Telephony;
+import ua.adeptius.asterisk.model.Tracking;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.webcontrollers.AdminController;
 
 import java.security.MessageDigest;
@@ -12,10 +12,15 @@ import java.util.stream.Collectors;
 
 public class UserContainer {
 
-
     private static List<User> users = new ArrayList<>();
     private static HashMap<String, User> hashes = new HashMap<>();
 
+    public static void recalculateHashesForAllUsers(){
+        hashes.clear();
+        for (User user : users) {
+            hashes.put(createMd5(user), user);
+        }
+    }
 
     public static User getUserByHash(String hash){
         return hashes.get(hash);
@@ -23,6 +28,11 @@ public class UserContainer {
 
     public static List<User> getUsers() {
         return users;
+    }
+
+    public static void removeUser(User user) {
+        getUsers().remove(user);
+        hashes.remove(getHashOfUser(user));
     }
 
     public static HashMap<String, User> getHashes() {
@@ -41,7 +51,6 @@ public class UserContainer {
         users.add(user);
         hashes.put(createMd5(user), user);
     }
-
 
     public static User getUserByName(String name){
         try {
@@ -78,7 +87,6 @@ public class UserContainer {
         return getUserByName(name).getTelephony();
     }
 
-
     public static String getHashOfUser(User user){
         for (Map.Entry<String, User> entry : hashes.entrySet()) {
             if (entry.getValue().equals(user)){
@@ -87,7 +95,6 @@ public class UserContainer {
         }
         return null;
     }
-
 
     public static String createMd5(User user){
         return createMd5(user.getLogin()+user.getPassword());

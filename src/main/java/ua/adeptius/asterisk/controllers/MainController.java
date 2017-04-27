@@ -3,17 +3,13 @@ package ua.adeptius.asterisk.controllers;
 
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.monitor.Call;
-import ua.adeptius.asterisk.newmodel.Tracking;
-import ua.adeptius.asterisk.newmodel.Telephony;
-import ua.adeptius.asterisk.newmodel.User;
-import ua.adeptius.asterisk.webcontrollers.AdminController;
+import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.senders.GoogleAnalitycs;
 import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
@@ -84,13 +80,19 @@ public class MainController {
         call.setGoogleId(request);
         call.setGoogleId(phone.getGoogleId());
 
-        new GoogleAnalitycs(call);
+        sendAnalitycs(call);
 
         MySqlStatisticDao.saveCall(call);
     }
 
     public static void onNewTelephonyCall(Call call) {
         MySqlStatisticDao.saveCall(call);
-        new GoogleAnalitycs(call);
+        sendAnalitycs(call);
+    }
+
+    private static void sendAnalitycs(Call call){
+        if (call.getDirection() == Call.Direction.IN && !call.getUser().getTrackingId().equals("")){
+            new GoogleAnalitycs(call);
+        }
     }
 }

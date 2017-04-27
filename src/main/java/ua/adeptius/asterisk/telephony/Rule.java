@@ -22,14 +22,8 @@ public class Rule {
     private String melody;
 
     public Rule() {
-        if (forwardType == QUEUE){
-            time = 10;
-        }else {
-            time = 600;
-        }
         melody = "simple";
     }
-
 
 
     public Rule(List<String> lines) {
@@ -79,6 +73,12 @@ public class Rule {
 
     @JsonIgnore
     public String getConfig() {
+        if (destinationType == SIP){
+            if ( forwardType == TO_ALL){
+                time = 600;
+            }
+        }
+
         StringBuilder builder = new StringBuilder();
         builder.append("; Start Rule\n");
         for (int i = 0; i < from.size(); i++) {
@@ -91,13 +91,13 @@ public class Rule {
 
             if (destinationType == SIP){
                 for (String sipTo : to) {
-                    builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/").append(sipTo).append(")\n");
+                    builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/").append(sipTo).append(",").append(time).append(")\n");
                 }
             }else if (destinationType == GSM){
                 if (forwardType == QUEUE){ // По очереди
                     for (String numberTo : to) {
                         builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/Intertelekom_main/")
-                                .append(numberTo).append(",").append(time).append(",m(").append(melody).append("))\n");
+                                .append(numberTo).append(",").append(getTime()).append(",m(").append(melody).append("))\n");
                     }
                 }else if (forwardType == TO_ALL){ // Сразу всем
                     builder.append("exten => ").append(numberFrom).append(",n,Dial(");
@@ -167,7 +167,11 @@ public class Rule {
     }
 
     public int getTime() {
-        return time;
+        if (forwardType == QUEUE){
+            return  time;
+        }else {
+            return 600;
+        }
     }
 
     public void setTime(int time) {
@@ -190,7 +194,7 @@ public class Rule {
                 ", to=" + to +
                 ", forwardType=" + forwardType +
                 ", destinationType=" + destinationType +
-                ", time=" + time +
+                ", time=" + getTime() +
                 ", melody='" + melody + '\'' +
                 '}';
     }

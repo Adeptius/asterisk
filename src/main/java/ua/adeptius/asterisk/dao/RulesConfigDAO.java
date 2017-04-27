@@ -2,8 +2,7 @@ package ua.adeptius.asterisk.dao;
 
 
 import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.newmodel.User;
-import ua.adeptius.asterisk.telephony.DestinationType;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.Rule;
 
 import java.io.BufferedWriter;
@@ -72,28 +71,21 @@ public class RulesConfigDAO {
 
         if (user.getTracking() != null){
             customerNumbers.addAll(user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
-            for (Rule rule : currentRules) {
-                List<String> from = rule.getFrom();
-                for (String s : from) {
-                    if (!customerNumbers.contains(s)){
-                        rulesToDelete.add(rule);
-                        break;
-                    }
-                }
-            }
         }
         if (user.getTelephony() != null) {
             customerNumbers.addAll(user.getTelephony().getInnerPhonesList());
             customerNumbers.addAll(user.getTelephony().getOuterPhonesList());
-            for (Rule currentRule : currentRules) {
-                List<String> numbersInRules = new ArrayList<>();
-                numbersInRules.addAll(currentRule.getFrom());
-                numbersInRules.addAll(currentRule.getDestinationType()== DestinationType.SIP ? currentRule.getTo() : new ArrayList<>());
-                for (String numbersInRule : numbersInRules) {
-                    if (!customerNumbers.contains(numbersInRule)) {
-                        rulesToDelete.add(currentRule);
-                        break;
-                    }
+        }
+
+        for (Rule rule : currentRules) {
+            List<String> numbersInRules = new ArrayList<>();
+            numbersInRules.addAll(rule.getFrom());
+//            numbersInRules.addAll(rule.getTo());
+
+            for (String s : numbersInRules) {
+                if (!customerNumbers.contains(s)){
+                    rulesToDelete.add(rule);
+                    break;
                 }
             }
         }
@@ -102,7 +94,7 @@ public class RulesConfigDAO {
 
         if (currentRules.size() == 0){
             Files.deleteIfExists(Paths.get(folder + user.getLogin() + ".conf"));
-        }else {
+        }else if (rulesToDelete.size() > 0){
             user.saveRules();
         }
     }

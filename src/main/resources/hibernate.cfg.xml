@@ -9,9 +9,9 @@
     <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
     <property name="connection.username">adapteus</property>
     <property name="connection.password">adapteus4k</property>
-    <mapping class="ua.adeptius.asterisk.newmodel.User"/>
-    <mapping class="ua.adeptius.asterisk.newmodel.Tracking"/>
-    <mapping class="ua.adeptius.asterisk.newmodel.Telephony"/>
+    <mapping class="ua.adeptius.asterisk.model.User"/>
+    <mapping class="ua.adeptius.asterisk.model.Tracking"/>
+    <mapping class="ua.adeptius.asterisk.model.Telephony"/>
 
     <!-- DB schema will be updated if needed -->
     <!-- <property name="hbm2ddl.auto">update</property> -->
