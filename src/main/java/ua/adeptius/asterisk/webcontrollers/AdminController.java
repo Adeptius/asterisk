@@ -3,6 +3,8 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
@@ -20,7 +22,9 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
     public static final String ADMIN_PASS = "pthy0eds";
+    private static Logger LOGGER =  LoggerFactory.getLogger(AdminController.class.getSimpleName());
 
 
     @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")

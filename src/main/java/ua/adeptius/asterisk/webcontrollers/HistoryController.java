@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/history")
 public class HistoryController {
+
+    private static Logger LOGGER =  LoggerFactory.getLogger(HistoryController.class.getSimpleName());
 
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
@@ -50,11 +54,13 @@ public class HistoryController {
             return new Message(Message.Status.Error, "Wrong TO date").toString();
         }
 
+        String login = user.getLogin();
         try {
-            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(user.getLogin(), dateFrom, dateTo, direction.toString());
+            LOGGER.debug("{}: запрос истории c {} по {}, направление {}", login, dateFrom, dateTo, direction);
+            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction);
             return new ObjectMapper().writeValueAsString(calls);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(login +": ошибка запроса истории c "+dateFrom+" по "+dateTo+", направление "+direction, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -67,12 +73,13 @@ public class HistoryController {
         String day = date.substring(8, 10);
 
         try {
+            LOGGER.trace("Запрос записи звонка ID {}, Date {}",id, date);
             File file = findFile(year, month, day, id);
             response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
             Files.copy(file.toPath(), response.getOutputStream());
             response.flushBuffer();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка получения записи ID "+id+" Date "+date, e);
             throw new RuntimeException("File not found");
         }
     }

@@ -2,6 +2,8 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.monitor.CallProcessor;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "telephony", schema = "calltrackdb")
 public class Telephony {
+
+    private static Logger LOGGER =  LoggerFactory.getLogger(Telephony.class.getSimpleName());
 
     @JsonIgnore
     @Id
@@ -38,6 +42,7 @@ public class Telephony {
     private ArrayList<String> outerPhonesList = new ArrayList<>();
 
     public void updateNumbers() throws Exception{
+        LOGGER.debug("{}: обновление списков номеров телефонии", login);
         outerPhonesList = PhonesDao.getCustomersNumbers("tele_" + login,false);
         innerPhonesList = PhonesDao.getCustomersNumbers(login,true);
         PhonesController.increaseOrDecrease(outerCount, outerPhonesList, "tele_" + login, false);

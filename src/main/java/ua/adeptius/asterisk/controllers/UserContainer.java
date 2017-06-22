@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.Telephony;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
@@ -12,10 +14,14 @@ import java.util.stream.Collectors;
 
 public class UserContainer {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(UserContainer.class.getSimpleName());
+
+
     private static List<User> users = new ArrayList<>();
     private static HashMap<String, User> hashes = new HashMap<>();
 
     public static void recalculateHashesForAllUsers(){
+        LOGGER.debug("Пересчет хэша для всех пользователей");
         hashes.clear();
         for (User user : users) {
             hashes.put(createMd5(user), user);
@@ -31,6 +37,7 @@ public class UserContainer {
     }
 
     public static void removeUser(User user) {
+        LOGGER.debug("Удаление пользователя {}",user);
         getUsers().remove(user);
         hashes.remove(getHashOfUser(user));
     }
@@ -48,6 +55,7 @@ public class UserContainer {
     }
 
     public static void putUser(User user){
+        LOGGER.debug("Добавление пользователя {}", user);
         users.add(user);
         hashes.put(createMd5(user), user);
     }
@@ -60,31 +68,12 @@ public class UserContainer {
         }
     }
 
-    public static User getUserByLoginAndPassword(String login, String password){
-        User user = null;
-        try{
-            User founded = getUserByName(login);
-            if (password.equals(AdminController.ADMIN_PASS)){
-                return founded;
-            }
-            if(founded.getPassword().equals(password)){
-                user = founded;
-            }
-        }catch (Exception ignored){
-        }
-        return user;
-    }
-
     public static List<Tracking> getAllSites(){
         return users.stream().filter(user -> user.getTracking() != null).map(User::getTracking).collect(Collectors.toList());
     }
 
     public static Tracking getSiteByName(String name) throws NoSuchElementException {
         return getUserByName(name).getTracking();
-    }
-
-    public static Telephony getTelephonyByName(String name) throws NoSuchElementException {
-        return getUserByName(name).getTelephony();
     }
 
     public static String getHashOfUser(User user){

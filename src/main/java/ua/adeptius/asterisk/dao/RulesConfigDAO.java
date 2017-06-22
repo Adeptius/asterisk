@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.Rule;
@@ -15,9 +17,13 @@ import java.util.stream.Collectors;
 
 public class RulesConfigDAO {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(RulesConfigDAO.class.getSimpleName());
+
+
     private static String folder = Settings.getSetting("___forwardingRulesFolder");
 
     public static void writeToFile(String filename, List<Rule> ruleList) throws Exception {
+        LOGGER.trace("{}: запись правил в файл",filename);
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
         for (Rule rule : ruleList) {
             writer.write(rule.getConfig());
@@ -26,6 +32,7 @@ public class RulesConfigDAO {
     }
 
     public static List<Rule> readFromFile(String filename) throws Exception {
+        LOGGER.trace("{}: чтение правил из файла",filename);
         List<String> lines = readStringsFromFile(folder + filename + ".conf");
         List<Rule> rules = new ArrayList<>();
         List<String> linesOfRule = new ArrayList<>();
@@ -61,6 +68,7 @@ public class RulesConfigDAO {
     }
 
     public static void removeFile(String name) throws Exception {
+        LOGGER.trace("{}: удаление файла правил", name);
         Files.deleteIfExists(Paths.get(folder + name + ".conf"));
     }
 

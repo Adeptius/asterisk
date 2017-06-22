@@ -1,0 +1,106 @@
+package ua.adeptius.asterisk.json;
+
+
+import ua.adeptius.asterisk.monitor.Call;
+
+import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
+
+public class RoistatPhoneCall {
+
+
+    //    private String id;
+    private String callee;
+    private String caller;
+    private String visit_id;
+    private String marker;
+    private String order_id;
+    private int duration;
+    private String file_url;
+    private String status;
+    private String google_client_id;
+    private String yandex_client_id;
+    private String date;
+    private String comment;
+    private String save_to_crm;
+    private int answer_duration;
+    private transient String roistatApiKey;
+    private transient String roistatProjectNumber;
+
+
+    public RoistatPhoneCall() {
+    }
+
+    public RoistatPhoneCall(Call call) {
+//        Набранный номер
+        this.callee = call.getTo();
+
+//        Номер клиента
+        this.caller = call.getFrom();
+
+//      null or string Номер визита
+        this.visit_id = null;
+
+//        null or string Маркер рекламного канала
+        this.marker = call.getUtm();
+
+//        null or string     Номер заказа из CRM
+        this.order_id = null;
+
+//        Продолжительность звонка (в секундах)
+        this.duration = call.getEnded() + call.getAnswered(); // полное время звонка
+
+//        Ссылка на файл записи. В api отсутствует
+        this.file_url = "http://78.159.55.63/1.mp3"; //FIXME
+
+//        Типы ROISTAT
+//        ANSWER – звонок был принят и обработан сотрудником;
+//        BUSY – входящий звонок был, но линия была занята;
+//        NOANSWER – входящий вызов состоялся, но в течение времени ожидания ответа не был принят сотрудником;
+//        CANCEL – входящий вызов состоялся, но был завершен до того, как сотрудник ответил;
+//        CONGESTION – вызов не состоялся из-за технических проблем;
+//        CHANUNAVAIL – вызываемый номер был недоступен;
+//        DONTCALL – входящий вызов был отменен;
+//        TORTURE – входящий вызов был перенаправлен на автоответчик.
+
+//        Мои типы
+//        ANSWERED, BUSY, FAIL
+        Call.CallState state = call.getCallState();
+        if (state == Call.CallState.ANSWERED) {
+            this.status = "ANSWER";
+        } else if (state == Call.CallState.BUSY) {
+            this.status = "BUSY";
+        } else if (state == Call.CallState.FAIL) {
+            this.status = "CONGESTION";
+        }
+
+//        В API отсутствует
+        this.google_client_id = call.getGoogleId();
+
+//        В API отсутствует
+        this.yandex_client_id = null;
+
+//        Дата и время создания записи о звонке (в формате UTC0)
+        this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss+0300").format(new GregorianCalendar().getTimeInMillis()).replaceFirst(" ", "T");
+
+//        Сохранение лида в CRM: 0 - не сохранять 1 - сохранять.
+        this.save_to_crm = "0";
+
+//      Текст комментария
+        this.comment = null;
+
+//      Время разговора
+        this.answer_duration = call.getAnswered();
+
+        this.roistatApiKey = call.getUser().getRoistatApiKey();
+        this.roistatProjectNumber = call.getUser().getRoistatProjectNumber();
+    }
+
+    public String getRoistatApiKey() {
+        return roistatApiKey;
+    }
+
+    public String getRoistatProjectNumber() {
+        return roistatProjectNumber;
+    }
+}

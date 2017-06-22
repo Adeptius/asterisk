@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.model;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.model.Telephony;
 import ua.adeptius.asterisk.model.Tracking;
@@ -21,6 +23,8 @@ import java.util.List;
 @Table(name = "users", schema = "calltrackdb")
 public class User {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(User.class.getSimpleName());
+
     @Id
     @Column(name = "login")
     private String login;
@@ -35,6 +39,12 @@ public class User {
     @Column(name = "trackingId")
     private String trackingId;
 
+    @Column(name = "roistatApiKey")
+    private String roistatApiKey;
+
+    @Column(name = "roistatProjectNumber")
+    private String roistatProjectNumber;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
     private Tracking tracking;
@@ -48,18 +58,12 @@ public class User {
 
     public void loadRules(){
         try {
+            LOGGER.trace("{}: загрузка правил", login);
             rules = RulesConfigDAO.readFromFile(login);
         } catch (NoSuchFileException ignored) {
         } catch (Exception e){
-            e.printStackTrace();
+            LOGGER.error(login+": ошибка загрузки правил", e);
         }
-    }
-
-    public void removeRulesFile(){
-        try{
-            RulesConfigDAO.removeFile(login);
-            MyLogger.log(LogCategory.DB_OPERATIONS, "Файл конфига " + login + ".conf удалён.");
-        }catch (Exception ignored){}
     }
 
     public void saveRules() throws Exception{
@@ -143,16 +147,34 @@ public class User {
     }
 
 
+    public String getRoistatApiKey() {
+        return roistatApiKey;
+    }
+
+    public void setRoistatApiKey(String roistatApiKey) {
+        this.roistatApiKey = roistatApiKey;
+    }
+
+    public String getRoistatProjectNumber() {
+        return roistatProjectNumber;
+    }
+
+    public void setRoistatProjectNumber(String roistatProjectNumber) {
+        this.roistatProjectNumber = roistatProjectNumber;
+    }
 
     @Override
     public String toString() {
         return "User{" +
-                "login='" + login + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", trackingId='" + trackingId + '\'' +
-                ", tracking=" + tracking +
-                ", telephony=" + telephony +
-                '}';
+                "\n     login='" + login + '\'' +
+                "\n     password='" + password + '\'' +
+                "\n     email='" + email + '\'' +
+                "\n     trackingId='" + trackingId + '\'' +
+                "\n     roistatApiKey='" + roistatApiKey + '\'' +
+                "\n     roistatProjectNumber='" + roistatProjectNumber + '\'' +
+                "\n     tracking=" + tracking +
+                "\n     telephony=" + telephony +
+                "\n     rules=" + rules +
+                "\n}";
     }
 }

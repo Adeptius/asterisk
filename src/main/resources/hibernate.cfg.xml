@@ -4,7 +4,7 @@
     "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
   <session-factory>
-    <property name="connection.url">jdbc:mysql://194.44.37.30:3306/calltrackdb</property>
+    <property name="connection.url">jdbc:mysql://193.106.59.202:3306/calltrackdb</property>
     <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
     <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
     <property name="connection.username">adapteus</property>

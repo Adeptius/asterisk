@@ -1,11 +1,16 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 import ua.adeptius.asterisk.model.User;
 
 public class HibernateController {
+
+    private static Logger LOGGER =  LoggerFactory.getLogger(HibernateController.class.getSimpleName());
 
     public static void saveNewUser(User user) throws Exception {
         HibernateDao.saveUser(user);

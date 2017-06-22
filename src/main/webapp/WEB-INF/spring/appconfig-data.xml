@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/data/jpa
+    http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+
+    <!--<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">-->
+        <!--<property name="dataSource" ref="dataSource"/>-->
+        <!--<property name="packagesToScan" value="ua.adeptius.asterisk.model"/>-->
+        <!--<property name="jpaVendorAdapter">-->
+            <!--<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>-->
+        <!--</property>-->
+        <!--<property name="jpaProperties">-->
+            <!--<props>-->
+                <!--<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>-->
+                <!--<prop key="hibernate.show_sql">true</prop>-->
+            <!--</props>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!--<bean id="transactionManager"-->
+          <!--class="org.springframework.orm.jpa.JpaTransactionManager">-->
+        <!--<property name="entityManagerFactory" ref="entityManagerFactory"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"-->
+          <!--p:driverClassName="com.mysql.jdbc.Driver"-->
+          <!--p:url="jdbc:mysql://194.44.37.30:3306/calltrackdb"-->
+          <!--p:username="adapteus"-->
+          p:password="adapteus4k"/>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          p:driverClass="com.mysql.jdbc.Driver"
+          p:jdbcUrl="jdbc:mysql://194.44.37.30:3306/calltrackdb"
+          p:user="adapteus"
+          p:password="adapteus4k"
+          p:minPoolSize="1"
+          p:maxPoolSize="5"
+          p:acquireIncrement="1"/>
+
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
+    p:dataSource-ref="dataSource"
+    p:packagesToScan="ua.adeptius.asterisk.model">
+        <property name="hibernateProperties">
+            <value>
+                hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+            </value>
+        </property>
+    </bean>
+
+
+    <bean id="txManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager"
+    p:sessionFactory-ref="sessionFactory"/>
+
+    <tx:annotation-driven transaction-manager="txManager" proxy-target-class="true"/>
+
+    <!--<jpa:repositories base-package="net.proselyte.springsecurityapp.dao"/>-->
+</beans>

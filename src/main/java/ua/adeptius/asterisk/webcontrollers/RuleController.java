@@ -3,6 +3,8 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import com.google.gson.Gson;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +26,8 @@ import static ua.adeptius.asterisk.telephony.DestinationType.*;
 @RequestMapping("/rules")
 public class RuleController {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(RuleController.class.getSimpleName());
+
 
     @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
@@ -36,6 +40,7 @@ public class RuleController {
         try{
             return new ObjectMapper().writeValueAsString(user.getAvailableNumbers());
         }catch (Exception e){
+            LOGGER.error(user.getLogin()+": ошибка получения доступных номеров для правил", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -52,6 +57,7 @@ public class RuleController {
             List<Rule> rules = user.getRules();
             return new ObjectMapper().writeValueAsString(rules);
         }catch (Exception e){
+            LOGGER.error(user.getLogin()+": ошибка получения правил", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -75,8 +81,6 @@ public class RuleController {
         List<String> numbersTo = newRules.stream().filter(rule -> rule.getDestinationType() == GSM)
                 .flatMap(rule -> rule.getTo().stream()).collect(Collectors.toList());
 
-
-
         for (String s : numbersTo) {
             Matcher regexMatcher = Pattern.compile("^0\\d{9}$").matcher(s);
             if (!regexMatcher.find()) {
@@ -89,7 +93,7 @@ public class RuleController {
             user.saveRules();
             return new Message(Message.Status.Success, "Saved").toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user.getLogin()+": ошибка задания правил", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -100,6 +104,7 @@ public class RuleController {
         try {
             return new Gson().toJson(MySqlCalltrackDao.getMelodies());
         } catch (Exception e) {
+            LOGGER.error("Ошибка получения списка мелодий", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }

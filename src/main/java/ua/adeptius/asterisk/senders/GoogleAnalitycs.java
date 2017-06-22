@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.senders;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
@@ -17,6 +19,8 @@ import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
 
 @SuppressWarnings("Duplicates")
 public class GoogleAnalitycs extends Thread {
+
+    private static Logger LOGGER =  LoggerFactory.getLogger(GoogleAnalitycs.class.getSimpleName());
 
     private static final String GOOGLE_URL = "http://www.google-analytics.com/collect";
     private User user;
@@ -38,14 +42,16 @@ public class GoogleAnalitycs extends Thread {
         params.add("tid=" + userTrackId); // Tracking ID / Property ID.
         params.add("t=event"); // Hit Type.
 
-        if (call.getService() == Call.Service.TRACKING){
+        Call.Service service = call.getService();
+        if (service == Call.Service.TRACKING){
             params.add("ec=calltracking"); // Category
-        }else if (call.getService() == Call.Service.TELEPHONY){
+        }else if (service == Call.Service.TELEPHONY){
             params.add("ec=ip_telephony"); // Category
         }
 
+        String clientGoogleID = getGoogleId(call.getFrom());
         if (clientGoogleId.equals("")){
-            params.add("cid="+getGoogleId(call.getFrom())); // Client ID.
+            params.add("cid="+clientGoogleID); // Client ID.
         }else {
             params.add("cid=" + clientGoogleId); // Client ID.
         }
@@ -53,6 +59,7 @@ public class GoogleAnalitycs extends Thread {
         params.add("ea=new call"); // Event
 //        params.add("el=" + call.getDirection()); // Label
 
+        LOGGER.trace("Отправка статистики в GA({}). GoogleID={}, category={}", userTrackId, clientGoogleID, service);
         log(LogCategory.SENDING_ANALYTICS, user.getLogin() + ": отправка в GA на " + userTrackId);
         try {
             String url = GOOGLE_URL;
@@ -73,6 +80,7 @@ public class GoogleAnalitycs extends Thread {
             String response = in.readLine();
             if (!response.startsWith("GIF")) System.out.println(response);
         } catch (Exception e) {
+            LOGGER.error("Ошибка отправки статистики в GA("+userTrackId+"). GoogleID="+clientGoogleID+", category="+service, e);
             log(LogCategory.SENDING_ANALYTICS, user.getLogin() + ": не удалось отправить данные в GA");
         }
     }

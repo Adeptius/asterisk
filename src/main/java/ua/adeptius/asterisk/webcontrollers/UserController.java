@@ -2,6 +2,8 @@ package ua.adeptius.asterisk.webcontrollers;
 
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
@@ -16,8 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/user")
 public class UserController {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(UserController.class.getSimpleName());
 
-    //TODO изменить как-то для документации
+
     @RequestMapping(value = "/add", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     @ResponseBody
     public String addUser(@RequestBody JsonUser jsonUser) {
@@ -30,7 +33,7 @@ public class UserController {
             return new Message(Message.Status.Error, "Invalid name, or too short").toString();
         }
 
-        String str = "0123456789abcdefghijklmnopqrstuvwxyz";
+        String str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         String name = jsonUser.getLogin();
         for (int i = 0; i < name.length(); i++) {
             String s = name.substring(i, i + 1);
@@ -54,7 +57,7 @@ public class UserController {
             HibernateController.saveNewUser(newUser);
             return new Message(Message.Status.Success, "User created").toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка создания нового пользователя "+jsonUser, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -86,7 +89,7 @@ public class UserController {
             UserContainer.recalculateHashesForAllUsers();
             return new Message(Message.Status.Success, "User changed").toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user.getLogin()+": ошибка указания новых данных пользователя: "+setUser, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -102,7 +105,7 @@ public class UserController {
         try {
             return new ObjectMapper().writeValueAsString(user);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user.getLogin()+": ошибка получения всех данных пользователя", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -121,6 +124,7 @@ public class UserController {
         try {
             HibernateController.removeUser(user);
         } catch (Exception e) {
+            LOGGER.error(user.getLogin()+": ошибка удаления пользователя", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
         return new Message(Message.Status.Success, "Removed").toString();

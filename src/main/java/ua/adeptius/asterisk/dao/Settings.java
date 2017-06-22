@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 
 import java.io.*;
@@ -10,9 +12,13 @@ import java.util.Properties;
 
 public class Settings {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(Settings.class.getSimpleName());
+
+
     private static HashMap<String, String> map = new HashMap<>();
 
     public static void load(Class clazz){
+        LOGGER.trace("Загрузка файла настроек config.properties");
         try {
             Properties prop = new Properties();
             String propFileName = "config.properties";
@@ -27,7 +33,8 @@ public class Settings {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка загрузки config.properties", e);
+            throw new RuntimeException("Ошибка загрузки config.properties");
         }
     }
 

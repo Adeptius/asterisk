@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.telephony.SipConfig;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
@@ -17,9 +19,12 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
 public class SipConfigDao {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(SipConfigDao.class.getSimpleName());
+
     private static String folder = Settings.getSetting("___sipConfigsFolder");
 
     public static void writeToFile(SipConfig sipConfig) throws Exception {
+        LOGGER.trace("Запись SIP конфига в файл {}", sipConfig.getNumber());
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + sipConfig.getNumber() + ".conf"));
             writer.write(sipConfig.getConfig());
         writer.close();
@@ -27,6 +32,7 @@ public class SipConfigDao {
 
 
     public static void synchronizeFilesAndDb() throws Exception{
+        LOGGER.debug("Синхронизация SIP конфигов с БД");
         HashMap<String, String> dbSips = PhonesDao.getAllSipsAndPass();
         Path path = Paths.get(folder);
 
@@ -56,6 +62,7 @@ public class SipConfigDao {
     }
 
     public static void removeFile(String number) throws Exception {
+        LOGGER.trace("Удаление SIP конфига {}", number);
         Files.deleteIfExists(Paths.get(folder + number + ".conf"));
     }
 
@@ -65,6 +72,7 @@ public class SipConfigDao {
                 removeFile(s);
             }catch (Exception e){
                 e.printStackTrace();
+                LOGGER.error("Ошибка удаления файла конфига "+s, e);
                 MyLogger.log(DB_OPERATIONS, "Ошибка удаления "+s+".conf");
             }
         }

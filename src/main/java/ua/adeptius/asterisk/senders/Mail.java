@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.senders;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 import ua.adeptius.asterisk.dao.Settings;
@@ -16,22 +18,27 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.*;
 
 public class Mail {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(Mail.class.getSimpleName());
+
     public void checkTimeAndSendEmail(Tracking tracking, String message){
         long lastEmail = tracking.getLastEmailTime();
         long currentTime = new GregorianCalendar().getTimeInMillis();
         long pastTime = currentTime - lastEmail;
         int pastMinutes = (int) (pastTime / 1000 / 60);
         int antispam = Integer.parseInt(Settings.getSetting("MAIL_ANTISPAM"));
+        String login = tracking.getLogin();
         if (pastMinutes < antispam){
-            MyLogger.log(MAIL_SENDING_ERRORS, tracking.getLogin() + ": последнее оповещение было отправлено недавно");
+            MyLogger.log(MAIL_SENDING_ERRORS, login + ": последнее оповещение было отправлено недавно");
+            LOGGER.trace("{}: последнее письмо было отправлено недавно ({} минут назад)", login, pastMinutes);
         }else {
-            MyLogger.log(MAIL_SENDING_LOG,tracking.getLogin() + ": отправляем письмо - нет свободных номеров");
-            send(tracking.getUser().getEmail(), message);
+            LOGGER.debug("{}: отправляем письмо - нет свободных номеров", login);
+            MyLogger.log(MAIL_SENDING_LOG, login + ": отправляем письмо - нет свободных номеров");
+            send(tracking.getUser().getEmail(), message, login);
             tracking.setLastEmailTime(new GregorianCalendar().getTimeInMillis());
         }
     }
 
-    private void send(String to, String message) {
+    private void send(String to, String message, String login) {
         new Thread(() -> {
             String from = "call-tracking.pro@mail.ru";
             String host = "smtp.mail.ru";
@@ -62,9 +69,10 @@ public class Mail {
                 msg.setSentDate(new Date());
                 msg.setText(message);
                 Transport.send(msg);
-            } catch (MessagingException mex) {
-                mex.printStackTrace();
-                MyLogger.log(MAIL_SENDING_ERRORS, "Ошибка при отправке письма" + mex);
+                LOGGER.debug("{}: письмо отправлено.", login);
+            } catch (MessagingException e) {
+                LOGGER.error(login+": ошибка отправки письма.", e);
+                MyLogger.log(MAIL_SENDING_ERRORS, "Ошибка при отправке письма" + e);
             }
         }).start();
     }

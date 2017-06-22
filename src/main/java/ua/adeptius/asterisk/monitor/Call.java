@@ -6,7 +6,7 @@ import ua.adeptius.asterisk.model.User;
 
 import java.text.SimpleDateFormat;
 
-
+@SuppressWarnings("Duplicates")
 public class Call {
 
     private String id;

@@ -4,6 +4,8 @@ package ua.adeptius.asterisk.telephony;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import static ua.adeptius.asterisk.telephony.ForwardType.*;
 
 public class Rule {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(Rule.class.getSimpleName());
 
     private ArrayList<String> from = new ArrayList<>();
     private ArrayList<String> to = new ArrayList<>();

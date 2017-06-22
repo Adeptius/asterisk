@@ -12,19 +12,21 @@ function checkLogin() {
 }
 
 function isLoginAndPasswordRight(login,password) {
-    $.post('/tracking/checklogin',
+    $.post('/tracking/getToken',
         {login: login, password: password}, function (data) {
-            $.cookie("tracklog",login);
-            $.cookie("trackpass",password);
+            // $.cookie("tracklog",login);
+            // $.cookie("trackpass",password);
             continueLoginProcess(data);
         });
 }
 
 function continueLoginProcess(response) {
-    if (response == 'true'){
-        window.location.href = '/tracking';
-    }else {
+    if (response.Status == 'Error'){
         $('#resultText').html('Неправильный логин или пароль');
+    }else {
+        var token = response.token;
+        localStorage.setItem('token', token);
+        window.location.href = '/tracking';
     }
 }
 

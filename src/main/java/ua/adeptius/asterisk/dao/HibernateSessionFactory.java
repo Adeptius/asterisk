@@ -1,20 +1,22 @@
 package ua.adeptius.asterisk.dao;
 
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HibernateSessionFactory {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(HibernateSessionFactory.class.getSimpleName());
 
 
     private static SessionFactory sessionFactory = buildSessionFactory();
 
     protected static SessionFactory buildSessionFactory() {
-        // A SessionFactory is set up once for an application!
+//         A SessionFactory is set up once for an application!
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .configure("hibernate.cfg.xml") // configures settings from hibernate.cfg.xml
                 .build();
@@ -22,10 +24,10 @@ public class HibernateSessionFactory {
             sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
         }
         catch (Exception e) {
-            // The registry would be destroyed by the SessionFactory, but we had trouble building the SessionFactory
-            // so destroy it manually.
+//             The registry would be destroyed by the SessionFactory, but we had trouble building the SessionFactory
+//             so destroy it manually.
             StandardServiceRegistryBuilder.destroy( registry );
-
+            LOGGER.error("Hibernate: фабрика cессий вылетела", e);
             throw new ExceptionInInitializerError("Initial SessionFactory failed" + e);
         }
         return sessionFactory;
@@ -37,7 +39,8 @@ public class HibernateSessionFactory {
     }
 
     public static void shutdown() {
-        // Close caches and connection pools
+//         Close caches and connection pools
+        LOGGER.debug("Hibernate: фабрика сессий закрывается");
         getSessionFactory().close();
     }
 }

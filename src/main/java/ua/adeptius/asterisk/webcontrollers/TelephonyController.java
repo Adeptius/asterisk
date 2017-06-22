@@ -1,13 +1,18 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
+import ua.adeptius.asterisk.json.JsonTelephony;
+import ua.adeptius.asterisk.json.JsonTracking;
 import ua.adeptius.asterisk.json.Message;
+import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.Telephony;
@@ -20,43 +25,70 @@ import java.util.Map;
 @RequestMapping("/telephony")
 public class TelephonyController {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(TelephonyController.class.getSimpleName());
 
-    //TODO переделать
-    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
+
+    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String setTelephony(@RequestBody Telephony incomeTelephony, HttpServletRequest request) {
+    public String addTracking(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
-
-        if (incomeTelephony.getInnerCount() == null || incomeTelephony.getInnerCount() < 0) {
-            incomeTelephony.setInnerCount(0);
+        if (user.getTelephony() != null) {
+            return new Message(Message.Status.Error, "User already have telephony").toString();
         }
 
-        if (incomeTelephony.getOuterCount() == null || incomeTelephony.getOuterCount() < 0) {
-            incomeTelephony.setOuterCount(0);
-        }
+        Telephony telephony = new Telephony();
+        telephony.setUser(user);
+        telephony.setInnerCount(0);
+        telephony.setOuterCount(0);
 
-        incomeTelephony.setUser(user);
-
+        user.setTelephony(telephony);
         try {
-            incomeTelephony.updateNumbers();
-        } catch (NotEnoughNumbers e) {
-            return new Message(Message.Status.Error, "Not enough free numbers").toString();
+            HibernateController.updateUser(user);
+            return new Message(Message.Status.Success, "Telephony added").toString();
         } catch (Exception e) {
+            user.setTelephony(null);
+            LOGGER.error(user.getLogin()+": ошибка добавления телефонии",e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
-        Telephony backupTelephony = user.getTelephony();
-        user.setTelephony(incomeTelephony);
+    }
+
+    @RequestMapping(value = "/setNumberCount", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String setNumberCount(@RequestBody JsonTelephony jsonTelephony, HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+        if (user.getTelephony() == null) {
+            return new Message(Message.Status.Error, "User have no telephony").toString();
+        }
+
+        Telephony telephony = user.getTelephony();
+        // делаем бекап количества номеров на случай ошибки
+        int currentOuterNumberCount = telephony.getOuterCount();
+        int currentInnerNumberCount = telephony.getInnerCount();
+        int neededOuterNumberCount = jsonTelephony.getOuterCount();
+        int neededInnerNumberCount = jsonTelephony.getInnerCount();
+
         try {
+            telephony.setOuterCount(neededOuterNumberCount);
+            telephony.setInnerCount(neededInnerNumberCount);
+            telephony.updateNumbers();
             HibernateController.updateUser(user);
             CallProcessor.updatePhonesHashMap();
             RulesConfigDAO.removeFileIfNeeded(user);
-            return new Message(Message.Status.Success, "Telephony updated").toString();
+            return new Message(Message.Status.Success, "Number count set").toString();
+        } catch (NotEnoughNumbers e){
+            telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
+            telephony.setInnerCount(currentInnerNumberCount);
+            return new Message(Message.Status.Success, "Not enough free numbers").toString();
         } catch (Exception e) {
-            e.printStackTrace();
-            user.setTelephony(backupTelephony);
+            telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
+            telephony.setInnerCount(currentInnerNumberCount);
+            LOGGER.error(user.getLogin()+": ошибка изменения количества номеров телефонии: "+jsonTelephony, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -77,7 +109,7 @@ public class TelephonyController {
             RulesConfigDAO.removeFileIfNeeded(user);
             return new Message(Message.Status.Success, "Telephony removed").toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user.getLogin()+": ошибка удаления телефонии",e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -97,7 +129,7 @@ public class TelephonyController {
         try {
             return new ObjectMapper().writeValueAsString(user.getTelephony());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user.getLogin()+": ошибка получения телефонии",e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -117,7 +149,7 @@ public class TelephonyController {
             Map<String, String> map = PhonesDao.getSipPasswords(user.getLogin());
             return new ObjectMapper().writeValueAsString(map);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user.getLogin()+": ошибка получения паролей к SIP номерам");
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }

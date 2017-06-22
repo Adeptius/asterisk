@@ -1,0 +1,40 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+            <!--<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>-->
+        </encoder>
+    </appender>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--<file>d:/logs/tomcat.log</file>-->
+        <file>/home/adeptius/tomcat/logs/tomcat.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--<fileNamePattern>d:/logs/archived/tomcat-%d{yyyy-MM-dd}.%i.log</fileNamePattern>-->
+            <fileNamePattern>/home/adeptius/tomcat/logs/archived/tomcat-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>3MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+            <!--<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>-->
+        </encoder>
+    </appender>
+
+    <logger name="org.hibernate.SQL" level="INFO"/>
+    <logger name="org.asteriskjava" level="off"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="com.mchange" level="WARN"/>
+    <logger name="org.apache.http" level="WARN"/>
+
+    <root level="trace">
+        <appender-ref ref="console"/>
+        <!--<appender-ref ref="file"/>-->
+        <appender-ref ref="ROLLING"/>
+    </root>
+
+</configuration>
+

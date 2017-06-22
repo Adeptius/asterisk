@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.dao;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
@@ -18,8 +20,11 @@ import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
 
 public class MySqlStatisticDao extends MySqlDao {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(MySqlStatisticDao.class.getSimpleName());
+
 
     public static List<String> getListOfTables() throws Exception {
+        LOGGER.trace("Загрузка списка таблиц");
         String sql = "SHOW TABLES";
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
@@ -31,12 +36,14 @@ public class MySqlStatisticDao extends MySqlDao {
             return listOfTables;
         } catch (Exception e) {
             e.printStackTrace();
+            LOGGER.error("Ошибка загрузки списка таблиц из БД", e);
         }
         log(DB_OPERATIONS, "Ошибка при поиске таблиц статистики с БД");
         throw new Exception("Ошибка при загрузке таблиц статистики с БД");
     }
 
     public static List<Call> getStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
+        LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
         String sql = "SELECT * FROM " + user +
                 " WHERE direction = '" + direction +
                 "' AND date BETWEEN STR_TO_DATE('" + startDate +
@@ -62,7 +69,7 @@ public class MySqlStatisticDao extends MySqlDao {
             }
             return statisticList;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(user+": ошибка получения истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
         }
         log(DB_OPERATIONS, "Ошибка при загрузке статистики с БД");
         throw new Exception("Ошибка при загрузке статистики с БД");
@@ -70,13 +77,14 @@ public class MySqlStatisticDao extends MySqlDao {
 
     public static void deleteTables(List<String> tablesToDelete) {
         for (String s : tablesToDelete) {
+            LOGGER.trace("Удаляем таблицу {}", s);
             String sql = "DROP TABLE `" + s + "`";
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
                 log(DB_OPERATIONS, "Таблица статистики " + s + " была удалена.");
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("Ошибка удаления таблицы "+s, e);
                 log(DB_OPERATIONS, "Ошибка удаления ненужной таблицы статистики с бд " + s);
             }
         }
@@ -84,6 +92,7 @@ public class MySqlStatisticDao extends MySqlDao {
 
     public static void createStatisticTables(List<String> tablesToCreate) {
         for (String s : tablesToCreate) {
+            LOGGER.trace("Создание таблицы {}", s);
             String sql = "CREATE TABLE `" + s + "` (  " +
                     "`date` VARCHAR(20) NOT NULL,  " +
                     "`direction` VARCHAR(3) NOT NULL,  " +
@@ -101,13 +110,14 @@ public class MySqlStatisticDao extends MySqlDao {
                 statement.execute(sql);
                 log(DB_OPERATIONS, "Таблица статистики " + s + " была создана.");
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("Ошибка создания таблицы"+s, e);
                 log(DB_OPERATIONS, "Ошибка при создании таблицы статистики в БД " + s);
             }
         }
     }
 
     public static void saveCall(Call call) {
+        LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", call.getUser().getLogin(), call.getFrom(), call.getTo());
         String sql = "INSERT INTO `" + call.getUser().getLogin() + "` VALUES ('"
                 + call.getCalled() + "', '"
                 + call.getDirection() + "', '"
@@ -123,13 +133,14 @@ public class MySqlStatisticDao extends MySqlDao {
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(call.getUser().getLogin()+": ошибка сохранения звонка "+call.getFrom()+" -> "+call.getTo(), e);
             log(DB_OPERATIONS, call.getUser().getLogin() + ": Ошибка при сохранении отчета в БД ");
         }
     }
 
 
     public static void createOrCleanStatisticsTables() throws Exception {
+        LOGGER.debug("Создание или удаление таблиц статистики");
         List<String> tables = getListOfTables(); // Taблицы в БД
         List<String> customerNames = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
         List<String> tablesToDelete = tables.stream().filter(table -> !customerNames.contains(table)).collect(Collectors.toList());

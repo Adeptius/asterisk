@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.monitor;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Tracking;
@@ -14,6 +16,8 @@ import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 import static ua.adeptius.asterisk.utils.logging.LogCategory.NUMBER_FREE;
 
 public class PhonesWatcher extends Thread {
+
+    private static Logger LOGGER =  LoggerFactory.getLogger(PhonesWatcher.class.getSimpleName());
 
     public PhonesWatcher() {
         setDaemon(true);

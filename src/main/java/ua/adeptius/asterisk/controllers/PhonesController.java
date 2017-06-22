@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
@@ -17,7 +19,11 @@ import java.util.stream.Collectors;
 
 public class PhonesController {
 
+    private static Logger LOGGER =  LoggerFactory.getLogger(PhonesController.class.getSimpleName());
+
+
     public static void createMoreSipNumbers(int number) throws Exception{
+        LOGGER.debug("Создание дополнительно {} sip номеров", number);
         int max = PhonesDao.getMaxSipNumber();
 
         for (int i = 0; i < number; i++) {
@@ -29,10 +35,12 @@ public class PhonesController {
 
     public static void increaseOrDecrease(int needCount, List<String> currentList, String name, boolean innerTable) throws Exception{
         if (needCount > currentList.size()){ // Если номеров недостаточно
+            LOGGER.debug("{}: номеров недостаточно. Нужно {}, есть {}", name, needCount, currentList.size());
             int needMoreNumbers = needCount - currentList.size();
             ArrayList<String> availableNumbers = PhonesDao.getFreePhones(innerTable); // взяли все свободные номера
             ArrayList<String> preparedNumbers = new ArrayList<>();
             if (availableNumbers.size()<needMoreNumbers && !innerTable){ // Убедились, что их достаточно
+                LOGGER.debug("Номеров недостаточно! Есть {}, нужно {}", availableNumbers.size(), needMoreNumbers);
                 throw new NotEnoughNumbers();
             }else if (availableNumbers.size()<needMoreNumbers && innerTable){
                 createMoreSipNumbers(needMoreNumbers);
@@ -44,23 +52,27 @@ public class PhonesController {
             PhonesDao.markNumbersBusy(preparedNumbers, name, innerTable); // помечаем как занятые
             currentList.addAll(preparedNumbers);
         }else if (needCount < currentList.size()){ // Если номеров больше чем нужно
+            LOGGER.debug("Номеров больше чем нужно. Должно быть {}, сейчас {}", needCount, currentList.size());
             int redundantNumbers = currentList.size() - needCount;
             ArrayList<String> numbersToRelease = new ArrayList<>();
             for (int i = 0; i < redundantNumbers; i++) {
                 numbersToRelease.add(currentList.remove(currentList.size()-1));
             }
             if (innerTable){// если это сип, то мы их удаляем с базы и конфиг файлы тоже
+                PhonesDao.deleteNumbersFromDb(numbersToRelease, true);
                 for (String s : numbersToRelease) {
                     SipConfigDao.removeFile(s);
-                    PhonesDao.deleteNumbersFromDb(numbersToRelease, true);
                 }
             }else {
                 PhonesDao.markNumberFree(numbersToRelease, innerTable);
             }
+        }else {
+            LOGGER.debug("{}: номеров нужное количество. Список не меняется", name);
         }
     }
 
     public static void releaseAllCustomerNumbers(User user) throws Exception{
+        LOGGER.debug("{}: Освобождаем все номера пользователя", user);
         if (user.getTracking() !=null){
             releaseAllTrackingNumbers(user.getTracking());
         }
@@ -81,6 +93,7 @@ public class PhonesController {
     }
 
     public static void scanAndClean() throws Exception{
+        LOGGER.debug("Начало очистки БД на предмет занятых номеров несуществующими пользователями");
         HashMap<String, String> innerMap = PhonesDao.getBusyInnerPhones();
         HashMap<String, String> outerMap = PhonesDao.getBusyOuterPhones();
         List<String> users = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
@@ -101,6 +114,7 @@ public class PhonesController {
         PhonesDao.markNumberFree(innerToClean,true);
         PhonesDao.markNumberFree(outerToClean,false);
         SipConfigDao.removeTelephonyConfigFiles(innerToClean);
+        LOGGER.debug("\"Синхронизация БД освобождено номеров внешних {}, внутренних {}", outerToClean.size() ,innerToClean.size());
         MyLogger.log(LogCategory.DB_OPERATIONS, "Синхронизация БД освобождено номеров внешних " + outerToClean.size() + ", внутренних " + innerToClean.size());
     }
 }

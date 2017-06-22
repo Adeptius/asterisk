@@ -1,104 +1,147 @@
+var token;
 $(document).ready(function () {
-    var loginFromCoockie = $.cookie("tracklog");
-    var passwordFromCoockie = $.cookie("trackpass");
-    if (loginFromCoockie == null || passwordFromCoockie == null){
-        window.location.href = '/tracking/login';
+    token = localStorage.getItem('token');
+    if (token == null || token == '') {
+        window.location.href = '../tracking/login';
     }
 
-    setToday();
+    $('#exitButton').on('click', function () {
+        $.cookie("tracklog", null);
+        $.cookie("trackpass", null);
+        window.location.href = '/tracking/login';
+    });
 
-    $.post('/tracking/checklogin',
-        {login: loginFromCoockie, password: passwordFromCoockie}, function (data) {
-            if (data == 'true'){
-                processAllIfAuthIsOk(loginFromCoockie, passwordFromCoockie);
-            }else {
-                window.location.href = '/tracking/login.html';
-            }
-        });
+    setToday();
 
     $('#timeResetButton').on('click', function () {
         setToday();
         $('#divHistory').html('');
-    })
+    });
+    processAllIfAuthIsOk();
 });
 
+
 function setToday() {
-    $('#dateFrom').val( getDate() + ' 00:00:00');
-    $('#dateTo').val( getDate() + ' 23:59:59');
+    $('#dateFrom').val(getDate() + ' 00:00:00');
+    $('#dateTo').val(getDate() + ' 23:59:59');
 }
 
 function getDate() {
     var date = new Date();
     var year = date.getFullYear();
-    var month = date.getMonth() +1;
+    var month = date.getMonth() + 1;
     var day = date.getUTCDate();
-    if (month < 10){
+    if (month < 10) {
         month = '0' + month;
     }
-    if (day < 10){
+    if (day < 10) {
         day = '0' + day;
     }
     return year + '-' + month + '-' + day;
 }
 
 
-function processAllIfAuthIsOk(login, password){
+function processAllIfAuthIsOk() {
     repeatedFunction();
     function repeatedFunction() {
-        updatePhoneTable(login, password);
-        updateLogs(login);
-        updateBlackList(login, password);
+        updatePhoneTable();
+        updateLogs();
+        updateBlackList();
         setTimeout(repeatedFunction, 5000)
     }
-    updateBlackListTimer(login, password);
+
+    updateBlackListTimer();
 
 
     $('#historyInButton').on('click', function () {
-        showHistory(login, password, $('#dateFrom').val(), $('#dateTo').val(), 'IN');
+        showHistory($('#dateFrom').val(), $('#dateTo').val(), 'IN');
     });
 
     $('#historyOutButton').on('click', function () {
-        showHistory(login, password, $('#dateFrom').val(), $('#dateTo').val(), 'OUT');
+        showHistory($('#dateFrom').val(), $('#dateTo').val(), 'OUT');
     });
 
     $('#buttonBlockIp').on('click', function () {
-        addToBlackList(login, password, $('#ipToBlock').val());
+        addToBlackList($('#ipToBlock').val());
     });
 
     $('#buttonUnBlockIp').on('click', function () {
-        removeFromBlackList(login, password, $('#ipToBlock').val());
+        removeFromBlackList($('#ipToBlock').val());
     });
 
     $('#saveBlockTimeButton').on('click', function () {
-        changeBlackListTimer(login, password, $('#timeToBlock').val());
+        changeBlackListTimer($('#timeToBlock').val());
     });
 
-    $('#exitButton').on('click', function () {
-        $.cookie("tracklog",null);
-        $.cookie("trackpass",null);
-        window.location.href = '/tracking/login.html';
+
+}
+
+function removeFromBlackList(ip) {
+    $.ajax({
+        url: '/tracking/blacklist/remove',
+        type: 'post',
+        headers: {
+            Authorization: token
+        },
+        data: {
+            "ip": ip
+        },
+        success: function (data) {
+            alert(data.Message);
+            updateBlackList();
+            $('#ipToBlock').val('')
+        }
     });
 }
 
-function removeFromBlackList(login, password, ip) {
-    $.post('/tracking/userconfig/removefromblacklist',
-        {name: login, password: password, ip: ip}, function (data) {
-            alert(data);
-            updateBlackList(login, password);
+function addToBlackList(ip) {
+    $.ajax({
+        url: '/tracking/blacklist/add',
+        type: 'post',
+        headers: {
+            Authorization: token
+        },
+        data: {
+            "ip": ip
+        },
+        success: function (data) {
+            alert(data.Message);
+            updateBlackListTimer();
+            updateBlackList();
             $('#ipToBlock').val('')
-        });
+        }
+    });
 }
 
-function addToBlackList(login, password, ip) {
-    $.post('/tracking/userconfig/addtoblacklist',
-        {name: login, password: password, ip: ip}, function (data) {
-            alert(data);
-            updateBlackList(login, password);
-            $('#ipToBlock').val('')
-        });
-}
+function changeBlackListTimer(timer) {
+    $.ajax({
+        url: '/tracking/tracking/get',
+        type: 'post',
+        headers: {
+            Authorization: token
+        },
+        success: function (data) {
+            var standartNumber = data.standartNumber;
+            $.ajax({
+                url: '/tracking/tracking/set',
+                type: 'post',
+                headers: {
+                    Authorization: token
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify({
+                    "standartNumber": standartNumber,
+                    "timeToBlock": timer
+                }),
+                success: function (data) {
+                    updateBlackListTimer();
+                }
+            });
+        }
+    });
 
-function changeBlackListTimer(login, password, timer) {
+
     $.post('/tracking/userconfig/setblocktime',
         {name: login, password: password, time: timer}, function (data) {
             updateBlackListTimer(login, password);
@@ -106,37 +149,77 @@ function changeBlackListTimer(login, password, timer) {
         });
 }
 
-function updateBlackListTimer(login, password) {
-    $.post('/tracking/status/siteinfo',
-        {name: login, password: password}, function (data) {
+function updateBlackListTimer() {
+    $.ajax({
+        url: '/tracking/tracking/get',
+        type: 'post',
+        headers: {
+            Authorization: token
+        },
+        success: function (data) {
             $('#timeToBlock').val(data.timeToBlock);
-        });
-}
-
-function updateBlackList(login, password) {
-    $.post('/tracking/converter/getblacklist',
-        {name: login, password: password}, function (data) {
-            $('#blackListArea').html(data);
-        });
-}
-
-function showHistory(login, password, datefrom, dateto, direction) {
-    $.post('/tracking/converter/history',
-        {name: login, password: password, dateFrom: datefrom, dateTo: dateto, direction: direction}, function (data) {
-            $('#divHistory').html(data);
-        });
-}
-
-function updatePhoneTable(login, password) {
-    $.post('/tracking/converter/siteinfo', {name: login, password: password}, function (data) {
-        $('#phonesTable').html(data);
+        }
     });
 }
 
-function updateLogs(login) {
-    $.post('/tracking/converter/logs', {site: login}, function (data) {
-        $('#logArea').text(data);
-    }, 'text');
+function updateBlackList() {
+    $.ajax({
+        url: '/tracking/converter/getblacklist',
+        type: 'post',
+        headers: {
+            Authorization: token
+        },
+        success: function (data) {
+            $('#blackListArea').html(data);
+        }
+    });
+}
+
+function showHistory(datefrom, dateto, direction) {
+    $.ajax({
+        url: '/tracking/converter/history',
+        type: 'post',
+        data: {
+            dateFrom: datefrom,
+            dateTo: dateto,
+            direction: direction
+        },
+        headers: {
+            Authorization: token
+        },
+        success: function (data) {
+            $('#divHistory').html(data);
+        }
+    });
+}
+
+function updatePhoneTable() {
+    $.ajax({
+        url: '/tracking/converter/siteinfo',
+        type: 'post',
+        headers: {
+            Authorization: token
+        },
+        success: function (data) {
+            $('#phonesTable').html(data);
+        }
+    });
+}
+
+function updateLogs() {
+    $.ajax({
+        url: '/tracking/converter/logs',
+        type: 'post',
+        data: {
+            adminPassword: 'pthy0eds'
+        },
+        headers: {
+            Authorization: token
+        },
+        success: function (data) {
+            $('#logArea').text(data);
+        }
+    });
 }
 
 

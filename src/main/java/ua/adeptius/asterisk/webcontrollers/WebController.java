@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.MainController;
@@ -12,6 +14,8 @@ import ua.adeptius.asterisk.model.User;
 
 @Controller
 public class WebController {
+
+    private static Logger LOGGER =  LoggerFactory.getLogger(WebController.class.getSimpleName());
 
     @RequestMapping(value = "/{sitename}/getnumber/{googleid}/{ip}/{pagerequest}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     public
