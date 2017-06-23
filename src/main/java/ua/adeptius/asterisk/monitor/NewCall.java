@@ -29,11 +29,11 @@ public class NewCall {
     @JsonIgnore
     private String firstCall;
 
-    private Call.CallState callState;
-    private Call.Direction direction;
+    private CallState callState;
+    private Direction direction;
 
     @JsonIgnore
-    private Call.Service service;
+    private Service service;
 
     @JsonIgnore
     private User user;
@@ -66,7 +66,7 @@ public class NewCall {
 
 
     public enum CallState{
-        ANSWERED, BUSY, FAIL
+        ANSWERED, BUSY, FAIL, NOANSWER
     }
 
     public enum Direction{
@@ -142,27 +142,27 @@ public class NewCall {
         this.firstCall = firstCall;
     }
 
-    public Call.CallState getCallState() {
+    public CallState getCallState() {
         return callState;
     }
 
-    public void setCallState(Call.CallState callState) {
+    public void setCallState(CallState callState) {
         this.callState = callState;
     }
 
-    public Call.Direction getDirection() {
+    public Direction getDirection() {
         return direction;
     }
 
-    public void setDirection(Call.Direction direction) {
+    public void setDirection(Direction direction) {
         this.direction = direction;
     }
 
-    public Call.Service getService() {
+    public Service getService() {
         return service;
     }
 
-    public void setService(Call.Service service) {
+    public void setService(Service service) {
         this.service = service;
     }
 

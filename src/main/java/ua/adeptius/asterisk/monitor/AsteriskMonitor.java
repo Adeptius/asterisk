@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.monitor;
 
+import org.asteriskjava.manager.action.ManagerAction;
 import org.asteriskjava.manager.event.*;
+import org.asteriskjava.manager.response.ManagerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +38,12 @@ public class AsteriskMonitor implements ManagerEventListener {
             TimeoutException, InterruptedException {
         managerConnection.addEventListener(this);
         managerConnection.login();
+        //TODO сделать сюда отправку екшенов
         managerConnection.sendAction(new StatusAction());
+    }
+
+    public ManagerResponse sendAction(ManagerAction action, long timeout) throws IOException, TimeoutException {
+        return managerConnection.sendAction(action, timeout);
     }
 
     public void onManagerEvent(ManagerEvent event) {
@@ -87,8 +94,6 @@ public class AsteriskMonitor implements ManagerEventListener {
             VarSetEvent varSetEvent = (VarSetEvent) event;
             String key = varSetEvent.getVariable();
             String value = varSetEvent.getValue();
-
-
             if (
                     key.equals("ARG3")
                     || key.equals("ARG1")

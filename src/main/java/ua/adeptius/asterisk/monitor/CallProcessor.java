@@ -17,15 +17,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.monitor.Call.CallState.ANSWERED;
-import static ua.adeptius.asterisk.utils.logging.LogCategory.ENDED_CALL;
+import static ua.adeptius.asterisk.monitor.NewCall.CallState.ANSWERED;
+import static ua.adeptius.asterisk.monitor.NewCall.CallState.BUSY;
+import static ua.adeptius.asterisk.monitor.NewCall.CallState.NOANSWER;
+import static ua.adeptius.asterisk.monitor.NewCall.Service.TELEPHONY;
+import static ua.adeptius.asterisk.monitor.NewCall.Service.TRACKING;
 
 @SuppressWarnings("Duplicates")
 public class CallProcessor {
 
     private static Logger LOGGER = LoggerFactory.getLogger(CallProcessor.class.getSimpleName());
 
-//    public static HashMap<String, Call> calls = new HashMap<>();
+    //    public static HashMap<String, Call> calls = new HashMap<>();
     public static HashMap<String, NewCall> calls = new HashMap<>();
     private static HashMap<String, User> phonesAndUsers = new HashMap<>();
 
@@ -48,10 +51,10 @@ public class CallProcessor {
 
             // Ищем связь с сервисом и определяем направление звонка
             User user = phonesAndUsers.get(to);
-            Call.Direction direction = Call.Direction.IN;
+            NewCall.Direction direction = NewCall.Direction.IN;
             if (user == null) {
                 user = phonesAndUsers.get(from);
-                direction = Call.Direction.OUT;
+                direction = NewCall.Direction.OUT;
                 if (user == null) {
                     // Связь звонящих номеров с каким-либо сервисом не обнаружена
                     // Следовательно дальше не идём
@@ -73,14 +76,15 @@ public class CallProcessor {
             calls.put(newChannelEvent.getUniqueId(), newCall);
             LOGGER.trace("Поступил новый звонок {} ->", newCall.getCalledFrom());
             print(event);
+            printMap();
             System.out.println("НОВЫЙ ЗВОНОК!!!\n\n\n");
 //            System.out.println(event);
-        }else {
+        } else {
             //Если это событие не новый звонок - то убеждаемся по его id что соответствующий обьект Call c таким ID уже существует.
             //А если это прилетело что-то непонятное - дальше не идём и не захламляем логи.
 
             NewCall newCall = calls.get(id);
-            if (newCall == null){
+            if (newCall == null) {
                 return;
             }
             newCall.addEvent(event);
@@ -99,14 +103,13 @@ public class CallProcessor {
 //                    call.setCallState(BUSY);
 //                    call.setAnswered(0);
 //                }
-                //            System.out.println(event);
+            //            System.out.println(event);
 //                ВСЁ что до - не правильно! нужно считать отвеченным только
 //                varSetEvent DIALSTATUS UP
 
 
 //            } else
-                if (event instanceof NewExtenEvent) {
-
+            if (event instanceof NewExtenEvent) {
                 NewExtenEvent newExtenEvent = (NewExtenEvent) event;
                 String redirectedTo = newExtenEvent.getAppData();
                 if (redirectedTo.contains(",")) {
@@ -115,28 +118,75 @@ public class CallProcessor {
                     redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1);
                 }
                 newCall.setCalledTo(redirectedTo);
-                LOGGER.trace("Звонок перенаправлен на {} -> {}", newCall.getCalledFrom(),newCall.getCalledTo());
+                LOGGER.trace("Звонок перенаправлен на {} -> {}", newCall.getCalledFrom(), newCall.getCalledTo());
                 //            System.out.println(event);
 
-                    System.out.println("РЕДИРЕКТ!!!!\n\n\n");
+//                sip->gsm - newExtenEvent.getAppData(); режется SIP/Intertelekom_main/0934027182,300,Tt
+                //Можно определять редирект по VarSetEvent OUTNUM, DIAL_NUMBER
+
+//                asterisk->sip->gsm newExtenEvent.getAppData();режется SIP/Intertelekom_main/0934027182,300,Tt
+                //Можно определять редирект по VarSetEvent OUTNUM, DIAL_NUMBER
+
+
+                System.out.println("РЕДИРЕКТ!!!!\n\n\n");
 
             } else if (event instanceof VarSetEvent) {
                 VarSetEvent varSetEvent = (VarSetEvent) event;
-                if (varSetEvent.getVariable().equals("DIALSTATUS")){
-                    System.out.println("!!!DIALSTATUS="+varSetEvent.getValue());
-                    //TODO записать время
+//TODO Явно обозначит какие переменные используются и описать их
+                if (varSetEvent.getVariable().equals("DIALSTATUS")) {
+                    System.out.println("!!!DIALSTATUS=" + varSetEvent.getValue());
+
+                    String dialStatus = varSetEvent.getValue();
+                    if ("ANSWER".equals(dialStatus)){ // Кто-то взял трубку
+                        // диалстатус бывает второй раз по завершению звонка, а он нам не нужен.
+                        if (newCall.getAnsweredDate() == null){
+                            newCall.setAnsweredDate(event.getDateReceived());
+                            newCall.setCallState(ANSWERED);
+                        }
+                    }else {
+                        // добавить все остальные типы состояния
+                        if ("BUSY".equals(dialStatus)){
+                            newCall.setCallState(BUSY);
+                        }else if ("NOANSWER".equals(dialStatus)){
+                            newCall.setCallState(NOANSWER);
+                        }else {
+                            System.out.println("ДОБАВИТЬ СТАТУС ЗВОНКА: "+dialStatus);
+                        }
+                    }
+                    //TODO добавить CANCEL - это если звонить на внешний с редиректом на сип и сип не взял трубку за 90 сек
                 }
                 return;
 
-            } if (event instanceof HangupEvent) { // окончание звонка
+//                sip->gsm, asterisk->sip->gsm
+//                    MIXMONITOR_FILENAME - есть всё /var/spool/asterisk/monitor/2017/06/23/out-0934027182-2001037-20170623-125924-1498211964.258.wav
+//                    Можно определять редирект по OUTNUM, DIAL_NUMBER, MACRO_EXTEN(сложно),
+//                LOCAL(ARG2)',value='0934027182' LOCAL(ARG3)',value='0934027182'
+
+//                 DIALSTATUS - отпределяет состояние звонка   (BUSY) DIALSTATUS=NOANSWER
+
+//                В конце показывает
+
+
+//                VarSetEvent[variable='ANSWEREDTIME',value='10',]
+//                VarSetEvent[variable='DIALEDTIME',value='18',]
+
+
+            }
+            if (event instanceof HangupEvent) { // окончание звонка
                 HangupEvent hangupEvent = (HangupEvent) event;
                 calls.remove(id);
+                newCall.setEndedDate(event.getDateReceived());
 
+                // всегда определяет конец разговора не содержит никакой инфы при звонке sip->gsm
 
                 if ("s".equals(newCall.getCalledTo())) {
                     LOGGER.trace("{} не дождался совершения исходящего звонка", newCall.getCalledTo());
-                    return;
+                    return; // обязательно нужен этот отбойник для фильтрования второго звонка при звонке снаружи на сип (gsm - outer- sip)
                 }
+
+
+                // тут надо выяснять состояние
+
 //                if ("Call Rejected".equals(hangupEvent.getCauseTxt())) {
 //                    newCall.setCallState(Call.CallState.BUSY);
 //                }
@@ -149,15 +199,14 @@ public class CallProcessor {
 //                } else {
 //                    call.setEnded(0);
 //                }
-//                LOGGER.trace("Звонок перенаправлен на {} -> {}", call.getFrom(), call.getTo());
-                //            System.out.println(event);
 
 
-//                detectService(call);
-                LOGGER.trace("Завершен разговор {} c {}", newCall.getCalledFrom(),newCall.getCalledTo());
+                detectService(newCall);
+                LOGGER.trace("Завершен разговор {} c {}", newCall.getCalledFrom(), newCall.getCalledTo());
 
 //                processCall(call);
                 LOGGER.trace("Айдишников<->Звонков в мапе {}", calls.size());
+                printMap();
                 System.out.println("КОНЕЦ!!!!\n\n\n");
 
                 System.out.println(newCall);
@@ -165,8 +214,12 @@ public class CallProcessor {
         }
     }
 
+    private static void printMap(){
+        System.out.println("-----СОДЕРЖИМОЕ МАПЫ-----");
+        calls.forEach((s, newCall) -> System.out.println("id "+s+" call: "+newCall.getCalledFrom() + "->" + newCall.getCalledTo()));
+    }
 
-    private static void print(ManagerEvent event){
+    private static void print(ManagerEvent event) {
         String s = event.toString();
         s = s.substring(31);
         if (s.contains("timestamp=null,")) {
@@ -185,7 +238,7 @@ public class CallProcessor {
         s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
         s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
         s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
-        s = removeRegexFromString(s, "uniqueid='\\d*.\\d*',");
+//        s = removeRegexFromString(s, "uniqueid='\\d*.\\d*',");
 
 
         System.out.println(s);
@@ -200,16 +253,16 @@ public class CallProcessor {
         return log;
     }
 
-    private static void detectService(Call call) {
+    private static void detectService(NewCall call) {
         User user = call.getUser();
 
-        String from = call.getFrom();
-        String to = call.getTo();
+        String from = call.getCalledFrom();
+        String to = call.getCalledTo();
 
         if (user.getTracking() != null) {
             List<String> list = user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
             if (list.contains(to) || list.contains(from)) {
-                call.setService(Call.Service.TRACKING);
+                call.setService(TRACKING);
                 return;
             }
         }
@@ -218,21 +271,21 @@ public class CallProcessor {
             List<String> inner = user.getTelephony().getInnerPhonesList();
             List<String> outer = user.getTelephony().getOuterPhonesList();
             if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)) {
-                call.setService(Call.Service.TELEPHONY);
+                call.setService(TELEPHONY);
             }
         }
     }
 
-/**
-    private static void processCall(Call call) {
-        System.out.println(call);
-        if (call.getService() == Call.Service.TRACKING) {
-            MainController.onNewSiteCall(call);
-        } else if (call.getService() == Call.Service.TELEPHONY) {
-            MainController.onNewTelephonyCall(call);
-        }
-    }
-**/
+    /**
+     * private static void processCall(Call call) {
+     * System.out.println(call);
+     * if (call.getService() == Call.Service.TRACKING) {
+     * MainController.onNewSiteCall(call);
+     * } else if (call.getService() == Call.Service.TELEPHONY) {
+     * MainController.onNewTelephonyCall(call);
+     * }
+     * }
+     **/
 
     public static String addZero(String source) {
         try {
@@ -255,7 +308,6 @@ public class CallProcessor {
             numbers.forEach(s -> phonesAndUsers.put(s, user));
         }
     }
-
 
 
     /**
