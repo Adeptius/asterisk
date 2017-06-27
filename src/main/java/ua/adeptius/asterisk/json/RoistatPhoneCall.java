@@ -2,9 +2,12 @@ package ua.adeptius.asterisk.json;
 
 
 import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.monitor.NewCall;
 
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
+
+import static ua.adeptius.asterisk.monitor.NewCall.CallState.ANSWER;
 
 public class RoistatPhoneCall {
 
@@ -31,12 +34,12 @@ public class RoistatPhoneCall {
     public RoistatPhoneCall() {
     }
 
-    public RoistatPhoneCall(Call call) {
+    public RoistatPhoneCall(NewCall call) {
 //        Набранный номер
-        this.callee = call.getTo();
+        this.callee = call.getCalledTo();
 
 //        Номер клиента
-        this.caller = call.getFrom();
+        this.caller = call.getCalledFrom();
 
 //      null or string Номер визита
         this.visit_id = null;
@@ -48,7 +51,7 @@ public class RoistatPhoneCall {
         this.order_id = null;
 
 //        Продолжительность звонка (в секундах)
-        this.duration = call.getEnded() + call.getAnswered(); // полное время звонка
+        this.duration = call.getSecondsFullTime(); // полное время звонка
 
 //        Ссылка на файл записи. В api отсутствует
         this.file_url = "http://78.159.55.63/1.mp3"; //FIXME
@@ -64,13 +67,13 @@ public class RoistatPhoneCall {
 //        TORTURE – входящий вызов был перенаправлен на автоответчик.
 
 //        Мои типы
-//        ANSWERED, BUSY, FAIL
-        Call.CallState state = call.getCallState();
-        if (state == Call.CallState.ANSWERED) {
+//        ANSWER, BUSY, FAIL
+        NewCall.CallState state = call.getCallState();
+        if (state == ANSWER) {
             this.status = "ANSWER";
-        } else if (state == Call.CallState.BUSY) {
+        } else if (state == NewCall.CallState.BUSY) {
             this.status = "BUSY";
-        } else if (state == Call.CallState.FAIL) {
+        } else if (state == NewCall.CallState.FAIL) {
             this.status = "CONGESTION";
         }
 
@@ -81,7 +84,7 @@ public class RoistatPhoneCall {
         this.yandex_client_id = null;
 
 //        Дата и время создания записи о звонке (в формате UTC0)
-        this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss+0300").format(new GregorianCalendar().getTimeInMillis()).replaceFirst(" ", "T");
+        this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss+0300").format(call.getCalledMillis()).replaceFirst(" ", "T");
 
 //        Сохранение лида в CRM: 0 - не сохранять 1 - сохранять.
         this.save_to_crm = "0";
@@ -90,7 +93,7 @@ public class RoistatPhoneCall {
         this.comment = null;
 
 //      Время разговора
-        this.answer_duration = call.getAnswered();
+        this.answer_duration = call.getSecondsTalk();
 
         this.roistatApiKey = call.getUser().getRoistatApiKey();
         this.roistatProjectNumber = call.getUser().getRoistatProjectNumber();

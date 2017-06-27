@@ -11,6 +11,7 @@ import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.monitor.NewCall;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,7 +58,7 @@ public class HistoryController {
         String login = user.getLogin();
         try {
             LOGGER.debug("{}: запрос истории c {} по {}, направление {}", login, dateFrom, dateTo, direction);
-            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction);
+            List<NewCall> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction);
             return new ObjectMapper().writeValueAsString(calls);
         } catch (Exception e) {
             LOGGER.error(login +": ошибка запроса истории c "+dateFrom+" по "+dateTo+", направление "+direction, e);

@@ -1,36 +1,29 @@
 package ua.adeptius.asterisk.monitor;
 
 
-import org.asteriskjava.manager.event.ManagerEvent;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.model.User;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class NewCall {
 
-    @JsonIgnore
-    private ArrayList<ManagerEvent> events = new ArrayList<>(300);
 
-    private String calledFrom;
-    private String calledTo;
-    private String asteriskId;
-
-    private Date calledDate;
-    private Date answeredDate;
-    private Date endedDate;
-
-    //TODO нужны методы получения дат в текстовом формате для БД и для сайта
-
-    // Нужно для опеределения кому принадлежит тот номер на которы позвонил посетитель
+    // Нужно для опеределения кому принадлежит тот номер на который позвонил посетитель
     // а не на кого он на самом деле попал. Для трекинга
     @JsonIgnore
     private String firstCall;
+    private String calledFrom;
+    private String calledTo;
 
     private CallState callState;
     private Direction direction;
+
+    private String asteriskId;
+    private String utm = "";
+    private String googleId = "";
 
     @JsonIgnore
     private Service service;
@@ -38,52 +31,93 @@ public class NewCall {
     @JsonIgnore
     private User user;
 
-
+    private String calledDate;
+    private long calledMillis;
+    private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
+    //    private int secondsTalk;
+    private int secondsFullTime;
 
 
     public long getCalledMillis() {
-        return calledDate.getTime();
+        return calledMillis;
     }
 
-    public long getAnsweredMillis() {
-        return answeredDate.getTime();
+    public String getCalledDate() { // что бы ускорить - создать стринговую переменную в которую будет ложится строка из БД для отдачи на сайт
+        return calledDate;
+//        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(getCalledMillis()));
     }
 
-    public long getEndedMillis() {
-        return endedDate.getTime();
+    public void setCalledDate(Date calledDate) {
+        calledMillis = calledDate.getTime();
+        this.calledDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calledMillis);
     }
 
-    public String getDateForDb() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(getCalledDate());
+    public void setCalledDate(String calledDate) throws Exception {
+        this.calledDate = calledDate;
+        calledMillis = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(calledDate).getTime();
     }
 
-
-    public void addEvent(ManagerEvent event){
-        events.add(event);
+    public void setAnsweredDate(Date answeredDate) { // Задаётся в CallProcessor
+        if (secondsToAnswer == -1) { // защита, что бы данные вводились только 1 раз.
+            secondsToAnswer = (int) ((answeredDate.getTime() - getCalledMillis()) / 1000);
+        }
     }
 
-
-
-
-    public enum CallState{
-        ANSWERED, BUSY, FAIL, NOANSWER
+    public void setSecondsToAnswer(int secondsToAnswer) { // Задаётся при чтении с БД
+        this.secondsToAnswer = secondsToAnswer;
     }
 
-    public enum Direction{
+    public int getSecondsToAnswer() {
+        return secondsToAnswer==-1? secondsFullTime : secondsToAnswer;
+    }
+
+    public int getSecondsTalk() { // Тут высчитывается время разговора
+        if (callState == CallState.ANSWER) {
+            return getSecondsFullTime() - getSecondsToAnswer();
+        } else {
+            return 0;
+        }
+    }
+
+    public void setEndedDate(Date endedDate) { // Задаётся в CallProcessor
+        secondsFullTime = (int) ((endedDate.getTime() - getCalledMillis()) / 1000);
+    }
+
+    public void setSecondsFullTime(int secondsFullTime) { // Задаётся при чтении с БД
+        this.secondsFullTime = secondsFullTime;
+    }
+
+    public int getSecondsFullTime() {
+        return secondsFullTime;
+    }
+
+    public enum CallState {
+        ANSWER, BUSY, FAIL, NOANSWER
+    }
+
+    public enum Direction {
         IN, OUT
     }
 
-    public enum Service{
+    public enum Service {
         TRACKING, TELEPHONY
     }
 
-
-    public ArrayList<ManagerEvent> getEvents() {
-        return events;
+    public String getUtm() {
+        return utm;
     }
 
-    public void setEvents(ArrayList<ManagerEvent> events) {
-        this.events = events;
+    public void setUtm(String utm) {
+        this.utm = utm;
+    }
+
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public String getCalledFrom() {
@@ -91,7 +125,7 @@ public class NewCall {
     }
 
     public void setCalledFrom(String calledFrom) {
-        this.calledFrom = calledFrom;
+        this.calledFrom = addZero(calledFrom);
     }
 
     public String getCalledTo() {
@@ -99,7 +133,7 @@ public class NewCall {
     }
 
     public void setCalledTo(String calledto) {
-        this.calledTo = calledto;
+        this.calledTo = addZero(calledto);
     }
 
     public String getAsteriskId() {
@@ -108,30 +142,6 @@ public class NewCall {
 
     public void setAsteriskId(String asteriskId) {
         this.asteriskId = asteriskId;
-    }
-
-    public Date getCalledDate() {
-        return calledDate;
-    }
-
-    public void setCalledDate(Date calledDate) {
-        this.calledDate = calledDate;
-    }
-
-    public Date getAnsweredDate() {
-        return answeredDate;
-    }
-
-    public void setAnsweredDate(Date answeredDate) {
-        this.answeredDate = answeredDate;
-    }
-
-    public Date getEndedDate() {
-        return endedDate;
-    }
-
-    public void setEndedDate(Date endedDate) {
-        this.endedDate = endedDate;
     }
 
     public String getFirstCall() {
@@ -143,6 +153,9 @@ public class NewCall {
     }
 
     public CallState getCallState() {
+        if (callState == null){
+            return CallState.FAIL; // null если с сип позвонить на 934027182. Номер не может быть вызван.
+        }
         return callState;
     }
 
@@ -174,21 +187,34 @@ public class NewCall {
         this.user = user;
     }
 
+    public static String addZero(String source) {
+        try {
+            if (source.length() == 9 && !source.startsWith("0")) {
+                source = "0" + source;
+            }
+        } catch (Exception e) {
+//            System.out.println("Ошибка добавления нолика. Пришло " + source);
+        }
+        return source;
+    }
+
     @Override
     public String toString() {
         return "NewCall{" +
-//                "\n    events=" + events +
-                "\n    calledFrom='" + calledFrom + '\'' +
-                "\n    calledTo='" + calledTo + '\'' +
-                "\n    asteriskId='" + asteriskId + '\'' +
-                "\n    calledDate=" + calledDate +
-                "\n    answeredDate=" + answeredDate +
-                "\n    endedDate=" + endedDate +
-                "\n    firstCall='" + firstCall + '\'' +
-                "\n    callState=" + callState +
-                "\n    direction=" + direction +
-                "\n    service=" + service +
-                "\n    user=" + user.getLogin() +
+//                "\n firstCall='" + firstCall + '\'' +
+                "\n calledFrom='" + calledFrom + '\'' +
+                "\n calledTo='" + calledTo + '\'' +
+                "\n callState=" + callState +
+                "\n direction=" + direction +
+                "\n asteriskId='" + asteriskId + '\'' +
+                "\n utm='" + utm + '\'' +
+                "\n googleId='" + googleId + '\'' +
+                "\n service=" + service +
+                "\n user=" + user.getLogin() +
+                "\n calledDate='" + calledDate + '\'' +
+                "\n calledMillis=" + calledMillis +
+                "\n secondsToAnswer=" + secondsToAnswer +
+                "\n secondsFullTime=" + secondsFullTime +
                 "\n}";
     }
 }

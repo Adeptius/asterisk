@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.monitor.NewCall;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 
 import java.io.BufferedReader;
@@ -24,12 +25,12 @@ public class GoogleAnalitycs extends Thread {
 
     private static final String GOOGLE_URL = "http://www.google-analytics.com/collect";
     private User user;
-    private Call call;
+    private NewCall call;
     private String clientGoogleId;
 
 
-    public GoogleAnalitycs(Call call) {
-        this.clientGoogleId = call.getGoogleId();
+    public GoogleAnalitycs(NewCall call) {
+        this.clientGoogleId = call .getGoogleId();
         this.user = call.getUser();
         this.call = call;
     }
@@ -42,14 +43,16 @@ public class GoogleAnalitycs extends Thread {
         params.add("tid=" + userTrackId); // Tracking ID / Property ID.
         params.add("t=event"); // Hit Type.
 
-        Call.Service service = call.getService();
-        if (service == Call.Service.TRACKING){
+
+
+        NewCall.Service service = call.getService();
+        if (service == NewCall.Service.TRACKING){
             params.add("ec=calltracking"); // Category
-        }else if (service == Call.Service.TELEPHONY){
+        }else if (service == NewCall.Service.TELEPHONY){
             params.add("ec=ip_telephony"); // Category
         }
 
-        String clientGoogleID = getGoogleId(call.getFrom());
+        String clientGoogleID = getGoogleId(call.getCalledFrom());
         if (clientGoogleId.equals("")){
             params.add("cid="+clientGoogleID); // Client ID.
         }else {

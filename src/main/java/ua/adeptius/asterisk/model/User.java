@@ -166,15 +166,15 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "\n     login='" + login + '\'' +
-                "\n     password='" + password + '\'' +
-                "\n     email='" + email + '\'' +
-                "\n     trackingId='" + trackingId + '\'' +
-                "\n     roistatApiKey='" + roistatApiKey + '\'' +
-                "\n     roistatProjectNumber='" + roistatProjectNumber + '\'' +
-                "\n     tracking=" + tracking +
-                "\n     telephony=" + telephony +
-                "\n     rules=" + rules +
-                "\n}";
+                "login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", trackingId='" + trackingId + '\'' +
+                ", roistatApiKey='" + roistatApiKey + '\'' +
+                ", roistatProjectNumber='" + roistatProjectNumber + '\'' +
+                ", tracking=" + tracking +
+                ", telephony=" + telephony +
+                ", rules=" + rules +
+                '}';
     }
 }

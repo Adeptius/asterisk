@@ -24,7 +24,7 @@ public class SipConfigDao {
     private static String folder = Settings.getSetting("___sipConfigsFolder");
 
     public static void writeToFile(SipConfig sipConfig) throws Exception {
-        LOGGER.trace("Запись SIP конфига в файл {}", sipConfig.getNumber());
+        LOGGER.trace("Запись SIP конфига в файл {}", sipConfig.getNumber()); //FIXME почему-то при каждом запуске создаёт файлы
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + sipConfig.getNumber() + ".conf"));
             writer.write(sipConfig.getConfig());
         writer.close();
@@ -37,6 +37,8 @@ public class SipConfigDao {
         Path path = Paths.get(folder);
 
         List<File> list = Files.walk(path).filter(Files::isRegularFile).map(Path::toFile).collect(Collectors.toList());
+
+        Files.walk(path).forEach(path1 -> System.out.println(path1.getFileName()));
 
         List<String> files = new ArrayList<>(); // Текущий список имён файлов
 

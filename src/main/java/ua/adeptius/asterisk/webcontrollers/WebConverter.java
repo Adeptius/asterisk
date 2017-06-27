@@ -15,6 +15,7 @@ import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.monitor.NewCall;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -95,7 +96,7 @@ public class WebConverter {
         }
 
         try {
-            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(user.getLogin(), dateFrom, dateTo, direction.toString());
+            List<NewCall> calls = MySqlStatisticDao.getStatisticOfRange(user.getLogin(), dateFrom, dateTo, direction);
 
             Collections.reverse(calls);
             StringBuilder builder = new StringBuilder();
@@ -112,23 +113,23 @@ public class WebConverter {
                             "        <th width=\"8%\">Запись</th>\n" +
                             "    </tr>\n" +
                             "    \n");
-            for (Call call : calls) {
-                builder.append("<tr>\n            ");
-                builder.append("<td>" + call.getCalled() + "</td>");
-                builder.append("<td>" + call.getFrom() + "</td>");
-                builder.append("<td>" + call.getTo() + "</td>");
-                builder.append("<td>" + call.getCallState() + "</td>");
-                builder.append("<td>" + call.getAnswered() + "</td>");
-                builder.append("<td>" + call.getEnded() + "</td>");
-                builder.append("<td>" + call.getGoogleId() + "</td>");
-                builder.append("<td>" + call.getUtm().replaceAll("&", " ") + "</td>");
-                if (call.getCallState() == Call.CallState.ANSWERED) {
-                    builder.append("<td>" + getButton(call.getCalled(), call.getId()) + "</td>");
-                } else {
-                    builder.append("<td>" + "</td>");
-                }
-                builder.append("</tr>\n");
-            }
+//            for (Call call : calls) {
+//                builder.append("<tr>\n            ");
+//                builder.append("<td>" + call.getCalled() + "</td>");
+//                builder.append("<td>" + call.getFrom() + "</td>");
+//                builder.append("<td>" + call.getTo() + "</td>");
+//                builder.append("<td>" + call.getCallState() + "</td>");
+//                builder.append("<td>" + call.getAnswered() + "</td>");
+//                builder.append("<td>" + call.getEnded() + "</td>");
+//                builder.append("<td>" + call.getGoogleId() + "</td>");
+//                builder.append("<td>" + call.getUtm().replaceAll("&", " ") + "</td>");
+//                if (call.getCallState() == Call.CallState.ANSWERED) {
+//                    builder.append("<td>" + getButton(call.getCalled(), call.getId()) + "</td>");
+//                } else {
+//                    builder.append("<td>" + "</td>");
+//                }
+//                builder.append("</tr>\n");
+//            }
             return builder.toString();
         } catch (Exception e) {
             return "Error: internal Error";

@@ -20,6 +20,7 @@ import ua.adeptius.asterisk.monitor.PhonesWatcher;
 import javax.annotation.PostConstruct;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
@@ -41,9 +42,40 @@ public class Main {
 
     @PostConstruct
     private void init() {
-        LOGGER.info("Начало инициализации модели");
         Settings.load(this.getClass());
 
+        boolean itsLinux = "root".equals(System.getenv().get("USER"));
+        boolean firstStart = Settings.getSettingBoolean("firstStart");
+
+        //TODO добавить инициализацию переменных для локального запуска и удалённого
+        //TODO при локальном запуске не писать в БД или пользоватся локальной бд
+
+        if (itsLinux){ // это линукс
+            Settings.setSetting("___forwardingRulesFolder","/var/www/html/admin/modules/core/etc/clients/");
+            Settings.setSetting("___sipConfigsFolder","/etc/asterisk/sip_clients/");
+
+        }else { // Это винда
+            Settings.setSetting("___forwardingRulesFolder","D:\\Java\\Projects\\settings Asterisk\\rules\\");
+            Settings.setSetting("___sipConfigsFolder","D:\\Java\\Projects\\settings Asterisk\\sips\\");
+        }
+
+        if (firstStart && itsLinux) {
+            Settings.setSetting("firstStart", "false");
+            System.out.println("------------------- TOMCAT RESTARTING NOW!!! -------------------");
+            try {
+                String[] cmd = { "/bin/sh", "-c", "pkill java; sleep 4; sh /home/adeptius/tomcat/apache-tomcat-9.0.0.M17/bin/startup.sh" };
+                Runtime.getRuntime().exec(cmd);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else {
+            System.out.println("------------------- TOMCAT READY!!! -------------------");
+            afterTomcatRebootInit();
+        }
+    }
+
+    private void afterTomcatRebootInit(){
+        LOGGER.info("Начало инициализации модели");
         try {
             LOGGER.info("MYSQL: Инициализация");
             MySqlDao.init();
@@ -167,6 +199,7 @@ public class Main {
         MyLogger.log(DB_OPERATIONS, "Сервер был загружен в " + calendar.get(Calendar.HOUR_OF_DAY) + " часов, " + calendar.get(Calendar.MINUTE) + " минут.");
         LOGGER.info("Сервер запущен!");
     }
+
 
     private void initMonitor() {
         LOGGER.info("Запуск мониторинга астериска");

@@ -11,15 +11,16 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.json.RoistatPhoneCall;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.monitor.NewCall;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class RoistatCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RoistatPhoneCall.class.getSimpleName());
-    private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<NewCall> blockingQueue = new LinkedBlockingQueue<>();
 
-    public void send(Call call) {
+    public void send(NewCall call) {
         try {
             blockingQueue.put(call);
         } catch (InterruptedException ignored) {
@@ -36,7 +37,7 @@ public class RoistatCallSender extends Thread {
     public void run() {
         while (true) {
             try {
-                Call call = blockingQueue.take();
+                NewCall call = blockingQueue.take();
                 User user = call.getUser();
                 String roistatApi = user.getRoistatApiKey();
                 String roistatProject = user.getRoistatProjectNumber();

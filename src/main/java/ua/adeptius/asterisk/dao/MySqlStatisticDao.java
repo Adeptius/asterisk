@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.monitor.NewCall;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.sql.Connection;
@@ -42,7 +43,7 @@ public class MySqlStatisticDao extends MySqlDao {
         throw new Exception("Ошибка при загрузке таблиц статистики с БД");
     }
 
-    public static List<Call> getStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
+    public static List<NewCall> getStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
         LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
         String sql = "SELECT * FROM " + user +
                 " WHERE direction = '" + direction +
@@ -52,17 +53,17 @@ public class MySqlStatisticDao extends MySqlDao {
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
-            List<Call> statisticList = new ArrayList<>();
+            List<NewCall> statisticList = new ArrayList<>();
             while (set.next()) {
-                Call call = new Call();
-                call.setCalled(set.getString("date"));
-                call.setDirection(Call.Direction.valueOf(set.getString("direction")));
-                call.setFrom(set.getString("from"));
-                call.setTo(set.getString("to"));
-                call.setCallState(Call.CallState.valueOf(set.getString("callState")));
-                call.setAnswered(set.getInt("time_to_answer"));
-                call.setEnded(set.getInt("talking_time"));
-                call.setId(set.getString("call_id"));
+                NewCall call = new NewCall();
+                call.setCalledDate(set.getString("calledDate"));
+                call.setDirection(NewCall.Direction.valueOf(set.getString("direction")));
+                call.setCalledFrom(set.getString("calledFrom"));
+                call.setCalledTo(set.getString("calledTo"));
+                call.setCallState(NewCall.CallState.valueOf(set.getString("callState")));
+                call.setSecondsToAnswer(set.getInt("secondsToAnswer"));
+                call.setSecondsFullTime(set.getInt("secondsFullTime"));
+                call.setAsteriskId(set.getString("call_id"));
                 call.setGoogleId(set.getString("google_id"));
                 call.setUtm(set.getString("utm"));
                 statisticList.add(call);
@@ -94,17 +95,17 @@ public class MySqlStatisticDao extends MySqlDao {
         for (String s : tablesToCreate) {
             LOGGER.trace("Создание таблицы {}", s);
             String sql = "CREATE TABLE `" + s + "` (  " +
-                    "`date` VARCHAR(20) NOT NULL,  " +
+                    "`calledDate` VARCHAR(20) NOT NULL,  " +
                     "`direction` VARCHAR(3) NOT NULL,  " +
-                    "`from` VARCHAR(45) NULL,  " +
-                    "`to` VARCHAR(45) NULL,  " +
+                    "`calledFrom` VARCHAR(45) NULL,  " +
+                    "`calledTo` VARCHAR(45) NULL,  " +
                     "`callState` VARCHAR(8) NOT NULL,  " +
-                    "`time_to_answer` INT NULL,  " +
-                    "`talking_time` INT NULL,  " +
+                    "`secondsToAnswer` INT NULL,  " +
+                    "`secondsFullTime` INT NULL,  " +
                     "`call_id` VARCHAR(45) NULL,  " +
                     "`google_id` VARCHAR(45) NULL,  " +
                     "`utm` VARCHAR(600) NULL,  " +
-                    "PRIMARY KEY (`date`));";
+                    "PRIMARY KEY (`calledDate`));";
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
@@ -116,24 +117,24 @@ public class MySqlStatisticDao extends MySqlDao {
         }
     }
 
-    public static void saveCall(Call call) {
-        LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", call.getUser().getLogin(), call.getFrom(), call.getTo());
+    public static void saveCall(NewCall call) {
+        LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", call.getUser().getLogin(), call.getCalledFrom(), call.getCalledTo());
         String sql = "INSERT INTO `" + call.getUser().getLogin() + "` VALUES ('"
-                + call.getCalled() + "', '"
+                + call.getCalledDate() + "', '"
                 + call.getDirection() + "', '"
-                + call.getFrom() + "', '"
-                + call.getTo() + "', '"
+                + call.getCalledFrom() + "', '"
+                + call.getCalledTo() + "', '"
                 + call.getCallState() + "', '"
-                + call.getAnswered() + "', '"
-                + call.getEnded() + "', '"
-                + call.getId() + "', '"
+                + call.getSecondsToAnswer() + "', '"
+                + call.getSecondsFullTime() + "', '"
+                + call.getAsteriskId() + "', '"
                 + call.getGoogleId() + "', '"
                 + call.getUtm() + "');";
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception e) {
-            LOGGER.error(call.getUser().getLogin()+": ошибка сохранения звонка "+call.getFrom()+" -> "+call.getTo(), e);
+            LOGGER.error(call.getUser().getLogin()+": ошибка сохранения звонка "+call.getCalledFrom()+" -> "+call.getCalledTo(), e);
             log(DB_OPERATIONS, call.getUser().getLogin() + ": Ошибка при сохранении отчета в БД ");
         }
     }

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.Call;
+import ua.adeptius.asterisk.monitor.NewCall;
 
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -17,9 +18,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GoogleAnalitycsCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(GoogleAnalitycsCallSender.class.getSimpleName());
-    private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<NewCall> blockingQueue = new LinkedBlockingQueue<>();
 
-    public void send(Call call) {
+    public void send(NewCall call) {
         try {
             blockingQueue.put(call);
         } catch (InterruptedException ignored) {
@@ -36,8 +37,8 @@ public class GoogleAnalitycsCallSender extends Thread {
     public void run() {
         while (true) {
             try {
-                Call call = blockingQueue.take();
-                if (call.getDirection() == Call.Direction.IN && !call.getUser().getTrackingId().equals("")) {
+                NewCall call = blockingQueue.take();
+                if (call.getDirection() == NewCall.Direction.IN && !call.getUser().getTrackingId().equals("")) {
                     sendReport(call);
                 }
             } catch (InterruptedException ignored) {
@@ -48,7 +49,7 @@ public class GoogleAnalitycsCallSender extends Thread {
 
 
 
-    private void sendReport(Call call) {
+    private void sendReport(NewCall call) {
         User user = call.getUser();
         String userGoogleAnalitycsId = user.getTrackingId();
         String clientGoogleId = call.getGoogleId();
@@ -60,15 +61,15 @@ public class GoogleAnalitycsCallSender extends Thread {
         map.put("ea", "new call");// Event
 //          map.put("el", call.getDirection()); // Label
 
-        Call.Service service = call.getService();
-        if (service == Call.Service.TRACKING) {
+        NewCall.Service service = call.getService();
+        if (service == NewCall.Service.TRACKING) {
             map.put("ec", "calltracking"); // Category
-        } else if (service == Call.Service.TELEPHONY) {
+        } else if (service == NewCall.Service.TELEPHONY) {
             map.put("ec", "ip_telephony"); // Category
         }
 
         if (clientGoogleId.equals("")) {
-            map.put("cid", getGoogleId(call.getFrom())); // Client ID.
+            map.put("cid", getGoogleId(call.getCalledFrom())); // Client ID.
         } else {
             map.put("cid", clientGoogleId); // Client ID.
         }

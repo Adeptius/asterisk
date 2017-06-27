@@ -8,6 +8,7 @@ import ua.adeptius.asterisk.json.RoistatPhoneCall;
 import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.monitor.NewCall;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
 import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
@@ -94,7 +95,7 @@ public class MainController {
         throw new RuntimeException("Телефон " + number + " не найден");
     }
 
-    public static void onNewSiteCall(Call call) {
+    public static void onNewSiteCall(NewCall call) {
         Phone phone = getPhoneByNumber(call.getFirstCall());
         call.setUtm(phone.getUtmRequest());
         call.setGoogleId(phone.getGoogleId());
@@ -104,7 +105,7 @@ public class MainController {
         MySqlStatisticDao.saveCall(call);
     }
 
-    public static void onNewTelephonyCall(Call call) {
+    public static void onNewTelephonyCall(NewCall call) {
         googleAnalitycsCallSender.send(call);
         roistatCallSender.send(call);
         MySqlStatisticDao.saveCall(call);
