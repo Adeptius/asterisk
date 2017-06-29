@@ -11,17 +11,17 @@ import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.AsteriskMonitor;
-import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.monitor.DailyCleaner;
+import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
-import ua.adeptius.asterisk.monitor.PhonesWatcher;
 
 import javax.annotation.PostConstruct;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Map;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
@@ -30,9 +30,6 @@ public class Main {
 
     public static AsteriskMonitor monitor;
     private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
-
-//    @Autowired
-//    NewTestDao newTestDao;
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
@@ -46,22 +43,22 @@ public class Main {
 
         boolean itsLinux = "root".equals(System.getenv().get("USER"));
         boolean firstStart = Settings.getSettingBoolean("firstStart");
-
-        //TODO добавить инициализацию переменных для локального запуска и удалённого
-        //TODO при локальном запуске не писать в БД или пользоватся локальной бд
+        LOGGER.info("Сервер загружается");
 
         if (itsLinux){ // это линукс
+            LOGGER.info("OS Linux");
             Settings.setSetting("___forwardingRulesFolder","/var/www/html/admin/modules/core/etc/clients/");
             Settings.setSetting("___sipConfigsFolder","/etc/asterisk/sip_clients/");
 
         }else { // Это винда
+            LOGGER.info("OS Windows");
             Settings.setSetting("___forwardingRulesFolder","D:\\Java\\Projects\\settings Asterisk\\rules\\");
             Settings.setSetting("___sipConfigsFolder","D:\\Java\\Projects\\settings Asterisk\\sips\\");
         }
 
         if (firstStart && itsLinux) {
             Settings.setSetting("firstStart", "false");
-            System.out.println("------------------- TOMCAT RESTARTING NOW!!! -------------------");
+            LOGGER.info("------------------- TOMCAT RESTARTING NOW!!! -------------------");
             try {
                 String[] cmd = { "/bin/sh", "-c", "pkill java; sleep 4; sh /home/adeptius/tomcat/apache-tomcat-9.0.0.M17/bin/startup.sh" };
                 Runtime.getRuntime().exec(cmd);
@@ -69,7 +66,7 @@ public class Main {
                 e.printStackTrace();
             }
         }else {
-            System.out.println("------------------- TOMCAT READY!!! -------------------");
+            LOGGER.info("------------------- TOMCAT RESTARTING NOW!!! -------------------");
             afterTomcatRebootInit();
         }
     }
@@ -179,6 +176,7 @@ public class Main {
         // Загрузка наблюдателя. Только для сайтов
         new PhonesWatcher();
         new DailyCleaner();
+        new ConnectionKeeper();
 
 
         Thread thread = new Thread(() -> initMonitor());

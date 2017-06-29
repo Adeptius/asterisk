@@ -50,9 +50,10 @@ public class HelloManager {
         RedirectAction action = new RedirectAction();
         action.setChannel(chanel);
         action.setContext("from-internal");
-        action.setExten("2001039");
+        action.setExten("2001036");
         action.setPriority(20);
         ManagerResponse originateResponse = managerConnection.sendAction(action, 5000);
+        System.err.println(action);
 
 
 

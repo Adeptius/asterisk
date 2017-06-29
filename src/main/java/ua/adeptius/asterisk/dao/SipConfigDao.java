@@ -34,27 +34,34 @@ public class SipConfigDao {
     public static void synchronizeFilesAndDb() throws Exception{
         LOGGER.debug("Синхронизация SIP конфигов с БД");
         HashMap<String, String> dbSips = PhonesDao.getAllSipsAndPass();
-        Path path = Paths.get(folder);
 
-        List<File> list = Files.walk(path).filter(Files::isRegularFile).map(Path::toFile).collect(Collectors.toList());
+        // почему-то не работает в папке  /etc/asterisk/sip_clients/
+//        Path path = Paths.get(folder);
+//        List<File> list = Files.walk(path).filter(Files::isRegularFile).map(Path::toFile).collect(Collectors.toList());
+//        List<String> files = new ArrayList<>(); // Текущий список имён файлов
+//        for (File file : list) {  //Суём имена всех файлов в список files
+//            files.add(file.getName().substring(0,file.getName().indexOf(".")));
+//        }
 
-        Files.walk(path).forEach(path1 -> System.out.println(path1.getFileName()));
-
-        List<String> files = new ArrayList<>(); // Текущий список имён файлов
-
-        for (File file : list) {  //Суём имена всех файлов в список files
-            files.add(file.getName().substring(0,file.getName().indexOf(".")));
+        List<String> fileList = new ArrayList<>(); //Суём имена всех файлов
+        File configsDir = new File(folder);
+        File[] files = configsDir.listFiles();
+        for (File f : files) {
+            String fil = f.getName();
+            if (!fil.startsWith("test")) {
+                fileList.add(fil.substring(0, fil.indexOf(".")));
+            }
         }
 
         for (Map.Entry<String, String> entry : dbSips.entrySet()) { // создаём недостающие
-            if(!files.contains(entry.getKey())){
+            if(!fileList.contains(entry.getKey())){
                 SipConfig sip = new SipConfig(entry.getKey(), entry.getValue());
                 writeToFile(sip);
             }
         }
         int deleted = 0;
 
-        for (String file : files) {
+        for (String file : fileList) {
             if (!dbSips.containsKey(file)){
                 deleted++;
                 removeFile(file);

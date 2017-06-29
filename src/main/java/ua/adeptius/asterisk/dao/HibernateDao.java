@@ -28,6 +28,13 @@ public class HibernateDao {
         return list;
     }
 
+    public static User getUserByLogin(String login) throws Exception {
+        Session session = sessionFactory.openSession();
+        User user = session.get(User.class, login);
+        session.close();
+        return user;
+    }
+
 
     public static void saveUser(User user) throws Exception {
         LOGGER.info("Сохранение пользователя {}", user.getLogin());

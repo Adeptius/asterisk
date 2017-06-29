@@ -88,6 +88,12 @@ public class TelephonyController {
         } catch (Exception e) {
             telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
             telephony.setInnerCount(currentInnerNumberCount);
+            try {
+                LOGGER.debug("Ошибка с БД после изменения количества номеров пользователя {}. Пытаемся вернуть всё назад.", user.getLogin());
+                telephony.updateNumbers();
+            } catch (Exception e1) {
+                LOGGER.error("Вернуть назад не получилось.", e1);
+            }
             LOGGER.error(user.getLogin()+": ошибка изменения количества номеров телефонии: "+jsonTelephony, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }

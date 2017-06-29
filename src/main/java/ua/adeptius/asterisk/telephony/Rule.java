@@ -55,13 +55,18 @@ public class Rule {
             if (forwardType == TO_ALL){ // если всем сразу выбираем номера
                 String[] splitted = numbers.substring(0,numbers.indexOf(",")).split("&");
                 for (String s : splitted) {
-                    addNumberTo(s.substring(s.lastIndexOf("/")+1));
+                    String substring = s.substring(s.lastIndexOf("/") + 1);
+
+                    addNumberTo(substring);
                 }
             }else if (forwardType == QUEUE){ // если по очереди выбираем номера
 
                 if (destinationType == SIP){
                     String s = numbers;
                     s = s.substring(s.indexOf("SIP/")+4);
+                    if (s.contains(",")){
+                        s = s.substring(0,s.indexOf(","));
+                    }
                     addNumberTo(s);
                 }else {
                     String s = numbers.substring(0, numbers.indexOf(","));
