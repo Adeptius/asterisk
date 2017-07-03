@@ -1,0 +1,458 @@
+{
+  "response": {
+    "account": {
+      "id": "15391081",
+      "name": "adeptius",
+      "subdomain": "adeptius",
+      "currency": "UAH",
+      "paid_from": false,
+      "paid_till": false,
+      "timezone": "Europe/Moscow",
+      "language": "ru",
+      "notifications_base_url": "https://notifications.amocrm.ru",
+      "notifications_ws_url": "wss://notifications.amocrm.ru",
+      "amojo_base_url": "https://amojo.amocrm.ru",
+      "current_user": 1559047,
+      "version": 3,
+      "date_pattern": "d.m.Y H:i",
+      "short_date_pattern": {
+        "date": "d.m.Y",
+        "time": "H:i",
+        "date_time": "d.m.Y H:i"
+      },
+      "date_format": "d.m.Y",
+      "time_format": "H:i:s",
+      "country": "ru",
+      "unsorted_on": "Y",
+      "mobile_feature_version": 0,
+      "customers_enabled": null,
+      "limits": {
+        "users_count": false,
+        "contacts_count": false,
+        "active_deals_count": false
+      },
+      "users": [
+        {
+          "id": "1568428",
+          "mail_admin": "A",
+          "name": "adeptius@gmail.com",
+          "last_name": "",
+          "login": "adeptius@gmail.com",
+          "photo_url": null,
+          "phone_number": null,
+          "language": null,
+          "is_admin": "Y",
+          "unsorted_access": "Y",
+          "catalogs_access": "Y",
+          "group_id": 0,
+          "rights_lead_add": "A",
+          "rights_lead_view": "A",
+          "rights_lead_edit": "A",
+          "rights_lead_delete": "A",
+          "rights_lead_export": "A",
+          "rights_contact_add": "A",
+          "rights_contact_view": "A",
+          "rights_contact_edit": "A",
+          "rights_contact_delete": "A",
+          "rights_contact_export": "A",
+          "rights_company_add": "A",
+          "rights_company_view": "A",
+          "rights_company_edit": "A",
+          "rights_company_delete": "A",
+          "rights_company_export": "A",
+          "free_user": false
+        },
+        {
+          "id": "1559047",
+          "mail_admin": "A",
+          "name": "Владимир Программист",
+          "last_name": null,
+          "login": "adeptius@wid.ua",
+          "photo_url": null,
+          "phone_number": null,
+          "language": "ru",
+          "is_admin": "Y",
+          "unsorted_access": "Y",
+          "catalogs_access": "Y",
+          "group_id": 0,
+          "rights_lead_add": "A",
+          "rights_lead_view": "A",
+          "rights_lead_edit": "A",
+          "rights_lead_delete": "A",
+          "rights_lead_export": "A",
+          "rights_contact_add": "A",
+          "rights_contact_view": "A",
+          "rights_contact_edit": "A",
+          "rights_contact_delete": "A",
+          "rights_contact_export": "A",
+          "rights_company_add": "A",
+          "rights_company_view": "A",
+          "rights_company_edit": "A",
+          "rights_company_delete": "A",
+          "rights_company_export": "A",
+          "free_user": false
+        }
+      ],
+      "groups": [],
+      "leads_statuses": [
+        {
+          "id": "15391087",
+          "name": "Первичный контакт",
+          "pipeline_id": 659884,
+          "sort": "10",
+          "color": "#99ccff",
+          "editable": "Y"
+        },
+        {
+          "id": "15391090",
+          "name": "Переговоры",
+          "pipeline_id": 659884,
+          "sort": "20",
+          "color": "#ffff99",
+          "editable": "Y"
+        },
+        {
+          "id": "15391093",
+          "name": "Принимают решение",
+          "pipeline_id": 659884,
+          "sort": "30",
+          "color": "#ffcc66",
+          "editable": "Y"
+        },
+        {
+          "id": "15391096",
+          "name": "Согласование договора",
+          "pipeline_id": 659884,
+          "sort": "40",
+          "color": "#ffcccc",
+          "editable": "Y"
+        },
+        {
+          "id": "142",
+          "name": "Успешно реализовано",
+          "pipeline_id": 659884,
+          "sort": "10000",
+          "color": "#CCFF66",
+          "editable": "N"
+        },
+        {
+          "id": "143",
+          "name": "Закрыто и не реализовано",
+          "pipeline_id": 659884,
+          "sort": "11000",
+          "color": "#D5D8DB",
+          "editable": "N"
+        }
+      ],
+      "custom_fields": {
+        "contacts": [
+          {
+            "id": "153069",
+            "name": "Должность",
+            "code": "POSITION",
+            "multiple": "N",
+            "type_id": "1",
+            "disabled": "0",
+            "sort": 2
+          },
+          {
+            "id": "153071",
+            "name": "Телефон",
+            "code": "PHONE",
+            "multiple": "Y",
+            "type_id": "8",
+            "disabled": "0",
+            "sort": 4,
+            "enums": {
+              "335383": "WORK",
+              "335385": "WORKDD",
+              "335387": "MOB",
+              "335389": "FAX",
+              "335391": "HOME",
+              "335393": "OTHER"
+            }
+          },
+          {
+            "id": "153073",
+            "name": "Email",
+            "code": "EMAIL",
+            "multiple": "Y",
+            "type_id": "8",
+            "disabled": "0",
+            "sort": 6,
+            "enums": {
+              "335395": "WORK",
+              "335397": "PRIV",
+              "335399": "OTHER"
+            }
+          },
+          {
+            "id": "153077",
+            "name": "Мгн. сообщения",
+            "code": "IM",
+            "multiple": "Y",
+            "type_id": "8",
+            "disabled": "0",
+            "sort": 10,
+            "enums": {
+              "335401": "SKYPE",
+              "335403": "ICQ",
+              "335405": "JABBER",
+              "335407": "GTALK",
+              "335409": "MSN",
+              "335411": "OTHER"
+            }
+          }
+        ],
+        "leads": [],
+        "companies": [
+          {
+            "id": "153071",
+            "name": "Телефон",
+            "code": "PHONE",
+            "multiple": "Y",
+            "type_id": "8",
+            "disabled": "0",
+            "sort": 4,
+            "enums": {
+              "335383": "WORK",
+              "335385": "WORKDD",
+              "335387": "MOB",
+              "335389": "FAX",
+              "335391": "HOME",
+              "335393": "OTHER"
+            }
+          },
+          {
+            "id": "153073",
+            "name": "Email",
+            "code": "EMAIL",
+            "multiple": "Y",
+            "type_id": "8",
+            "disabled": "0",
+            "sort": 6,
+            "enums": {
+              "335395": "WORK",
+              "335397": "PRIV",
+              "335399": "OTHER"
+            }
+          },
+          {
+            "id": "153075",
+            "name": "Web",
+            "code": "WEB",
+            "multiple": "N",
+            "type_id": "7",
+            "disabled": "0",
+            "sort": 8
+          },
+          {
+            "id": "153079",
+            "name": "Адрес",
+            "code": "ADDRESS",
+            "multiple": "N",
+            "type_id": "9",
+            "disabled": "0",
+            "sort": 12
+          }
+        ],
+        "customers": []
+      },
+      "note_types": [
+        {
+          "id": 1,
+          "name": "",
+          "code": "DEAL_CREATED",
+          "editable": "N"
+        },
+        {
+          "id": 2,
+          "name": "",
+          "code": "CONTACT_CREATED",
+          "editable": "N"
+        },
+        {
+          "id": 3,
+          "name": "",
+          "code": "DEAL_STATUS_CHANGED",
+          "editable": "N"
+        },
+        {
+          "id": 4,
+          "name": "",
+          "code": "COMMON",
+          "editable": "Y"
+        },
+        {
+          "id": 5,
+          "name": "",
+          "code": "ATTACHEMENT",
+          "editable": "N"
+        },
+        {
+          "id": 6,
+          "name": "",
+          "code": "CALL",
+          "editable": "N"
+        },
+        {
+          "id": 7,
+          "name": "",
+          "code": "MAIL_MESSAGE",
+          "editable": "N"
+        },
+        {
+          "id": 8,
+          "name": "",
+          "code": "MAIL_MESSAGE_ATTACHMENT",
+          "editable": "N"
+        },
+        {
+          "id": 9,
+          "name": "",
+          "code": "EXTERNAL_ATTACH",
+          "editable": "N"
+        },
+        {
+          "id": 10,
+          "name": "",
+          "code": "CALL_IN",
+          "editable": "N"
+        },
+        {
+          "id": 11,
+          "name": "",
+          "code": "CALL_OUT",
+          "editable": "N"
+        },
+        {
+          "id": 12,
+          "name": "",
+          "code": "COMPANY_CREATED",
+          "editable": "N"
+        },
+        {
+          "id": 13,
+          "name": "",
+          "code": "TASK_RESULT",
+          "editable": "N"
+        },
+        {
+          "id": 17,
+          "name": "",
+          "code": "CHAT",
+          "editable": "N"
+        },
+        {
+          "id": 99,
+          "name": "",
+          "code": "MAX_SYSTEM",
+          "editable": "N"
+        },
+        {
+          "id": 101,
+          "name": "Ссылка",
+          "code": "DROPBOX",
+          "editable": "N"
+        },
+        {
+          "id": 102,
+          "name": "Входящее",
+          "code": "SMS_IN",
+          "editable": "N"
+        },
+        {
+          "id": 103,
+          "name": "Исходящее",
+          "code": "SMS_OUT",
+          "editable": "N"
+        }
+      ],
+      "task_types": [
+        {
+          "id": 1,
+          "name": "Связаться с клиентом",
+          "code": "FOLLOW_UP"
+        },
+        {
+          "id": 1,
+          "name": "Звонок",
+          "code": "CALL"
+        },
+        {
+          "id": 2,
+          "name": "Встреча",
+          "code": "MEETING"
+        },
+        {
+          "id": 3,
+          "name": "Письмо",
+          "code": "LETTER"
+        }
+      ],
+      "pipelines": {
+        "659884": {
+          "id": 659884,
+          "value": 659884,
+          "label": "Воронка",
+          "name": "Воронка",
+          "sort": 1,
+          "is_main": true,
+          "statuses": {
+            "15391087": {
+              "id": 15391087,
+              "name": "Первичный контакт",
+              "pipeline_id": 659884,
+              "sort": 10,
+              "color": "#99ccff",
+              "editable": "Y"
+            },
+            "15391090": {
+              "id": 15391090,
+              "name": "Переговоры",
+              "pipeline_id": 659884,
+              "sort": 20,
+              "color": "#ffff99",
+              "editable": "Y"
+            },
+            "15391093": {
+              "id": 15391093,
+              "name": "Принимают решение",
+              "pipeline_id": 659884,
+              "sort": 30,
+              "color": "#ffcc66",
+              "editable": "Y"
+            },
+            "15391096": {
+              "id": 15391096,
+              "name": "Согласование договора",
+              "pipeline_id": 659884,
+              "sort": 40,
+              "color": "#ffcccc",
+              "editable": "Y"
+            },
+            "142": {
+              "id": 142,
+              "name": "Успешно реализовано",
+              "color": "#CCFF66",
+              "sort": 10000,
+              "editable": "N",
+              "pipeline_id": 659884
+            },
+            "143": {
+              "id": 143,
+              "name": "Закрыто и не реализовано",
+              "color": "#D5D8DB",
+              "sort": 11000,
+              "editable": "N",
+              "pipeline_id": 659884
+            }
+          },
+          "leads": 1
+        }
+      },
+      "timezoneoffset": "+03:00"
+    },
+    "server_time": 1499077610
+  }
+}

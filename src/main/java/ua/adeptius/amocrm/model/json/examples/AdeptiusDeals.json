@@ -1,0 +1,111 @@
+{
+  "response": {
+    "leads": [
+      {
+        "id": "1436511",
+        "name": "Новая сделка",
+        "date_create": 1498852949,
+        "created_user_id": "1559047",
+        "last_modified": 1498854338,
+        "account_id": "15391081",
+        "price": "",
+        "responsible_user_id": "1559047",
+        "linked_company_id": "",
+        "group_id": 0,
+        "pipeline_id": 659884,
+        "date_close": 0,
+        "closest_task": 0,
+        "deleted": 0,
+        "tags": [
+          {
+            "id": 44265,
+            "name": "Входящий звонок",
+            "element_type": 2
+          }
+        ],
+        "status_id": "15391087",
+        "custom_fields": [],
+        "main_contact_id": false
+      },
+      {
+        "id": "1491575",
+        "name": "Новая сделка2",
+        "date_create": 1498852949,
+        "created_user_id": "1559047",
+        "last_modified": 1499077695,
+        "account_id": "15391081",
+        "price": "",
+        "responsible_user_id": "1559047",
+        "linked_company_id": "",
+        "group_id": 0,
+        "pipeline_id": 659884,
+        "date_close": 1499077695,
+        "closest_task": 0,
+        "deleted": 0,
+        "tags": [
+          {
+            "id": 44265,
+            "name": "Входящий звонок",
+            "element_type": 2
+          }
+        ],
+        "status_id": "142",
+        "custom_fields": [],
+        "main_contact_id": false
+      },
+      {
+        "id": "1491691",
+        "name": "Новая сделка3",
+        "date_create": 1499077790,
+        "created_user_id": "1559047",
+        "last_modified": 1499077790,
+        "account_id": "15391081",
+        "price": "",
+        "responsible_user_id": "1559047",
+        "linked_company_id": "",
+        "group_id": 0,
+        "pipeline_id": 659884,
+        "date_close": 1499077790,
+        "closest_task": 0,
+        "deleted": 0,
+        "tags": [
+          {
+            "id": 44265,
+            "name": "Входящий звонок",
+            "element_type": 2
+          }
+        ],
+        "status_id": "142",
+        "custom_fields": [],
+        "main_contact_id": false
+      },
+      {
+        "id": "1491791",
+        "name": "Новая сделка4",
+        "date_create": 1499077887,
+        "created_user_id": "1559047",
+        "last_modified": 1499080028,
+        "account_id": "15391081",
+        "price": "0",
+        "responsible_user_id": "1559047",
+        "linked_company_id": "4405757",
+        "group_id": 0,
+        "pipeline_id": 659884,
+        "date_close": 0,
+        "closest_task": 0,
+        "deleted": 0,
+        "tags": [
+          {
+            "id": 44265,
+            "name": "Входящий звонок",
+            "element_type": 2
+          }
+        ],
+        "status_id": "15391087",
+        "custom_fields": [],
+        "main_contact_id": 4405759
+      }
+    ],
+    "server_time": 1499084424
+  }
+}

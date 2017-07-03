@@ -1,0 +1,122 @@
+{
+  "response": {
+    "contacts": [
+      {
+        "id": 4389327,
+        "name": "Имя не указано",
+        "last_modified": 1499077593,
+        "account_id": 15391081,
+        "date_create": 1499077593,
+        "created_user_id": 1559047,
+        "modified_user_id": 1559047,
+        "responsible_user_id": 1559047,
+        "group_id": 0,
+        "closest_task": 0,
+        "linked_company_id": null,
+        "company_name": "",
+        "tags": [],
+        "type": "contact",
+        "custom_fields": [
+          {
+            "id": "153071",
+            "name": "Телефон",
+            "code": "PHONE",
+            "values": [
+              {
+                "value": "5381238",
+                "enum": "335383"
+              }
+            ]
+          },
+          {
+            "id": "153073",
+            "name": "Email",
+            "code": "EMAIL",
+            "values": [
+              {
+                "value": "adeptius@gmail.com",
+                "enum": "335395"
+              }
+            ]
+          },
+          {
+            "id": "153069",
+            "name": "Должность",
+            "code": "POSITION",
+            "values": [
+              {
+                "value": "Программист"
+              }
+            ]
+          },
+          {
+            "id": "153077",
+            "name": "Мгн. сообщения",
+            "code": "IM",
+            "values": [
+              {
+                "value": "x-active",
+                "enum": "335401"
+              }
+            ]
+          }
+        ],
+        "linked_leads_id": []
+      },
+      {
+        "id": 4405759,
+        "name": "Какой-то контакт",
+        "last_modified": 1499080028,
+        "account_id": 15391081,
+        "date_create": 1499080028,
+        "created_user_id": 1559047,
+        "modified_user_id": 1559047,
+        "responsible_user_id": 1559047,
+        "group_id": 0,
+        "closest_task": 0,
+        "linked_company_id": "4405757",
+        "company_name": "фринет",
+        "tags": [],
+        "type": "contact",
+        "custom_fields": [
+          {
+            "id": "153071",
+            "name": "Телефон",
+            "code": "PHONE",
+            "values": [
+              {
+                "value": "5381238",
+                "enum": "335383"
+              }
+            ]
+          },
+          {
+            "id": "153073",
+            "name": "Email",
+            "code": "EMAIL",
+            "values": [
+              {
+                "value": "adeptius@gmail.com",
+                "enum": "335395"
+              }
+            ]
+          },
+          {
+            "id": "153069",
+            "name": "Должность",
+            "code": "POSITION",
+            "values": [
+              {
+                "value": "программист"
+              }
+            ]
+          }
+        ],
+        "linked_leads_id": [
+          "1491791"
+        ]
+      }
+    ],
+    "server_time": 1499080897
+  }
+}

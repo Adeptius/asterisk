@@ -1,0 +1,59 @@
+{
+  "response": {
+    "contacts": [
+      {
+        "id": 17729341,
+        "name": "\u041b\u0438\u043b\u0438\u044f",
+        "last_modified": 1496668614,
+        "account_id": 14624035,
+        "date_create": 1496668614,
+        "created_user_id": 1480933,
+        "modified_user_id": 1480933,
+        "responsible_user_id": 1480933,
+        "group_id": 0,
+        "closest_task": 0,
+        "linked_company_id": null,
+        "company_name": "",
+        "tags": [
+          {
+            "id": 199723,
+            "name": "\u0438\u043c\u043f\u043e\u0440\u0442_05062017_1616",
+            "element_type": 1
+          }
+        ],
+        "type": "contact",
+        "custom_fields": [
+          {
+            "id": "495303",
+            "name": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
+            "code": "PHONE",
+            "values": [
+              {
+                "value": "(099) 560-36-83",
+                "enum": "1104351"
+              }
+            ]
+          },
+          {
+            "id": "525363",
+            "name": "\u0410\u0434\u0440\u0435\u0441",
+            "values": [
+              {
+                "value": "\u0434\u043e\u043c  \u043a\u043e\u0440\u043f.  \u043d\u043e\u043c.",
+                "subtype": "1"
+              },
+              {
+                "value": "\u041a\u0438\u0435\u0432",
+                "subtype": "3"
+              }
+            ]
+          }
+        ],
+        "linked_leads_id": [
+          "6913285"
+        ]
+      }
+    ],
+    "server_time": 1499089708
+  }
+}

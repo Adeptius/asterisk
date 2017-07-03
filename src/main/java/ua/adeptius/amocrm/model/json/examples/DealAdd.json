@@ -1,0 +1,26 @@
+{
+  "request": {
+    "leads": {
+      "add": [
+        {
+          "name": "Новая сделка",
+          "status_id": 142,
+          "date_create": 1498852949,
+          "responsible_user_id": 215302,
+          "tags": "Входящий звонок",
+          "custom_fields": [
+            {
+              "id": 461512,
+              "values": [
+                {
+                  "value": "8(926)211-90-06",
+                  "enum": "MOB"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
