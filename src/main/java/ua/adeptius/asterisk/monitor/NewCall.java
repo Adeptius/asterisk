@@ -92,7 +92,11 @@ public class NewCall {
     }
 
     public enum CallState {
-        ANSWER, BUSY, FAIL, NOANSWER
+        ANSWER, // звонок был принят и обработан сотрудником
+        BUSY, // входящий звонок был, но линия была занята;
+        FAIL,
+        NOANSWER, // входящий вызов состоялся, но в течение времени ожидания ответа не был принят сотрудником
+        CHANUNAVAIL // вызываемый номер был недоступен;
     }
 
     public enum Direction {

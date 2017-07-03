@@ -2,6 +2,10 @@ package ua.adeptius.asterisk;
 
 
 
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +40,61 @@ public class Main {
         main.init();
     }
 
+//    private static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
+//    private static Session session;
+
+//    private static Session getSession(){
+//        if (session == null){
+//            session = sessionFactory.openSession();
+//            return session
+//        }
+//        try{
+//            return sessionFactory.getCurrentSession();
+//        }catch (HibernateException e){
+//            sessionFactory.openSession();
+//            return sessionFactory.getCurrentSession();
+//        }
+//    }
 
     @PostConstruct
     private void init() {
         Settings.load(this.getClass());
+        checkIfNeedRestartAndSetVariables();
 
+//        SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
+//        Session session = sessionFactory.openSession();
+//        session.beginTransaction();
+
+//        List<User> users = session.createQuery("select e from User e").list();
+//        User e404User = users.get(0);
+//        session.merge(e404User);
+
+
+//        System.out.println(e404User);
+//        e404User.setPassword("1");
+//        System.out.println(e404User);
+//        e404User.getTelephony().setInnerCount(4);
+//        System.out.println(e404User);
+//
+//        new Thread(() -> {
+//
+//            try {
+//                Thread.sleep(20000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            e404User.getTelephony().setInnerCount(6);
+//            System.out.println(e404User);
+//
+//
+//        }).start();
+
+
+
+
+    }
+
+    private void checkIfNeedRestartAndSetVariables(){
         boolean itsLinux = "root".equals(System.getenv().get("USER"));
         boolean firstStart = Settings.getSettingBoolean("firstStart");
         LOGGER.info("Сервер загружается");
@@ -66,7 +120,7 @@ public class Main {
                 e.printStackTrace();
             }
         }else {
-            LOGGER.info("------------------- TOMCAT RESTARTING NOW!!! -------------------");
+            LOGGER.info("------------------- TOMCAT READY!!! -------------------");
             afterTomcatRebootInit();
         }
     }

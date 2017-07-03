@@ -4,7 +4,6 @@ package ua.adeptius.asterisk.dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.NewCall;
 import ua.adeptius.asterisk.utils.logging.MyLogger;

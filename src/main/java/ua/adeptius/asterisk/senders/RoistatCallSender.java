@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.json.RoistatPhoneCall;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.monitor.NewCall;
 
 import java.util.concurrent.LinkedBlockingQueue;

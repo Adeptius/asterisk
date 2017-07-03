@@ -1,15 +1,11 @@
 package ua.adeptius.asterisk.senders;
 
 
-import com.google.gson.Gson;
-import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.monitor.NewCall;
 
 import java.util.HashMap;

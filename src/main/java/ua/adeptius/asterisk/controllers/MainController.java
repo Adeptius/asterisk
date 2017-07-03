@@ -4,8 +4,6 @@ package ua.adeptius.asterisk.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
-import ua.adeptius.asterisk.json.RoistatPhoneCall;
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.monitor.NewCall;

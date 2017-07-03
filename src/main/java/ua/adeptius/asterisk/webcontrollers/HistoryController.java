@@ -9,7 +9,6 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.NewCall;
 

@@ -16,9 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.monitor.NewCall.CallState.ANSWER;
-import static ua.adeptius.asterisk.monitor.NewCall.CallState.BUSY;
-import static ua.adeptius.asterisk.monitor.NewCall.CallState.NOANSWER;
+import static ua.adeptius.asterisk.monitor.NewCall.CallState.*;
 import static ua.adeptius.asterisk.monitor.NewCall.Service.TELEPHONY;
 import static ua.adeptius.asterisk.monitor.NewCall.Service.TRACKING;
 
@@ -138,6 +136,9 @@ public class CallProcessor {
                         } else if ("NOANSWER".equals(dialStatus) || "CANCEL".equals(dialStatus)) {
                             //CANCEL - это если звонить на внешний с редиректом на сип и сип не взял трубку за 90 сек
                             newCall.setCallState(NOANSWER);
+                        } else if ("CHANUNAVAIL".equals(dialStatus)) {
+                            //вызываемый номер был недоступен
+                            newCall.setCallState(CHANUNAVAIL);
                         }
                         else {
                             LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);

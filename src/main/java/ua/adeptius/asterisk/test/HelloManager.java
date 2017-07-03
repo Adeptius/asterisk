@@ -45,18 +45,49 @@ public class HelloManager {
 
 
 
+//from-sip-external   Timeout waiting for response to Command
+//        Набранный вами номер отключен
+
+//        [2017-06-29 23:13:59] WARNING[29763][C-0000045c]: pbx.c:4365 __ast_pbx_run:
+// Channel 'SIP/Kievstar-000003fd' sent to invalid extension but no invalid handler: context,exten,priority=from-word,2001036,1
+//                == MixMonitor close filestream (mixed)
+//                == End MixMonitor Recording SIP/Kievstar-000003fd
+
+
+
+//        RedirectAction action = new RedirectAction();
+//        action.setChannel(chanel);
+//        action.setContext("from-internal");
+////        action.setExtraContext("from-internal");
+//        action.setExten(exten);
+////        action.setExtraExten(exten);
+//        action.setPriority(1);
+//        ManagerResponse originateResponse = managerConnection.sendAction(action, 5000);
+//        System.err.println(action);
+
+
+//        Набранный номер не может быть вызван. Пожалуйста проверьте и повторите попытку.
+//        переадресация первого канала который приходит на шлюз.
+
 
 
         RedirectAction action = new RedirectAction();
         action.setChannel(chanel);
         action.setContext("from-internal");
-        action.setExten("2001036");
-        action.setPriority(20);
+        action.setExten("0445381238");
+        action.setPriority(1);
         ManagerResponse originateResponse = managerConnection.sendAction(action, 5000);
         System.err.println(action);
 
 
-
+//        Thread.sleep(10000);
+//        action = new RedirectAction();
+//        action.setChannel(chanel);
+//        action.setContext("from-internal");
+//        action.setExten("2001037");
+//        action.setPriority(1);
+//        originateResponse = managerConnection.sendAction(action, 5000);
+//        System.err.println(action);
 
 
 

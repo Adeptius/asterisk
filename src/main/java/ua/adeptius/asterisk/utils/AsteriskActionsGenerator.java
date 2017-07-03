@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.utils;
 
 
 import org.asteriskjava.manager.action.OriginateAction;
+import org.asteriskjava.manager.action.RedirectAction;
 
 public class AsteriskActionsGenerator {
 
@@ -17,6 +18,15 @@ public class AsteriskActionsGenerator {
 //        action.setVariable("SIPDOMAIN", "cstat.nextel.com.ua");
 //        action.setVariable("calleridnum", "1212");
 //        action.setVariable("calleridname", "2001037");
+        return action;
+    }
+
+    public static RedirectAction redirectChanelToSip(String chanel, String sipTo){
+        RedirectAction action = new RedirectAction();
+        action.setChannel(chanel);
+        action.setContext("from-internal");
+        action.setExten("2001036");
+        action.setPriority(1);
         return action;
     }
 

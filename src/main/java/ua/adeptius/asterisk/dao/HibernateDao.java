@@ -14,12 +14,10 @@ import java.util.List;
 
 public class HibernateDao {
 
+
     private static Logger LOGGER =  LoggerFactory.getLogger(HibernateDao.class.getSimpleName());
 
     private static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
-
-//    @Autowired
-//    static SessionFactory sessionFactory;
 
     public static List<User> getAllUsers() throws Exception {
         Session session = sessionFactory.openSession();

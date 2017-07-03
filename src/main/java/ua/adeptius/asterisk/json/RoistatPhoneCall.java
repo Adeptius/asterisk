@@ -1,11 +1,9 @@
 package ua.adeptius.asterisk.json;
 
 
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.monitor.NewCall;
 
 import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
 
 import static ua.adeptius.asterisk.monitor.NewCall.CallState.ANSWER;
 
@@ -75,6 +73,8 @@ public class RoistatPhoneCall {
             this.status = "BUSY";
         } else if (state == NewCall.CallState.FAIL) {
             this.status = "CONGESTION";
+        }else if (state == NewCall.CallState.CHANUNAVAIL) {
+            this.status = "CHANUNAVAIL"; // вызываемый номер был недоступен
         }
 
 //        В API отсутствует

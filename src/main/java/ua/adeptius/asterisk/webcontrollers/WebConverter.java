@@ -14,7 +14,6 @@ import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.Call;
 import ua.adeptius.asterisk.monitor.NewCall;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 

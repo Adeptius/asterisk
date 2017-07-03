@@ -9,7 +9,7 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 
 
 /**
- * Класс-демон, который каждые 10 минут делает запрос в каждую из 3х БД для поддержания соединения
+ * Класс-демон, который каждый час делает запрос в каждую из 3х БД для поддержания соединения
  * и избежания ошибки таймаута соединения с БД.
  */
 public class ConnectionKeeper extends Thread {
@@ -29,7 +29,7 @@ public class ConnectionKeeper extends Thread {
                 checkHibernate();
                 checkStatisticConnection();
                 checkTrackingConnection();
-                Thread.sleep(1000 * 60 * 10);// 10 мин
+                Thread.sleep(1000 * 60 * 60);// час
             } catch (Exception e) {
                 LOGGER.error("Ошибка очистки", e);
             }

@@ -23,4 +23,12 @@ public class JsonTelephony {
     public void setOuterCount(Integer outerCount) {
         this.outerCount = outerCount;
     }
+
+    @Override
+    public String toString() {
+        return "JsonTelephony{" +
+                "innerCount=" + innerCount +
+                ", outerCount=" + outerCount +
+                '}';
+    }
 }
