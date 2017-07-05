@@ -28,7 +28,7 @@ public class HelloManager {
 
 //        OriginateAction action = AsteriskActionsGenerator.callToOutside("2001037", "0934027182");
 //        RedirectAction action = new RedirectAction("SIP/201036","from-word","201036",1);
-        Thread.sleep(3000);
+        Thread.sleep(2000);
 
 
 
@@ -74,7 +74,7 @@ public class HelloManager {
         RedirectAction action = new RedirectAction();
         action.setChannel(chanel);
         action.setContext("from-internal");
-        action.setExten("0445381238");
+        action.setExten("0994803031");
         action.setPriority(1);
         ManagerResponse originateResponse = managerConnection.sendAction(action, 5000);
         System.err.println(action);

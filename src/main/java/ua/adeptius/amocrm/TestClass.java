@@ -1,25 +1,13 @@
 package ua.adeptius.amocrm;
 
 
-import org.apache.commons.text.StringEscapeUtils;
 import ua.adeptius.amocrm.model.json.AmoAccount;
+import ua.adeptius.amocrm.model.json.contact.Contact;
 import ua.adeptius.amocrm.monitor.CookieCleaner;
-
-import java.util.List;
 
 public class TestClass {
 
-
     public static void main(String[] args) throws Exception {
-
-//        String s = "[{\"id\":17730117,\"name\":\"\\u043d\\u0430\\u0442\\u0430\\u043b\\u044c\\u044f\",\"last_modified\":1496668616,\"account_id\":14624035,\"date_create\":1496668616,\"created_user_id\":1480933,\"modified_user_id\":1480933,\"responsible_user_id\":1480933,\"group_id\":0,\"closest_task\":0,\"linked_company_id\":null,\"company_name\":\"\",\"tags\":[{\"id\":199723,\"name\":\"\\u0438\\u043c\\u043f\\u043e\\u0440\\u0442_05062017_1616\",\"element_type\":1}],\"type\":\"contact\",\"custom_fields\":[{\"id\":\"495303\",\"name\":\"\\u0422\\u0435\\u043b\\u0435\\u0444\\u043e\\u043d\",\"code\":\"PHONE\",\"values\":[{\"value\":\"(097) 148-25-84\",\"enum\":\"1104351\"}]},{\"id\":\"525363\",\"name\":\"\\u0410\\u0434\\u0440\\u0435\\u0441\",\"values\":[{\"value\":\"\\u0434\\u043e\\u043c  \\u043a\\u043e\\u0440\\u043f.  \\u043d\\u043e\\u043c.\",\"subtype\":\"1\"},{\"value\":\"\\u041a\\u0438\\u0435\\u0432\",\"subtype\":\"3\"}]}],\"linked_leads_id\":[\"6913989\"]}],\"server_time\":1499086603}}";
-//
-//        s = StringEscapeUtils.unescapeJava(s);
-//        System.out.println(s);
-
-
-
-
         new CookieCleaner();
 
         String domain = "adeptius";
@@ -30,10 +18,61 @@ public class TestClass {
 //        String userLogin = "adeptius@wid.ua";
 //        String userApiKey = "a99ead2f473e150091360d25aecc2878";
 
+//        AmoAccount amoAccount = AmoDAO.getAmoAccount(domain, userLogin, userApiKey);
+//        String phoneId = amoAccount.getPhoneId();
+//        System.out.println("phoneId="+phoneId);
+//        String phoneEnumId = amoAccount.getPhoneEnumId();
+//        System.out.println("phoneEnumId="+phoneEnumId);
+//        int dealId = AmoDAO.addNewDeal(domain, userLogin, userApiKey);
+//        AmoDAO.addNewContact(domain, userLogin, userApiKey, "0934027182", dealId, phoneId, phoneEnumId);
+
+        String json = "{\n" +
+                "        \"id\": 4790293,\n" +
+                "        \"name\": \"Новый контакт\",\n" +
+                "        \"last_modified\": 1499245426,\n" +
+                "        \"account_id\": 15391081,\n" +
+                "        \"date_create\": 1499202912,\n" +
+                "        \"created_user_id\": 0,\n" +
+                "        \"modified_user_id\": 0,\n" +
+                "        \"responsible_user_id\": 1559047,\n" +
+                "        \"group_id\": 0,\n" +
+                "        \"closest_task\": 1499202912,\n" +
+                "        \"linked_company_id\": \"0\",\n" +
+                "        \"company_name\": \"\",\n" +
+                "        \"tags\": [\n" +
+                "          {\n" +
+                "            \"id\": 47303,\n" +
+                "            \"name\": \"СуперКлиент\",\n" +
+                "            \"element_type\": 1\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"type\": \"contact\",\n" +
+                "        \"custom_fields\": [\n" +
+                "          {\n" +
+                "            \"id\": \"153071\",\n" +
+                "            \"name\": \"Телефон\",\n" +
+                "            \"code\": \"PHONE\",\n" +
+                "            \"values\": [\n" +
+                "              {\n" +
+                "                \"value\": \"0934027182\",\n" +
+                "                \"enum\": \"335383\"\n" +
+                "              }\n" +
+                "            ]\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"linked_leads_id\": [\n" +
+                "          \"1577351\"\n" +
+                "        ]\n" +
+                "      }";
+        Contact contact = new Contact(json);
+
+        System.out.println(contact);
+
+
 //        String cookie = AmoDAO.auth(domain, userLogin, userApiKey);
 //        System.out.println(cookie);
 
-//        AmoAccount amoAccount = AmoDAO.getAllUserInfo(domain, userLogin, userApiKey);
+//        AmoAccount amoAccount = AmoDAO.getAmoAccount(domain, userLogin, userApiKey);
 //        List<AmoAccount.Leads_status> leads_statuses = amoAccount.getLeads_statuses();
 //        for (AmoAccount.Leads_status leads_status : leads_statuses) {
 //            System.out.println(leads_status.getId() + " = " + leads_status.getName());
@@ -42,9 +81,61 @@ public class TestClass {
 //        String contacts = AmoDAO.getContacts(domain, userLogin, userApiKey);
 //        System.out.println(contacts);
 
-        int id = AmoDAO.getContactIdByNumber(domain, userLogin, userApiKey, "5381238");
 
-        System.out.println(id);
+//        AmoContact contact = AmoDAO.getContactIdByNumber(domain, userLogin, userApiKey, "5381237");
+//        if (contact != null){ // контакт уже существует. Мы нашли его id по номеру с которого он звонил.
+//            System.out.println("Контакт уже существует: "+contact);
+//
+//            // попробую его обновить - добавить сделку.
+////            contact.getLinkedLeadsId().add("1496223");
+////            contact.setLastModified((int)(new GregorianCalendar().getTimeInMillis() / 1000));
+////            AmoDAO.updateContact(domain, userLogin, userApiKey, contact);
+//
+//
+//        }else { // контакта нет - нужно его создать
+//            // создаём контакт и ложим его id в поле id
+//            System.out.println("Контакта с этим номером нет");
+//            AmoContact newContact = new AmoContact();
+//            newContact.setName("Java контакт");
+//
+//            ValuesItem valuesItem = new ValuesItem();
+//            valuesItem.setEnumType("335393");
+//            valuesItem.setValue("5381239");
+//            ArrayList<ValuesItem> valuesItems = new ArrayList<>();
+//            valuesItems.add(valuesItem);
+//
+//            CustomFieldsItem item = new CustomFieldsItem();
+//            item.setId("153071");
+//            item.setCode("PHONE");
+//            item.setName("Телефон");
+//            item.setValues(valuesItems);
+//
+//            List<CustomFieldsItem> customFieldsItems = new ArrayList<>();
+//            customFieldsItems.add(item);
+//            newContact.setCustomFields(customFieldsItems);
+//
+//            int id = AmoDAO.addNewContact(domain, userLogin, userApiKey, newContact);
+//
+//            System.out.println("айдишка нового контакта:" + id);
+//
+//        }
+//
+//
+//
+//
+//        // нужно проверить существует ли уже сделка по этому контакту.
+//        boolean dealAlreadyCreated = false;
+//
+//        if (dealAlreadyCreated){
+//            // сделка уже существует
+//            // возможно обновляем инфу, что пользователь позвонил еще раз.
+//        }else {
+//            // сделки нет. Нужно создать её и прикрепить к ней контакт с id.
+//        }
+//
+//
+
+
 
 
 

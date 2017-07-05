@@ -1,59 +1,125 @@
-{
-  "response": {
-    "contacts": [
+[
+  {
+    "id": 4389327,
+    "name": "новое имя",
+    "last_modified": 1499162252,
+    "account_id": 15391081,
+    "date_create": 1499077593,
+    "created_user_id": 1559047,
+    "modified_user_id": 1559047,
+    "responsible_user_id": 1559047,
+    "group_id": 0,
+    "closest_task": 0,
+    "linked_company_id": "0",
+    "company_name": "",
+    "tags": [],
+    "type": "contact",
+    "custom_fields": [
       {
-        "id": 17729341,
-        "name": "\u041b\u0438\u043b\u0438\u044f",
-        "last_modified": 1496668614,
-        "account_id": 14624035,
-        "date_create": 1496668614,
-        "created_user_id": 1480933,
-        "modified_user_id": 1480933,
-        "responsible_user_id": 1480933,
-        "group_id": 0,
-        "closest_task": 0,
-        "linked_company_id": null,
-        "company_name": "",
-        "tags": [
+        "id": "153069",
+        "name": "Должность",
+        "code": "POSITION",
+        "values": [
           {
-            "id": 199723,
-            "name": "\u0438\u043c\u043f\u043e\u0440\u0442_05062017_1616",
-            "element_type": 1
+            "value": "Программист"
           }
-        ],
-        "type": "contact",
-        "custom_fields": [
+        ]
+      },
+      {
+        "id": "153071",
+        "name": "Телефон",
+        "code": "PHONE",
+        "values": [
           {
-            "id": "495303",
-            "name": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
-            "code": "PHONE",
-            "values": [
-              {
-                "value": "(099) 560-36-83",
-                "enum": "1104351"
-              }
-            ]
-          },
-          {
-            "id": "525363",
-            "name": "\u0410\u0434\u0440\u0435\u0441",
-            "values": [
-              {
-                "value": "\u0434\u043e\u043c  \u043a\u043e\u0440\u043f.  \u043d\u043e\u043c.",
-                "subtype": "1"
-              },
-              {
-                "value": "\u041a\u0438\u0435\u0432",
-                "subtype": "3"
-              }
-            ]
+            "value": "5381238",
+            "enum": "335383"
           }
-        ],
-        "linked_leads_id": [
-          "6913285"
+        ]
+      },
+      {
+        "id": "153073",
+        "name": "Email",
+        "code": "EMAIL",
+        "values": [
+          {
+            "value": "adeptius@gmail.com",
+            "enum": "335395"
+          }
+        ]
+      },
+      {
+        "id": "153077",
+        "name": "Мгн. сообщения",
+        "code": "IM",
+        "values": [
+          {
+            "value": "x-active",
+            "enum": "335401"
+          }
         ]
       }
     ],
-    "server_time": 1499089708
+    "linked_leads_id": [
+      "1543411"
+    ]
+  },
+  {
+    "id": 4405759,
+    "name": "Какой-то контакт",
+    "last_modified": 1499164193,
+    "account_id": 15391081,
+    "date_create": 1499080028,
+    "created_user_id": 1559047,
+    "modified_user_id": 1559047,
+    "responsible_user_id": 1559047,
+    "group_id": 0,
+    "closest_task": 0,
+    "linked_company_id": "4405757",
+    "company_name": "фринет",
+    "tags": [
+      {
+        "id": 47303,
+        "name": "СуперКлиент",
+        "element_type": 1
+      }
+    ],
+    "type": "contact",
+    "custom_fields": [
+      {
+        "id": "153071",
+        "name": "Телефон",
+        "code": "PHONE",
+        "values": [
+          {
+            "value": "5381238",
+            "enum": "335383"
+          }
+        ]
+      },
+      {
+        "id": "153073",
+        "name": "Email",
+        "code": "EMAIL",
+        "values": [
+          {
+            "value": "adeptius@gmail.com",
+            "enum": "335395"
+          }
+        ]
+      },
+      {
+        "id": "153069",
+        "name": "Должность",
+        "code": "POSITION",
+        "values": [
+          {
+            "value": "программист"
+          }
+        ]
+      }
+    ],
+    "linked_leads_id": [
+      "1543411"
+    ]
   }
-}
+]
