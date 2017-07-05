@@ -44,6 +44,10 @@ public class TestClass {
                 "            \"id\": 47303,\n" +
                 "            \"name\": \"СуперКлиент\",\n" +
                 "            \"element_type\": 1\n" +
+                "          },{\n" +
+                "            \"id\": 555,\n" +
+                "            \"name\": \"СуперКлиент2\",\n" +
+                "            \"element_type\": 1\n" +
                 "          }\n" +
                 "        ],\n" +
                 "        \"type\": \"contact\",\n" +
@@ -61,7 +65,7 @@ public class TestClass {
                 "          }\n" +
                 "        ],\n" +
                 "        \"linked_leads_id\": [\n" +
-                "          \"1577351\"\n" +
+                "          \"1577351\", \"1577352\"\n" +
                 "        ]\n" +
                 "      }";
         Contact contact = new Contact(json);

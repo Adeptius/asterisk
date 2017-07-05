@@ -1,77 +1,32 @@
 {
-  "response": {
-    "contacts": [
-      {
-        "id": 4790259,
-        "name": "Новый контакт",
-        "last_modified": 1499202853,
-        "account_id": 15391081,
-        "date_create": 1499202798,
-        "created_user_id": 0,
-        "modified_user_id": 1559047,
-        "responsible_user_id": 1559047,
-        "group_id": 0,
-        "closest_task": 1499202798,
-        "linked_company_id": "0",
-        "company_name": "",
-        "tags": [
-        ],
-        "type": "contact",
-        "custom_fields": [
-          {
-            "id": "153071",
-            "name": "Телефон",
-            "code": "PHONE",
-            "values": [
-              {
-                "value": "555",
-                "enum": "335383"
-              }
-            ]
-          }
-        ],
-        "linked_leads_id": [
-        ]
-      },
-      {
-        "id": 4790293,
-        "name": "Новый контакт",
-        "last_modified": 1499245426,
-        "account_id": 15391081,
-        "date_create": 1499202912,
-        "created_user_id": 0,
-        "modified_user_id": 0,
-        "responsible_user_id": 1559047,
-        "group_id": 0,
-        "closest_task": 1499202912,
-        "linked_company_id": "0",
-        "company_name": "",
-        "tags": [
-          {
-            "id": 47303,
-            "name": "СуперКлиент",
-            "element_type": 1
-          }
-        ],
-        "type": "contact",
-        "custom_fields": [
-          {
-            "id": "153071",
-            "name": "Телефон",
-            "code": "PHONE",
-            "values": [
-              {
-                "value": "0934027182",
-                "enum": "335383"
-              }
-            ]
-          }
-        ],
-        "linked_leads_id": [
-          "1577351"
-        ]
-      }
-    ],
-    "server_time": 1499245433
-  }
+  "id": 4790293,
+  "name": "Новый контакт",
+  "last_modified": 1499245426,
+  "tags": [
+    {
+      "id": 47303,
+      "name": "СуперКлиент"
+    },
+    {
+      "id": 555,
+      "name": "СуперКлиент2"
+    }
+  ],
+  "custom_fields": [
+    {
+      "id": "153071",
+      "name": "Телефон",
+      "code": "PHONE",
+      "values": [
+        {
+          "value": "0934027182",
+          "enum": "335383"
+        }
+      ]
+    }
+  ],
+  "linked_leads_id": [
+    "1577351",
+    "1577352"
+  ]
 }

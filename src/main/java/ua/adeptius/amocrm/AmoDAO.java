@@ -207,7 +207,7 @@ public class AmoDAO {
 
             List<CustomFieldsItem> customFieldsItems = new ArrayList<>();
             customFieldsItems.add(item);
-            newContact.setCustomFields(customFieldsItems);
+//            newContact.setCustomFields(customFieldsItems);
 
             ArrayList<String> leads = new ArrayList<>();
             leads.add(dealId+"");
