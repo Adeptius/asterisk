@@ -62,7 +62,6 @@ public class RoistatCallSender extends Thread {
                     .asString();
 
             String body = response.getBody();
-            System.out.println(body);
 
             String result = new JSONObject(body).getString("status");
 

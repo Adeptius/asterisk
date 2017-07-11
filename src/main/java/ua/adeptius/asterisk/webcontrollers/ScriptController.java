@@ -40,7 +40,6 @@ public class ScriptController {
                 + name
                 + "\\\"></script>";
 
-        //TODO сменить адрес
         // Локальный хост
 //        String script = "<script src=\\\"http://localhost:8080/tracking/script/" + name + "\\\"></script>";
 
@@ -68,7 +67,7 @@ public class ScriptController {
                     "loadScript(\"https://code.jquery.com/jquery-1.12.4.min.js\",runMyCodeAfterJQueryLoaded);";
 
 
-//TODO сменить адрес
+
 //             Локальный хост
 //  String script = "function loadScript(url,callback){var head=document.getElementsByTagName('head')[0];var script=document.createElement('script');" +
 //                    "script.type='text/javascript';script.src=url;script.onreadystatechange=callback;" +

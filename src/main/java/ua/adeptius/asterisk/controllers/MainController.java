@@ -7,6 +7,7 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.monitor.NewCall;
+import ua.adeptius.asterisk.senders.AmoCallSender;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
 import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
@@ -22,6 +23,7 @@ public class MainController {
     private static Logger LOGGER = LoggerFactory.getLogger(MainController.class.getSimpleName());
 
     private static RoistatCallSender roistatCallSender = new RoistatCallSender();
+    public static AmoCallSender amoCallSender = new AmoCallSender();
     private static GoogleAnalitycsCallSender googleAnalitycsCallSender = new GoogleAnalitycsCallSender();
 
     public static String getFreeNumberFromSite(Tracking tracking, String googleId, String ip, String pageRequest) throws NoSuchElementException {
@@ -100,12 +102,14 @@ public class MainController {
 
         googleAnalitycsCallSender.send(call);
         roistatCallSender.send(call);
+//        amoCallSender.send(call);
         MySqlStatisticDao.saveCall(call);
     }
 
     public static void onNewTelephonyCall(NewCall call) {
         googleAnalitycsCallSender.send(call);
         roistatCallSender.send(call);
+//        amoCallSender.send(call);
         MySqlStatisticDao.saveCall(call);
     }
 }

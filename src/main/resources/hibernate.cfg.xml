@@ -12,6 +12,7 @@
     <mapping class="ua.adeptius.asterisk.model.User"/>
     <mapping class="ua.adeptius.asterisk.model.Tracking"/>
     <mapping class="ua.adeptius.asterisk.model.Telephony"/>
+    <mapping class="ua.adeptius.asterisk.model.AmoAccount"/>
 
     <!-- DB schema will be updated if needed -->
     <!-- <property name="hbm2ddl.auto">update</property> -->

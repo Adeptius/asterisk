@@ -36,7 +36,18 @@ public class NewCall {
     private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
     //    private int secondsTalk;
     private int secondsFullTime;
+    boolean callIsEnded;
 
+    @JsonIgnore
+    private int amoDealId;
+
+    public int getAmoDealId() {
+        return amoDealId;
+    }
+
+    public void setAmoDealId(int amoDealId) {
+        this.amoDealId = amoDealId;
+    }
 
     public long getCalledMillis() {
         return calledMillis;
@@ -57,9 +68,15 @@ public class NewCall {
         calledMillis = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(calledDate).getTime();
     }
 
-    public void setAnsweredDate(Date answeredDate) { // Задаётся в CallProcessor
+    /**
+     * Возвращает true callProcessor'у что бы сообщить установилось ли значение впервые впервые
+     */
+    public boolean setAnsweredDate(Date answeredDate) { // Задаётся в CallProcessor
         if (secondsToAnswer == -1) { // защита, что бы данные вводились только 1 раз.
             secondsToAnswer = (int) ((answeredDate.getTime() - getCalledMillis()) / 1000);
+            return true;
+        }else {
+            return false;
         }
     }
 
@@ -81,6 +98,11 @@ public class NewCall {
 
     public void setEndedDate(Date endedDate) { // Задаётся в CallProcessor
         secondsFullTime = (int) ((endedDate.getTime() - getCalledMillis()) / 1000);
+        callIsEnded = true;
+    }
+
+    public boolean isCallIsEnded() { // Задаётся в CallProcessor
+        return callIsEnded;
     }
 
     public void setSecondsFullTime(int secondsFullTime) { // Задаётся при чтении с БД

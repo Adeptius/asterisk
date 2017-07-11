@@ -1,13 +1,15 @@
-package ua.adeptius.amocrm.model.json.contact;
+package ua.adeptius.amocrm.model.json;
 
 
+import com.sun.istack.internal.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
-public class Contact {
+public class JsonAmoContact {
 
     private int id = -1;
     private String name = "";
@@ -17,8 +19,7 @@ public class Contact {
     private ArrayList<CustomField> customFields = new ArrayList<>();
 
 
-
-    public Contact(String json) {
+    public JsonAmoContact(String json) {
         JSONObject jContact = new JSONObject(json);
 
         id = jContact.getInt("id");
@@ -43,7 +44,7 @@ public class Contact {
                 JSONObject jValue = jValues.getJSONObject(j);
                 values.put(jValue.getString("enum"), jValue.getString("value"));
             }
-            customFields.add(new CustomField(id,name,code,values));
+            customFields.add(new CustomField(id, name, code, values));
         }
 
 
@@ -54,15 +55,28 @@ public class Contact {
         }
     }
 
-    public Contact() {
+    public JsonAmoContact() {
+    }
+
+    public void addCustomFields(CustomField custom) {
+        customFields.add(custom);
     }
 
 
-    private class CustomField {
+    public static class CustomField {
         public CustomField(String id, String name, String code, HashMap<String, String> values) {
             this.id = id;
             this.name = name;
             this.code = code;
+            this.values = values;
+        }
+
+        public CustomField(String id, String name, String code, String phoneEnumId, String contactNumber) {
+            this.id = id;
+            this.name = name;
+            this.code = code;
+            HashMap<String, String> values = new HashMap<>();
+            values.put(phoneEnumId, contactNumber);
             this.values = values;
         }
 
@@ -82,26 +96,108 @@ public class Contact {
         }
     }
 
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getLast_modified() {
+        return last_modified;
+    }
+
+    public void setLast_modified(int last_modified) {
+        this.last_modified = last_modified;
+    }
+
+    public HashMap<Integer, String> getTags() {
+        return tags;
+    }
+
+    public void setTags(HashMap<Integer, String> tags) {
+        this.tags = tags;
+    }
+
+    public void addTag(int key, String value) {
+        tags.put(key, value);
+    }
+
+    public void addTag(String value) {
+        tags.put(0, value);
+    }
+
+
+    public ArrayList<String> getLinked_leads_id() {
+        return linked_leads_id;
+    }
+
+    @Nullable
+    public String getLinked_leads_idStringed() {
+
+        String leadsInOneString = "";
+        for (String s : linked_leads_id) {
+            leadsInOneString += "," + s;
+        }
+        if (leadsInOneString.length()>1){
+            leadsInOneString = leadsInOneString.substring(1);
+        }else {
+            return null;
+        }
+        return leadsInOneString;
+    }
+
+    @Deprecated
+    public void setLinked_leads_id(ArrayList<String> linked_leads_id) {
+        throw new RuntimeException("Ни в коем случае нельзя задавать новый список сделок. Только добавлять, иначе потеряются предыдущие!!");
+    }
+
+    public void addLinked_leads_id(String id) {
+        linked_leads_id.add(id);
+    }
+
+    public ArrayList<CustomField> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(ArrayList<CustomField> customFields) {
+        this.customFields = customFields;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("\"id\":").append(id).append(",");
+        if (id != -1) {
+            sb.append("\"id\":").append(id).append(",");
+        }
         sb.append("\"name\":\"").append(name).append("\",");
+        sb.append("\"responsible_user_id\":null,"); //TODO реализовать
+        if (last_modified == -1) last_modified = (int) (new Date().getTime() / 1000);
         sb.append("\"last_modified\":").append(last_modified).append(",");
 
 
         // Таги
-        sb.append("\"tags\":[");
+        sb.append("\"tags\":\"");
         final int[] cycle = {0};
         tags.forEach((id, name) -> {
-            sb.append("{\"id\":").append(id).append(",\"name\":\"").append(name).append("\"}");
+            sb.append(name);
             cycle[0]++;
-            if (cycle[0] != tags.size()){ // если элемент не последний
+            if (cycle[0] != tags.size()) { // если элемент не последний
                 sb.append(",");
             }
         });
-        sb.append("],");
+        sb.append("\",");
 
 
         // Кастом филды
@@ -112,16 +208,16 @@ public class Contact {
 
             final int[] cycle2 = {0}; // закидываем энамы
             field.values.forEach((enumId, value) -> {
-                sb.append("{\"value\":\""+value+"\",\"enum\":\""+enumId+"\"}");
+                sb.append("{\"value\":\"" + value + "\",\"enum\":\"" + enumId + "\"}");
                 cycle2[0]++;
-                if (cycle2[0] != field.values.size()){ // если элемент не последний
+                if (cycle2[0] != field.values.size()) { // если элемент не последний
                     sb.append(",");
                 }
             });
             sb.append("]}"); // конец энамов
 
             cycle[0]++;
-            if (cycle[0] != customFields.size()){ // если элемент не последний
+            if (cycle[0] != customFields.size()) { // если элемент не последний
                 sb.append(",");
             }
         });
@@ -131,12 +227,11 @@ public class Contact {
         sb.append("\"linked_leads_id\":[");
         for (int i = 0; i < linked_leads_id.size(); i++) {
             sb.append("\"").append(linked_leads_id.get(i)).append("\"");
-            if (i != (linked_leads_id.size()-1)){
+            if (i != (linked_leads_id.size() - 1)) {
                 sb.append(",");
             }
         }
         sb.append("]");
-
 
         sb.append("}");
         return sb.toString();

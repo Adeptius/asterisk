@@ -53,6 +53,10 @@ public class User {
     @PrimaryKeyJoinColumn
     private Telephony telephony;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @PrimaryKeyJoinColumn
+    private AmoAccount amoAccount;
+
     @Transient
     private List<Rule> rules = new ArrayList<>();
 
@@ -163,18 +167,27 @@ public class User {
         this.roistatProjectNumber = roistatProjectNumber;
     }
 
+    public AmoAccount getAmoAccount() {
+        return amoAccount;
+    }
+
+    public void setAmoAccount(AmoAccount amoAccount) {
+        this.amoAccount = amoAccount;
+    }
+
     @Override
     public String toString() {
         return "User{" +
-                "login='" + login + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", trackingId='" + trackingId + '\'' +
-                ", roistatApiKey='" + roistatApiKey + '\'' +
-                ", roistatProjectNumber='" + roistatProjectNumber + '\'' +
-                ", tracking=" + tracking +
-                ", telephony=" + telephony +
-                ", rules=" + rules +
-                '}';
+                "\n    login='" + login + '\'' +
+                "\n    password='" + password + '\'' +
+                "\n    email='" + email + '\'' +
+                "\n    trackingId='" + trackingId + '\'' +
+                "\n    roistatApiKey='" + roistatApiKey + '\'' +
+                "\n    roistatProjectNumber='" + roistatProjectNumber + '\'' +
+                "\n    tracking=" + tracking +
+                "\n    telephony=" + telephony +
+                "\n    amoAccount=" + amoAccount +
+                "\n    rules=" + rules +
+                "\n}";
     }
 }

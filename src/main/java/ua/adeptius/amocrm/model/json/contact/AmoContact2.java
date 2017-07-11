@@ -5,8 +5,8 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.List;
 
-
-public class AmoContact {
+@Deprecated
+public class AmoContact2 {
 //    @JsonProperty("closest_task")
 //    private Integer closestTask;
 //    @JsonProperty("linked_company_id")
@@ -49,9 +49,9 @@ public class AmoContact {
 //        this.linkedCompanyId = linkedCompanyId;
 //    }
 //
-//    public void setCustomFields(List<CustomFieldsItem> customFields) {
-//        this.customFields = customFields;
-//    }
+    public void setCustomFields(List<CustomFieldsItem> customFields) {
+        this.customFields = customFields;
+    }
 //
 //    public void setCreatedUserId(Integer createdUserId) {
 //        this.createdUserId = createdUserId;

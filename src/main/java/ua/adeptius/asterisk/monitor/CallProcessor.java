@@ -38,11 +38,11 @@ public class CallProcessor {
          *
          * Другие NewChannelEvent, у которых связи с пользователями нет - игнорируются
          */
-        if (event instanceof NewChannelEvent) { // если это новый звонок
+        if (event instanceof NewChannelEvent) { // Событие обозначает новый звонок или создание канала редиректа между внутренними линиями.
             NewChannelEvent newChannelEvent = (NewChannelEvent) event;
             String from = addZero(newChannelEvent.getCallerIdNum());
             String to = addZero(newChannelEvent.getExten());
-            if ("s".equals(to) && !("from-internal".equals(newChannelEvent.getContext()))) {
+            if ("s".equals(to) && !("from-internal".equals(newChannelEvent.getContext()))) { // та самая внутренняя линия
                 return; // отбой странной ерунды при редиректе на сип
             }
 
@@ -70,16 +70,9 @@ public class CallProcessor {
             newCall.setCalledDate(newChannelEvent.getDateReceived());
             newCall.setDirection(direction);
 
-//            newCall.addEvent(event);
-
             calls.put(newChannelEvent.getUniqueId(), newCall);
             LOGGER.debug("Поступил новый звонок {} ->", newCall.getCalledFrom());
-            System.out.println(newChannelEvent.getChannel() + " " + newChannelEvent.getUniqueId());
-            System.out.println(newChannelEvent);
-//            print(event);
-//            printMap();
-//            System.out.println("НОВЫЙ ЗВОНОК!!!\n\n\n");
-//            System.out.println(event);
+
         } else {
             //Если это событие не новый звонок - то убеждаемся по его id что соответствующий обьект Call c таким ID уже существует.
             //А если это прилетело что-то непонятное - дальше не идём и не захламляем логи.
@@ -88,12 +81,7 @@ public class CallProcessor {
             if (newCall == null) {
                 return;
             }
-//            newCall.addEvent(event);
 
-//            print(event);
-
-
-//            } else
             if (event instanceof NewExtenEvent) {
                 NewExtenEvent newExtenEvent = (NewExtenEvent) event;
                 LOGGER.trace("ID {} NewExtenEvent: {}", id, newExtenEvent);
@@ -105,32 +93,29 @@ public class CallProcessor {
                 }
                 newCall.setCalledTo(redirectedTo);
                 LOGGER.debug("Звонок перенаправлен на {} -> {}", newCall.getCalledFrom(), newCall.getCalledTo());
-                //            System.out.println(event);
+                MainController.amoCallSender.send(newCall); // Создаём сделку в Amo или обновляем существующую
 
-//                sip->gsm - newExtenEvent.getAppData(); режется SIP/Intertelekom_main/0934027182,300,Tt
-                //Можно определять редирект по VarSetEvent OUTNUM, DIAL_NUMBER
-
-//                asterisk->sip->gsm newExtenEvent.getAppData();режется SIP/Intertelekom_main/0934027182,300,Tt
-                //Можно определять редирект по VarSetEvent OUTNUM, DIAL_NUMBER
-
-
-//                System.out.println("РЕДИРЕКТ!!!!\n\n\n");
 
             } else if (event instanceof VarSetEvent) {
                 VarSetEvent varSetEvent = (VarSetEvent) event;
                 if (varSetEvent.getVariable().equals("DIALSTATUS")) {
-//                    System.out.println("!!!DIALSTATUS=" + varSetEvent.getValue());
-                    LOGGER.trace("ID {} VarSetEvent: {}", id,varSetEvent);
+                    LOGGER.trace("ID {} VarSetEvent: {}", id, varSetEvent);
 
+                    //TODO создавать сделку здесь
                     String dialStatus = varSetEvent.getValue();
                     if ("ANSWER".equals(dialStatus)) { // Кто-то взял трубку
                         // диалстатус бывает второй раз по завершению звонка, а он нам не нужен.
 //                        if (newCall.getAnsweredDate() == null){
 //                        } // ввёл эту защиту в сеттере объекта Call
-                        newCall.setAnsweredDate(event.getDateReceived());
+//                        и этот же call возвращает true если это первый диал статус
+//                        Поэтому если тру - отправляем звонок в Амо.
+                        boolean firstDialStatus = newCall.setAnsweredDate(event.getDateReceived());
                         newCall.setCallState(ANSWER);
+//                        if (firstDialStatus){
+//                            MainController.amoCallSender.send(newCall);
+//                        } // Дублируем эту отправку в конец метода на случай если состояние звонка будет не ANSWER
+
                     } else {
-                        // добавить все остальные типы состояния
                         if ("BUSY".equals(dialStatus)) {
                             newCall.setCallState(BUSY);
                         } else if ("NOANSWER".equals(dialStatus) || "CANCEL".equals(dialStatus)) {
@@ -139,51 +124,61 @@ public class CallProcessor {
                         } else if ("CHANUNAVAIL".equals(dialStatus)) {
                             //вызываемый номер был недоступен
                             newCall.setCallState(CHANUNAVAIL);
-                        }
-                        else {
+                        } else {
                             LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);
                         }
                     }
-                    LOGGER.debug("Состояние звонка установлено на: {}",newCall.getCallState());
+                    MainController.amoCallSender.send(newCall); // Обновляем статус
+                    LOGGER.debug("Состояние звонка установлено на: {}", newCall.getCallState());
                 }
                 return;
             }
-            if (event instanceof HangupEvent) { // окончание звонка
+            if (event instanceof HangupEvent) { // Событие определяет окончание звонка. не содержит никакой инфы при звонке sip->gsm
                 HangupEvent hangupEvent = (HangupEvent) event;
+                LOGGER.info("Завершен разговор {} c {}", newCall.getCalledFrom(), newCall.getCalledTo());
                 LOGGER.trace("ID {} HangupEvent: {}", id, hangupEvent);
 
-                calls.remove(id);
-                newCall.setEndedDate(event.getDateReceived());
+                calls.remove(id); // конец звонка. айди звонка больше не будет отслеживатся так как он завершен. Удаляем.
+                if (calls.size() > 5) {// По идее мапа должна чистится calls.remove(id), но я не знаю что будет в будущем.
+                    LOGGER.warn("Айдишников<->Звонков в мапе {}", calls.size());
+                }// Если в мапе будут накапливатся айдишники, а такое наверное может быть если астериск по какой-то причине
+                // создаст новый канал, а в конце не выдаст по нему hangUpEvent, то надо будет что-то думать.
 
-                // всегда определяет конец разговора не содержит никакой инфы при звонке sip->gsm
+                newCall.setEndedDate(event.getDateReceived());
 
                 if ("s".equals(newCall.getCalledTo())) {
                     LOGGER.trace("{} не дождался совершения исходящего звонка", newCall.getCalledTo());
                     return; // обязательно нужен этот отбойник для фильтрования второго звонка при звонке снаружи на сип (gsm - outer- sip)
                 }
 
-                detectService(newCall);
-                LOGGER.info("Завершен разговор {} c {}", newCall.getCalledFrom(), newCall.getCalledTo());
+                detectService(newCall); // смотрит по сервисам пользователя и добавляет в call тип сервиса
 
-                processCall(newCall);
-                if (calls.size() > 5){
-                    LOGGER.warn("Айдишников<->Звонков в мапе {}", calls.size());
-                }
+                MainController.amoCallSender.send(newCall); // Обновляем
 
-                if (newCall.getCallState() == null){
-                    LOGGER.error("Завершен разговор c состоянием null! "+ newCall);
-                }else {
+                processCall(newCall); // отправляет законченный обьект call для дальнейшей отправки в различные сервисы
+
+                if (newCall.getCallState() == null) {
+                    LOGGER.error("Завершен разговор c состоянием null! " + newCall);
+                } else {
                     LOGGER.debug("Завершен разговор: {}", newCall);
                 }
             }
         }
     }
 
+    /**
+     * Выводит на экран размер мапы айдишников и звонков.
+     * Нужен для дебага, если там скопилось много айдишников, что бы понять что там именно.
+     */
     private static void printMap() {
         System.out.println("-----СОДЕРЖИМОЕ МАПЫ-----");
         calls.forEach((s, newCall) -> System.out.println("id " + s + " call: " + newCall.getCalledFrom() + "->" + newCall.getCalledTo()));
     }
 
+    /**
+     * Просто печатает event на экран, предварительно убрав лишнюю информацию.
+     * Метод нужен только для дебага.
+     */
     private static void print(ManagerEvent event) {
         String s = event.toString();
         s = s.substring(31);
@@ -203,9 +198,6 @@ public class CallProcessor {
         s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
         s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
         s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
-//        s = removeRegexFromString(s, "uniqueid='\\d*.\\d*',");
-
-
         System.out.println(s);
     }
 
@@ -272,128 +264,4 @@ public class CallProcessor {
             numbers.forEach(s -> phonesAndUsers.put(s, user));
         }
     }
-
-
-    /**
-     //        System.out.println(event);
-     if (event instanceof NewChannelEvent) { // если это новый звонок
-     NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-     //            System.out.println(event);
-     String from = addZero(newChannelEvent.getCallerIdNum());
-     String to = addZero(newChannelEvent.getExten());
-     if ("s".equals(to) && !("from-internal".equals(newChannelEvent.getContext()))) {
-     return; // отбой странной ерунды при редиректе на сип
-     }
-
-     User user = phonesAndUsers.get(to);
-     Call.Direction direction = Call.Direction.IN;
-     if (user == null) {
-     user = phonesAndUsers.get(from);
-     direction = Call.Direction.OUT;
-     if (user == null) {
-     //                    System.out.println("Связь не обнаружена:");
-     return;
-     }
-     }
-     Call call = new Call();
-     call.setId(newChannelEvent.getUniqueId());
-     call.setTo(newChannelEvent.getExten());
-     call.setFirstCall(newChannelEvent.getExten());
-     call.setFrom(newChannelEvent.getCallerIdNum());
-     call.setUser(user);
-     // добавление 3 секунды из-за погрешности
-     long time = 2000 + newChannelEvent.getDateReceived().getTime();
-     call.setCalledMillis(time);
-     call.setDateForDb(time);
-     call.setDirection(direction);
-     calls.put(newChannelEvent.getUniqueId(), call);
-     LOGGER.trace("Поступил новый звонок {} ->", call.getFrom());
-     //            System.out.println(event);
-
-
-     } else if (event instanceof NewStateEvent) { // если это ответ на звонок
-     NewStateEvent newStateEvent = (NewStateEvent) event;
-     Call call = calls.get(newStateEvent.getUniqueId());
-     if (call == null) return;
-     if (newStateEvent.getChannelState() == 6) { // Если ответили
-     //                int answeredIn = (int) (newStateEvent.getDateReceived().getTime() - call.getCalledMillis()) / 1000;
-     //                call.setAnswered(answeredIn);
-     }
-     if (newStateEvent.getChannelStateDesc().equals("Up")) {
-     call.setCallState(ANSWER);
-     } else { // newStateEvent.getChannelStateDesc().equals("Busy")
-     call.setCallState(BUSY);
-     call.setAnswered(0);
-     }
-     //            System.out.println(event);
-
-
-     } else if (event instanceof NewExtenEvent) { // если это перенаправление звонка
-     NewExtenEvent newExtenEvent = (NewExtenEvent) event;
-     Call call = calls.get(newExtenEvent.getUniqueId());
-     if (call == null) return;
-     String redirectedTo = newExtenEvent.getAppData();
-     if (redirectedTo.contains(",")) {
-     redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1, redirectedTo.indexOf(","));
-     } else {
-     redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1);
-     }
-     call.setTo(redirectedTo);
-     LOGGER.trace("Звонок перенаправлен на {} -> {}", call.getFrom(), call.getTo());
-     //            System.out.println(event);
-
-     } else if (event instanceof VarSetEvent) { // если это сообщение о смене статуса звонка
-     VarSetEvent varSetEvent = (VarSetEvent) event;
-     if (varSetEvent.getVariable().equals("DIALSTATUS")){
-     if (varSetEvent.getValue().equals("null")){
-     return;
-     }
-     Call call = calls.get(varSetEvent.getUniqueId());
-     if (call == null) return;
-
-     if (varSetEvent.getValue().equals("ANSWER") && (call.getAnswered() == 0)){
-     int answeredIn = (int) (varSetEvent.getDateReceived().getTime() - call.getCalledMillis()) / 1000;
-     call.setAnswered(answeredIn);
-     }
-
-     //                System.out.println(varSetEvent);
-     //                System.out.println("value: " + varSetEvent.getValue());
-
-     }
-     return;
-
-     } else if (event instanceof HangupEvent) { // если это конец звонка
-     HangupEvent hangupEvent = (HangupEvent) event;
-     Call call = calls.get(hangupEvent.getUniqueId());
-     calls.remove(hangupEvent.getUniqueId());
-     if (call == null) return;
-
-     if ("s".equals(call.getTo())) {
-     LOGGER.trace("{} не дождался совершения исходящего звонка", call.getTo());
-     return;
-     }
-     if ("Call Rejected".equals(hangupEvent.getCauseTxt())) {
-     call.setCallState(Call.CallState.BUSY);
-     }
-     if (call.getCallState() == null) {
-     call.setCallState(Call.CallState.FAIL);
-     }
-     if (call.getCallState() == ANSWER) {
-     int ended = (int) ((event.getDateReceived().getTime() - call.getCalledMillis()) / 1000) - call.getAnswered();
-     call.setEnded(ended);
-     } else {
-     call.setEnded(0);
-     }
-     LOGGER.trace("Звонок перенаправлен на {} -> {}", call.getFrom(), call.getTo());
-     //            System.out.println(event);
-
-
-     detectService(call);
-     MyLogger.log(ENDED_CALL, call.getUser().getLogin() + ": завершен разговор " + call.getFrom() + " c " + call.getTo());
-
-     //            System.out.println(call);
-     processCall(call);
-     LOGGER.trace("Айдишников<->Звонков в мапе {}", calls.size());
-     }
-     **/
 }

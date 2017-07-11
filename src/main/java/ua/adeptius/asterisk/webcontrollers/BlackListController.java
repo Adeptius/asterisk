@@ -24,7 +24,6 @@ public class BlackListController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(BlackListController.class.getSimpleName());
 
-
     @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String addToBlackList(@RequestParam String ip, HttpServletRequest request) {

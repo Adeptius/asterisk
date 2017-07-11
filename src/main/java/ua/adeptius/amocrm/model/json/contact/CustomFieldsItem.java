@@ -5,6 +5,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.List;
 
+@Deprecated
 public class CustomFieldsItem {
     @JsonProperty("code")
     private String code;

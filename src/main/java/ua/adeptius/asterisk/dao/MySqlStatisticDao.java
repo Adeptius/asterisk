@@ -98,7 +98,7 @@ public class MySqlStatisticDao extends MySqlDao {
                     "`direction` VARCHAR(3) NOT NULL,  " +
                     "`calledFrom` VARCHAR(45) NULL,  " +
                     "`calledTo` VARCHAR(45) NULL,  " +
-                    "`callState` VARCHAR(8) NOT NULL,  " +
+                    "`callState` VARCHAR(15) NOT NULL,  " +
                     "`secondsToAnswer` INT NULL,  " +
                     "`secondsFullTime` INT NULL,  " +
                     "`call_id` VARCHAR(45) NULL,  " +

@@ -1,32 +1,15 @@
 {
-  "id": 4790293,
-  "name": "Новый контакт",
-  "last_modified": 1499245426,
-  "tags": [
-    {
-      "id": 47303,
-      "name": "СуперКлиент"
-    },
-    {
-      "id": 555,
-      "name": "СуперКлиент2"
-    }
-  ],
-  "custom_fields": [
-    {
-      "id": "153071",
-      "name": "Телефон",
-      "code": "PHONE",
-      "values": [
-        {
-          "value": "0934027182",
-          "enum": "335383"
-        }
-      ]
-    }
-  ],
-  "linked_leads_id": [
-    "1577351",
-    "1577352"
-  ]
+  "note_type": 4,
+  "ATTACHEMENT": "",
+  "editable": "Y",
+  "created_user_id": "1559047",
+  "element_id": "1777119",
+  "element_type": "2",
+  "responsible_user_id": "1559047",
+  "account_id": "15391081",
+  "date_create": 1499680367,
+  "group_id": 0,
+  "id": "12234255",
+  "text": "SomeComent",
+  "last_modified": 1499680391
 }

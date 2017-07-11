@@ -2,7 +2,7 @@ package ua.adeptius.amocrm.model.json.contact;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-
+@Deprecated
 public class ValuesItem {
     @JsonProperty("value")
     private String value;

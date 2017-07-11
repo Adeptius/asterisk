@@ -6,6 +6,7 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.Telephony;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
@@ -97,6 +98,10 @@ public class HibernateDao {
         session.close();
     }
 
+
+    /**
+     * Неактуально - наложены внешние ключи в БД
+     */
     public static void cleanServices() {
         LOGGER.debug("Удаление услуг, которые никому не принадлежат");
         Session session = sessionFactory.openSession();
@@ -104,6 +109,7 @@ public class HibernateDao {
 
         List<Tracking> trackings = session.createQuery("select t from Tracking t").list();
         List<Telephony> telephonies = session.createQuery("select t from Telephony t").list();
+        List<AmoAccount> amoAccounts = session.createQuery("select a from AmoAccount a").list();
 
         for (Telephony telephony : telephonies) {
             if (telephony.getUser() == null){
@@ -114,6 +120,12 @@ public class HibernateDao {
         for (Tracking tracking : trackings) {
             if (tracking.getUser() == null){
                 session.delete(tracking);
+            }
+        }
+
+        for (AmoAccount amoAccount : amoAccounts) {
+            if (amoAccount.getUser() == null){
+                session.delete(amoAccount);
             }
         }
 

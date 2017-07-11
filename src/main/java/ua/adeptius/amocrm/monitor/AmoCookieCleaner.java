@@ -8,11 +8,11 @@ import ua.adeptius.amocrm.model.TimePairCookie;
 
 import java.util.*;
 
-public class CookieCleaner extends Thread {
+public class AmoCookieCleaner extends Thread {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(CookieCleaner.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(AmoCookieCleaner.class.getSimpleName());
 
-    public CookieCleaner() {
+    public AmoCookieCleaner() {
         setDaemon(true);
         LOGGER.info("Чистильщик Cookie AmoCRM запущен");
         start();

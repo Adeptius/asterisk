@@ -73,7 +73,6 @@
             <artifactId>spring-webmvc</artifactId>
             <version>${spring.version}</version>
         </dependency>
-        <!--TODO вставить нормальную версию-->
 
         <dependency>
             <groupId>org.springframework.data</groupId>

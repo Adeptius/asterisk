@@ -8,13 +8,13 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AmoAccount {
+public class JsonAmoAccount {
 
     private HashMap<String, String> leadStatuses = new HashMap<>();
     private String phoneEnumId = null;
     String phoneId = null;
 
-    public AmoAccount(String json) {
+    public JsonAmoAccount(String json) {
         JSONObject jAccount = new JSONObject(json);
 
 

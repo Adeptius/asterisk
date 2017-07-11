@@ -2,15 +2,10 @@ package ua.adeptius.asterisk;
 
 
 
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.amocrm.monitor.AmoCookieCleaner;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
@@ -19,13 +14,8 @@ import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
@@ -40,58 +30,10 @@ public class Main {
         main.init();
     }
 
-//    private static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
-//    private static Session session;
-
-//    private static Session getSession(){
-//        if (session == null){
-//            session = sessionFactory.openSession();
-//            return session
-//        }
-//        try{
-//            return sessionFactory.getCurrentSession();
-//        }catch (HibernateException e){
-//            sessionFactory.openSession();
-//            return sessionFactory.getCurrentSession();
-//        }
-//    }
-
     @PostConstruct
     private void init() {
         Settings.load(this.getClass());
         checkIfNeedRestartAndSetVariables();
-
-//        SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
-//        Session session = sessionFactory.openSession();
-//        session.beginTransaction();
-
-//        List<User> users = session.createQuery("select e from User e").list();
-//        User e404User = users.get(0);
-//        session.merge(e404User);
-
-
-//        System.out.println(e404User);
-//        e404User.setPassword("1");
-//        System.out.println(e404User);
-//        e404User.getTelephony().setInnerCount(4);
-//        System.out.println(e404User);
-//
-//        new Thread(() -> {
-//
-//            try {
-//                Thread.sleep(20000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            e404User.getTelephony().setInnerCount(6);
-//            System.out.println(e404User);
-//
-//
-//        }).start();
-
-
-
-
     }
 
     private void checkIfNeedRestartAndSetVariables(){
@@ -135,16 +77,17 @@ public class Main {
             LOGGER.error("MYSQL: Ошибка инициализации", e);
         }
 
+        // Неактуально - наложены внешние ключи в БД
         // Чистка сервисов, если пользователь по какой-то причине удалён, а сервис остался
-        LOGGER.info("Начало подготовки");
-        try {
-            LOGGER.info("Hibernate: Очистка сервисов владельцев которых больше нет");
-            HibernateController.cleanServices();
-            LOGGER.info("Hibernate: Очищено");
-        }catch (Exception e){
-            LOGGER.error("Hibernate: Ошибка очистки услуг", e);
-            throw new RuntimeException("ОШИБКА УДАЛЕНИЯ УСЛУГ ВЛАДЕЛЬЦЕВ КОТОРЫХ БОЛЬШЕ НЕТ");
-        }
+//        LOGGER.info("Начало подготовки");
+//        try {
+//            LOGGER.info("Hibernate: Очистка сервисов владельцев которых больше нет");
+//            HibernateController.cleanServices();
+//            LOGGER.info("Hibernate: Очищено");
+//        }catch (Exception e){
+//            LOGGER.error("Hibernate: Ошибка очистки услуг", e);
+//            throw new RuntimeException("ОШИБКА УДАЛЕНИЯ УСЛУГ ВЛАДЕЛЬЦЕВ КОТОРЫХ БОЛЬШЕ НЕТ");
+//        }
 
 
 //        Загрузка обьектов
@@ -231,6 +174,7 @@ public class Main {
         new PhonesWatcher();
         new DailyCleaner();
         new ConnectionKeeper();
+        new AmoCookieCleaner();
 
 
         Thread thread = new Thread(() -> initMonitor());

@@ -47,30 +47,6 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
     public void onManagerEvent(ManagerEvent event) {
-//        System.out.println(event);
-        /**
-         if (!(event instanceof NewChannelEvent) // Первоначальный фильтр
-         && !(event instanceof HangupEvent)
-         && !(event instanceof NewStateEvent)
-         && !(event instanceof NewExtenEvent)
-         && !(event instanceof VarSetEvent)
-         ) {
-         return;
-         }
-
-         if ((event instanceof VarSetEvent)&& !( ((VarSetEvent) event).getVariable().equals("DIALSTATUS"))){
-         return;
-         }
-
-         if ((event instanceof NewExtenEvent) && !((NewExtenEvent) event).getApplication().equals("Dial")) {
-         return; // фильтр для переадресации на GSM
-         }
-
-         if ((event instanceof NewStateEvent) && ((NewStateEvent) event).getChannelStateDesc().equals("Ring")) {
-         return; // фильтр для переадресации на GSM
-         }
-         **/
-
 
         if (event instanceof NewChannelEvent) {
             CallProcessor.processEvent(event, ((NewChannelEvent) event).getUniqueId());
@@ -88,51 +64,14 @@ public class AsteriskMonitor implements ManagerEventListener {
         } else if (event instanceof VarSetEvent) {
             VarSetEvent varSetEvent = (VarSetEvent) event;
             String key = varSetEvent.getVariable();
-//            String value = varSetEvent.getValue();
-//            if ( //FIXME
-//                    key.equals("ARG3")
-//                    || key.equals("ARG1")
-//                    || key.equals("ARG2")
-//                    || key.equals("ARG4")
-//                    || key.equals("MACRO_PRIORITY")
-//                    || key.equals("MACRO_DEPTH")
-//                    || key.equals("SIPURI")
-//                    || key.equals("SIPDOMAIN")
-//                    || key.equals("SIPCALLID")
-//                    || key.equals("TOUCH_MONITOR")
-//                    || key.equals("__REC_STATUS")
-//                    || key.equals("__DAY")
-//                    || key.equals("__MONTH")
-//                    || key.equals("__TIMESTR")
-//                    || key.equals("__FROMEXTEN")
-//                    || key.equals("__MON_FMT")
-//                    || key.equals("__REC_POLICY_MODE")
-//                    || key.equals("__CALLFILENAME")
-//                    || key.equals("LOCAL_MIXMON_ID")
-//                    || key.equals("__MIXMON_ID")
-//                    || key.equals("__RECORD_ID")
-//                    || key.equals("__REC_STATUS")
-//                    || key.equals("NOW")
-//                    || key.equals("TRUNKOUTCID")
-//                    || key.equals("custom")
-//                    || key.equals("DIALEDPEERNAME")
-//                    || key.equals("DIALEDPEERNUMBER")
-//                    || key.equals("BRIDGEPEER")
-//                    || key.equals("BRIDGEPVTCALLID")
-//                    || value.equals("null")
-//                    || value.equals("default")
-//                    || value.equals("1")
-//                    || value.equals("2")
-//                    || value.equals("3")
-//                    || value.equals("4")
-//                    || value.equals("5")
-//                    || value.equals("6")
-//                    || value.equals("7")
-//                    || value.equals("8")
-//                    ) {
-            if (key.equals("DIALSTATUS")) {
-                CallProcessor.processEvent(event, varSetEvent.getUniqueId());
+            String value = varSetEvent.getValue();
+            if (!key.equals("DIALSTATUS")) {
+                return;
             }
+            if (value == null) {
+                return;
+            }
+            CallProcessor.processEvent(event, varSetEvent.getUniqueId());
         }
     }
 }

@@ -52,7 +52,7 @@ public class RoistatPhoneCall {
         this.duration = call.getSecondsFullTime(); // полное время звонка
 
 //        Ссылка на файл записи. В api отсутствует
-        this.file_url = "http://78.159.55.63/1.mp3"; //FIXME
+//        this.file_url = "http://78.159.55.63/1.mp3";
 
 //        Типы ROISTAT
 //        ANSWER – звонок был принят и обработан сотрудником;
