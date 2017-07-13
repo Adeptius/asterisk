@@ -39,12 +39,6 @@ public class User {
     @Column(name = "trackingId")
     private String trackingId;
 
-    @Column(name = "roistatApiKey")
-    private String roistatApiKey;
-
-    @Column(name = "roistatProjectNumber")
-    private String roistatProjectNumber;
-
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
     private Tracking tracking;
@@ -56,6 +50,10 @@ public class User {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
     private AmoAccount amoAccount;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @PrimaryKeyJoinColumn
+    private RoistatAccount roistatAccount;
 
     @Transient
     private List<Rule> rules = new ArrayList<>();
@@ -151,22 +149,6 @@ public class User {
     }
 
 
-    public String getRoistatApiKey() {
-        return roistatApiKey;
-    }
-
-    public void setRoistatApiKey(String roistatApiKey) {
-        this.roistatApiKey = roistatApiKey;
-    }
-
-    public String getRoistatProjectNumber() {
-        return roistatProjectNumber;
-    }
-
-    public void setRoistatProjectNumber(String roistatProjectNumber) {
-        this.roistatProjectNumber = roistatProjectNumber;
-    }
-
     public AmoAccount getAmoAccount() {
         return amoAccount;
     }
@@ -175,19 +157,26 @@ public class User {
         this.amoAccount = amoAccount;
     }
 
+    public RoistatAccount getRoistatAccount() {
+        return roistatAccount;
+    }
+
+    public void setRoistatAccount(RoistatAccount roistatAccount) {
+        this.roistatAccount = roistatAccount;
+    }
+
     @Override
     public String toString() {
         return "User{" +
-                "\n    login='" + login + '\'' +
-                "\n    password='" + password + '\'' +
-                "\n    email='" + email + '\'' +
-                "\n    trackingId='" + trackingId + '\'' +
-                "\n    roistatApiKey='" + roistatApiKey + '\'' +
-                "\n    roistatProjectNumber='" + roistatProjectNumber + '\'' +
-                "\n    tracking=" + tracking +
-                "\n    telephony=" + telephony +
-                "\n    amoAccount=" + amoAccount +
-                "\n    rules=" + rules +
-                "\n}";
+                "\n  login='" + login + '\'' +
+                "\n  password='" + password + '\'' +
+                "\n  email='" + email + '\'' +
+                "\n  trackingId='" + trackingId + '\'' +
+                "\n  tracking=" + tracking +
+                "\n  telephony=" + telephony +
+                "\n  amoAccount=" + amoAccount +
+                "\n  roistatAccount=" + roistatAccount +
+                "\n  rules=" + rules +
+                "}";
     }
 }

@@ -18,6 +18,7 @@ import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
+import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.JsonTracking;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.AmoAccount;
@@ -33,6 +34,8 @@ public class AmoController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(AmoController.class.getSimpleName());
 
+//    TODO добавить отключение и подключение амо аккаунта
+
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String get(HttpServletRequest request) {
@@ -47,6 +50,7 @@ public class AmoController {
         try {
             return new ObjectMapper().writeValueAsString(user.getAmoAccount());
         }catch (Exception e){
+            LOGGER.error(user.getLogin()+": ошибка получения амо аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -54,11 +58,15 @@ public class AmoController {
 
     @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String set(@RequestParam String domain, @RequestParam String amoLogin, @RequestParam String apiKey , HttpServletRequest request) {
+    public String set(@RequestBody JsonAmoForController jsonAmoAccount, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
+
+        String domain = jsonAmoAccount.getDomain();
+        String amoLogin = jsonAmoAccount.getAmoLogin();
+        String apiKey = jsonAmoAccount.getApiKey();
 
         if (StringUtils.isAnyBlank(domain, amoLogin, apiKey)) {
             return new Message(Message.Status.Error, "Some params are blank!").toString();
@@ -66,6 +74,8 @@ public class AmoController {
 
         if (user.getAmoAccount() == null) {
             user.setAmoAccount(new AmoAccount());
+            user.getAmoAccount().setUser(user);
+            user.getAmoAccount().setNextelLogin(user.getLogin());
         }
 
         AmoAccount amoAccount = user.getAmoAccount();
@@ -77,14 +87,12 @@ public class AmoController {
             HibernateController.updateUser(user);
             return new Message(Message.Status.Success, "Amo account setted").toString();
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка изменения амо аккаунта: " + user.getLogin(), e);
+            LOGGER.error(user.getLogin()+": ошибка изменения амо аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
 
-
-
-    @RequestMapping(value = "/check", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String check(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -102,7 +110,7 @@ public class AmoController {
 
         try {
             AmoDAO.checkAllAccess(domain, userLogin, userApiKey);
-            return new Message(Message.Status.Error, "Check complete. It works!").toString();
+            return new Message(Message.Status.Success, "Check complete. It works!").toString();
         } catch (AmoAccountNotFoundException e) {
             return new Message(Message.Status.Error, "Amo account not found").toString();
         }catch (AmoWrongLoginOrApiKeyExeption e){
@@ -117,6 +125,27 @@ public class AmoController {
             return new Message(Message.Status.Error, "Internal error. Please contact us.").toString();
         }catch (Exception e){
             LOGGER.error("Неизвестная ошибка при проверке аккаунта амо. Аккаунт nextel: " + user.getLogin(), e);
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
+    }
+
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String remove(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+
+        if (user.getAmoAccount() == null) {
+            return new Message(Message.Status.Error, "User have not connected Amo account").toString();
+        }
+
+        try {
+            HibernateController.removeAmoAccount(user);
+            return new Message(Message.Status.Success, "Amo account removed").toString();
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin()+": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }

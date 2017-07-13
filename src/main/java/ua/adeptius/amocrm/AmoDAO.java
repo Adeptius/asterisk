@@ -74,7 +74,6 @@ public class AmoDAO {
 
     public static void checkAllAccess(String domain, String userLogin, String userApiKey) throws Exception {
 //        Проверяем права на создание сделок
-
         LOGGER.debug("{}: Тест на возможность добавления новой сделки", userLogin);
         String cookie = getCookie(domain, userLogin, userApiKey);
         String request = "{\"request\": {\"leads\": {\"add\": [{}]}}}";

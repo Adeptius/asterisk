@@ -5,10 +5,12 @@ import com.google.gson.Gson;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.json.RoistatPhoneCall;
+import ua.adeptius.asterisk.model.RoistatAccount;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.NewCall;
 
@@ -38,11 +40,20 @@ public class RoistatCallSender extends Thread {
             try {
                 NewCall call = blockingQueue.take();
                 User user = call.getUser();
-                String roistatApi = user.getRoistatApiKey();
-                String roistatProject = user.getRoistatProjectNumber();
-                if (roistatApi != null && roistatProject != null && !(roistatApi.equals("")) && !(roistatProject.equals(""))) {
-                    sendReport(new RoistatPhoneCall(call));
+                RoistatAccount roistatAccount = user.getRoistatAccount();
+                if (roistatAccount == null) {
+                    return;
                 }
+
+                String roistatApi = roistatAccount.getApiKey();
+                String roistatProject = roistatAccount.getProjectNumber();
+
+                if (StringUtils.isAnyBlank(roistatApi, roistatProject)) {
+                    return;
+                }
+
+                sendReport(new RoistatPhoneCall(call));
+
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
             }

@@ -95,8 +95,8 @@ public class RoistatPhoneCall {
 //      Время разговора
         this.answer_duration = call.getSecondsTalk();
 
-        this.roistatApiKey = call.getUser().getRoistatApiKey();
-        this.roistatProjectNumber = call.getUser().getRoistatProjectNumber();
+        this.roistatApiKey = call.getUser().getRoistatAccount().getApiKey();
+        this.roistatProjectNumber = call.getUser().getRoistatAccount().getProjectNumber();
     }
 
     public String getRoistatApiKey() {

@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,12 +73,8 @@ public class UserController {
         }
 
         String password = setUser.getPassword();
-        if (password != null) {
-            if (password.equals("")) {
-                password = user.getPassword();
-            } else if (password.length() < 6) {
-                return new Message(Message.Status.Error, "Password is too short. Must be minimum 6 characters").toString();
-            }
+        if (StringUtils.isBlank(password) || password.length() < 6){
+            return new Message(Message.Status.Error, "Password is too short. Must be minimum 6 characters").toString();
         }
 
         user.setPassword(password);

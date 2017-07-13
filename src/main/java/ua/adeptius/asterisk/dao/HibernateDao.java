@@ -84,6 +84,32 @@ public class HibernateDao {
         session.close();
     }
 
+    public static void removeAmoAccount(User user) {
+        LOGGER.info("Удаление amo аккаунта у пользователя {}", user.getLogin());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(user.getAmoAccount());
+        user.setAmoAccount(null);
+        session.update(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void removeRoistatAccount(User user) {
+        LOGGER.info("Удаление roistat аккаунта у пользователя {}", user.getLogin());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(user.getRoistatAccount());
+        user.setRoistatAccount(null);
+        session.update(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
     public static void deleteUser(String username) {
         LOGGER.info("Удаление телефонии у пользователя {}", username);
         Session session = sessionFactory.openSession();
@@ -102,6 +128,7 @@ public class HibernateDao {
     /**
      * Неактуально - наложены внешние ключи в БД
      */
+    @Deprecated
     public static void cleanServices() {
         LOGGER.debug("Удаление услуг, которые никому не принадлежат");
         Session session = sessionFactory.openSession();
