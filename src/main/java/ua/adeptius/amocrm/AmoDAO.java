@@ -6,6 +6,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
+import javafx.util.Pair;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,9 +21,12 @@ import ua.adeptius.amocrm.model.TimePairCookie;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
+import ua.adeptius.asterisk.model.IdPairTime;
 
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AmoDAO {
 
@@ -177,7 +181,33 @@ public class AmoDAO {
      * Регистрация в AmoCRM стандартной сделки нового звонка. Возвращает айдишник сделки, который сразу же
      * можно привязать к контакту.
      */
-    public static int addNewDeal(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception {
+//    public static int addNewDeal(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception {
+//        String body = getBodyOfAddingDeal(domain, userLogin, userApiKey, tags, leadId);
+//        body = StringEscapeUtils.unescapeJava(body);
+//        LOGGER.trace("{}: Получен ответ добавления новой сделки: {}", userLogin, body);
+//        JSONObject jResponse = getJResponseIfAllGood(body);
+//        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
+//        return responseId;
+//    }
+
+    public static IdPairTime addNewDealAndGetBackIdAndTime(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception {
+        long t0 = System.currentTimeMillis();
+        String body = getBodyOfAddingDeal(domain, userLogin, userApiKey, tags, leadId);
+        long millis = System.currentTimeMillis() - t0;
+        body = StringEscapeUtils.unescapeJava(body);
+        LOGGER.trace("{}: Получен ответ добавления новой сделки: {}", userLogin, body);
+        JSONObject jResponse = getJResponseIfAllGood(body);
+        int time = jResponse.getInt("server_time");
+        int currentTime = (int) (new Date().getTime() / 1000);
+        System.out.println("Время сервера: "+time);
+        System.out.println("Время локальн: "+currentTime);
+        System.out.println("Разница во времени: " + (currentTime - time));
+        System.out.println("Время на запрос, милисекунд: " + millis);
+        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
+        return new IdPairTime(responseId, time);
+    }
+
+    private static String getBodyOfAddingDeal(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception{
         LOGGER.debug("{}: Запрос добавления новой сделки", userLogin);
         String cookie = getCookie(domain, userLogin, userApiKey);
         String request = "{\"request\": {\"leads\": {\"add\": [{\"name\": \"Новая сделка\",\"tags\": \"" + tags + "\""
@@ -189,20 +219,17 @@ public class AmoDAO {
                 .header("Cookie", cookie)
                 .body(request)
                 .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ добавления новой сделки: {}", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
-        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
-        return responseId;
-
+        return uniresp.getBody();
     }
 
-    public static void setTagsToDeal(String domain, String userLogin, String userApiKey, @NotNull String tags, int dealid) throws Exception {
+
+
+        public static void setTagsToDeal(String domain, String userLogin, String userApiKey, @NotNull String tags, int dealid, int dealTime) throws Exception {
         LOGGER.debug("{}: Запрос изменения тэгов для сделки {}: {}", userLogin, dealid, tags);
+//TODO Thread sleep 1s
         String cookie = getCookie(domain, userLogin, userApiKey);
-        int currentTime = (int) (new Date().getTime() / 1000);
-        String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":"+dealid+",\"tags\": \"" + tags + "\",\"last_modified\":"+currentTime+"}]}}}";
+//        long time = new Date().getTime() / 1000;
+        String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":"+dealid+",\"tags\": \"" + tags + "\",\"last_modified\":"+dealTime+"}]}}}";
         System.out.println("Отправляю: " + request);
         HttpResponse<String> uniresp = Unirest
                 .post("https://" + domain + ".amocrm.ru/private/api/v2/json/leads/set")
@@ -288,13 +315,14 @@ public class AmoDAO {
         LOGGER.trace("{}: Получен ответ поиска сделки по id: {}", userLogin, body);
         JSONObject jResponse = getJResponseIfAllGood(body);
         JSONArray array = jResponse.getJSONArray("leads");
+        int serverTimeWhenResponse = jResponse.getInt("server_time");
         if (array.length() == 0) {
             return null;
         }
-        return new JsonAmoDeal(array.getJSONObject(0).toString());
+        return new JsonAmoDeal(array.getJSONObject(0).toString(), serverTimeWhenResponse);
     }
 
-    public static void addNewComent(String domain, String userLogin, String userApiKey, int leadId, String coment) throws Exception {
+    public static void addNewComent(String domain, String userLogin, String userApiKey, int leadId, String coment, int time) throws Exception {
         LOGGER.debug("{}: Запрос добавления нового коментария: {}", userLogin, coment);
         String cookie = getCookie(domain, userLogin, userApiKey);
 
@@ -304,7 +332,11 @@ public class AmoDAO {
 //        note_type	    Тип примечания https://developers.amocrm.ru/rest_api/notes_type.php#notetypes
 //        text	        Текстовое обозначение задачи (выводит разную информацию, в зависимости от типов) https://developers.amocrm.ru/rest_api/notes_type.php#notetext
 
-        String request = "{\"request\":{\"notes\":{\"add\":[{\"element_id\":" + leadId + ",\"element_type\":\"2\",\"note_type\":4 ,\"text\":\"" + coment + "\"}]}}}";
+        String stringedTime = "";
+        if (time > 0){ // Если какое-то время указано
+            stringedTime = ",\"last_modified\":"+time;
+        }
+        String request = "{\"request\":{\"notes\":{\"add\":[{\"element_id\":" + leadId + ",\"element_type\":\"2\",\"note_type\":4 ,\"text\":\"" + coment + "\""+stringedTime+"}]}}}";
         LOGGER.trace("{}: Отправляю: {}", userLogin, request);
         HttpResponse<String> uniresp = Unirest
                 .post("https://" + domain + ".amocrm.ru/private/api/v2/json/notes/set")

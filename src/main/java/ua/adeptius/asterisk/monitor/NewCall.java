@@ -4,7 +4,6 @@ package ua.adeptius.asterisk.monitor;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import ua.adeptius.asterisk.model.User;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -41,6 +40,29 @@ public class NewCall {
     @JsonIgnore
     private int amoDealId;
 
+    @JsonIgnore
+    private int lastOperationTime;
+
+    public int getCalculatedModifiedTime() { // AUTOINCREMENT
+        int currentTime = ((int) ((new Date().getTime()/1000)))+timeDifference;
+        if (currentTime <= lastOperationTime){ // если текущее время совпадает с предыдущим
+            lastOperationTime++;
+            return lastOperationTime;
+        }else {
+            return currentTime;
+        }
+    }
+
+    @JsonIgnore
+    private int timeDifference;
+
+
+
+    public void setLastOperationTime(int lastOperationTime) {
+        this.lastOperationTime = lastOperationTime;
+        timeDifference = lastOperationTime - ((int) new Date().getTime()/1000);
+    }
+
     public int getAmoDealId() {
         return amoDealId;
     }
@@ -48,6 +70,7 @@ public class NewCall {
     public void setAmoDealId(int amoDealId) {
         this.amoDealId = amoDealId;
     }
+
 
     public long getCalledMillis() {
         return calledMillis;

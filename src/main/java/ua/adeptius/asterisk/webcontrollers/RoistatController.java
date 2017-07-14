@@ -38,6 +38,7 @@ public class RoistatController {
 
 //    TODO добавить отключение и подключение roistat аккаунта
 
+//TODO протестить
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String get(HttpServletRequest request) {

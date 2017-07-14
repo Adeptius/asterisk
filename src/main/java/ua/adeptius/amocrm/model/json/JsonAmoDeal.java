@@ -14,6 +14,15 @@ public class JsonAmoDeal {
     private String id;
     private String statusId;
     private int dateCreate;
+    int serverResponseTime;
+
+    public JsonAmoDeal(String json, int serverTimeWhenResponse) {
+//        Server Time нужен только для синхронизации времени с серваком.
+//        И вставлен он сюда для того что бы не усложнять алгоритмы сложными обьектами
+//        Например при поиске активных сделок в AmoDao.
+        this(json);
+        this.serverResponseTime = serverTimeWhenResponse;
+    }
 
     public JsonAmoDeal(String json) {
         JSONObject jDeal = new JSONObject(json);
@@ -53,6 +62,14 @@ public class JsonAmoDeal {
 
     public void setDateCreate(int dateCreate) {
         this.dateCreate = dateCreate;
+    }
+
+    public int getServerResponseTime() {
+        return serverResponseTime;
+    }
+
+    public void setServerResponseTime(int serverResponseTime) {
+        this.serverResponseTime = serverResponseTime;
     }
 
     @Override

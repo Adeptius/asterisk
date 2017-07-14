@@ -10,6 +10,7 @@ import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.AmoAccount;
+import ua.adeptius.asterisk.model.IdPairTime;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.NewCall;
 
@@ -109,7 +110,7 @@ public class AmoCallSender extends Thread {
             //  меняем тег на
             String tags = "Звонок -> " + call.getCalledTo();
             try {
-                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, tags, call.getAmoDealId());
+                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, tags, call.getAmoDealId(), call.getCalculatedModifiedTime());
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -121,7 +122,11 @@ public class AmoCallSender extends Thread {
         if (call.isCallIsEnded()){
 //            Убираем тэги
             try {
-                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, "Звонок принят", call.getAmoDealId());
+                if (call.getCallState() == NewCall.CallState.ANSWER){
+                    AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, "Звонок принят", call.getAmoDealId(), call.getCalculatedModifiedTime());
+                }else { // TODO расписать подробно по какой причине не принят
+                    AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, "Звонок не принят", call.getAmoDealId(), call.getCalculatedModifiedTime());
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -133,14 +138,14 @@ public class AmoCallSender extends Thread {
         if (call.getCallState() == NewCall.CallState.ANSWER) { // на звонок ответили
             String tags = "Разговор -> " + call.getCalledTo();
             try {
-                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, tags, call.getAmoDealId());
+                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, tags, call.getAmoDealId(), call.getCalculatedModifiedTime());
             }catch (Exception e){
                 e.printStackTrace();
             }
         } else { // на звонок не ответили. Просто пишем что был звонок
             String tags = "Пропущенный звонок";
             try {
-                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, tags, call.getAmoDealId());
+                AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, tags, call.getAmoDealId(), call.getCalculatedModifiedTime());
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -159,11 +164,12 @@ public class AmoCallSender extends Thread {
         if (jsonAmoContact == null) { //если такого контакта еще нет - создаём и контакт и сделку.
             LOGGER.debug("Контакт AMO по телефону {} не найден. Создаём новый контакт и сделку.", contactNumber);
 
-            int dealId = AmoDAO.addNewDeal(domain, userLogin, userApiKey, tags, startedLeadId);
-            call.setAmoDealId(dealId); // ПРИВЯЗКА
+//            int dealId = AmoDAO.addNewDeal(domain, userLogin, userApiKey, tags, startedLeadId);
+            IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(domain, userLogin, userApiKey, tags, startedLeadId);
+            call.setAmoDealId(idPairTime.getId()); // ПРИВЯЗКА
+            call.setLastOperationTime(idPairTime.getTime());
 
-
-            AmoDAO.addNewContactNewMethod(domain, userLogin, userApiKey, contactNumber, dealId, phoneId, phoneEnumId, "Nextel", contactName);
+            AmoDAO.addNewContactNewMethod(domain, userLogin, userApiKey, contactNumber, idPairTime.getId(), phoneId, phoneEnumId, "Nextel", contactName);
             LOGGER.debug("Новый контакт и сделка для пользователя {} созданы!", user.getLogin());
 
         } else { // контакт уже есть.
@@ -172,13 +178,15 @@ public class AmoCallSender extends Thread {
             JsonAmoDeal latestActiveDial = AmoDAO.getContactsLatestActiveDial(domain, userLogin, userApiKey, jsonAmoContact);
 
             if (latestActiveDial != null) { // если у контакта есть уже открытая сделка - то просто добавляем комент
-                AmoDAO.addNewComent(domain, userLogin, userApiKey, latestActiveDial.getIdInt(), "Повторный звонок от клиента.");
+                AmoDAO.addNewComent(domain, userLogin, userApiKey, latestActiveDial.getIdInt(), "Повторный звонок от клиента.", call.getCalculatedModifiedTime());
                 call.setAmoDealId(latestActiveDial.getIdInt());
+                call.setLastOperationTime(latestActiveDial.getServerResponseTime());
 
             } else { // если у клиента нет активной сделки - то создаём новую и в контакте её добавляем.
-                int dealId = AmoDAO.addNewDeal(domain, userLogin, userApiKey, tags, startedLeadId);
-                call.setAmoDealId(dealId);
-                jsonAmoContact.addLinked_leads_id("" + dealId);
+                IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(domain, userLogin, userApiKey, tags, startedLeadId);
+                call.setAmoDealId(idPairTime.getId());
+                call.setLastOperationTime(idPairTime.getTime());
+                jsonAmoContact.addLinked_leads_id("" + idPairTime.getId());
                 AmoDAO.updateContact(domain, userLogin, userApiKey, jsonAmoContact);
             }
         }
