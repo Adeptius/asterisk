@@ -1,20 +1,26 @@
 package ua.adeptius.asterisk;
 
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.json.JSONObject;
-import ua.adeptius.asterisk.controllers.HibernateController;
+import com.sun.istack.internal.NotNull;
+import org.apache.commons.lang3.StringUtils;
 import ua.adeptius.asterisk.dao.HibernateDao;
-import ua.adeptius.asterisk.dao.HibernateSessionFactory;
+import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.User;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestClass {
 
+
+    String days = "вт чт";
+
     public static void main(String[] args) throws Exception {
+//        User user = HibernateDao.getUserByLogin("e404");
+//        System.out.println(user);
+//        Scenario scenario = user.getScenarios().get(0);
 
-
+//        HibernateDao.update(user);
     }
 }

@@ -12,7 +12,7 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.telephony.Rule;
+import ua.adeptius.asterisk.telephony.OldRule;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -54,8 +54,8 @@ public class RuleController {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
         try{
-            List<Rule> rules = user.getRules();
-            return new ObjectMapper().writeValueAsString(rules);
+            List<OldRule> oldRules = user.getOldRules();
+            return new ObjectMapper().writeValueAsString(oldRules);
         }catch (Exception e){
             LOGGER.error(user.getLogin()+": ошибка получения правил", e);
             return new Message(Message.Status.Error, "Internal error").toString();
@@ -65,7 +65,7 @@ public class RuleController {
 
     @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String getRules(@RequestBody ArrayList<Rule> newRules, HttpServletRequest request) {
+    public String getRules(@RequestBody ArrayList<OldRule> newOldRules, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
@@ -73,13 +73,13 @@ public class RuleController {
 
 //         Проверяем есть ли дубликаты среди номеров с
         Set<String> filterSet = new HashSet<>();
-        if (newRules.stream().flatMap(rule -> rule.getFrom().stream()).anyMatch(s -> !filterSet.add(s))) {
+        if (newOldRules.stream().flatMap(oldRule -> oldRule.getFrom().stream()).anyMatch(s -> !filterSet.add(s))) {
             return new Message(Message.Status.Error, "Duplicates numbers found").toString();
         }
 
 //         Проверяем правильный ли формат номеров
-        List<String> numbersTo = newRules.stream().filter(rule -> rule.getDestinationType() == GSM)
-                .flatMap(rule -> rule.getTo().stream()).collect(Collectors.toList());
+        List<String> numbersTo = newOldRules.stream().filter(oldRule -> oldRule.getDestinationType() == GSM)
+                .flatMap(oldRule -> oldRule.getTo().stream()).collect(Collectors.toList());
 
         for (String s : numbersTo) {
             Matcher regexMatcher = Pattern.compile("^0\\d{9}$").matcher(s);
@@ -89,7 +89,7 @@ public class RuleController {
         }
 
         try {
-            user.setRules(newRules);
+            user.setOldRules(newOldRules);
             user.saveRules();
             return new Message(Message.Status.Success, "Saved").toString();
         } catch (Exception e) {

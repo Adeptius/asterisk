@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.telephony.Rule;
+import ua.adeptius.asterisk.telephony.OldRule;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -22,30 +22,30 @@ public class RulesConfigDAO {
 
     private static String folder = Settings.getSetting("___forwardingRulesFolder");
 
-    public static void writeToFile(String filename, List<Rule> ruleList) throws Exception {
+    public static void writeToFile(String filename, List<OldRule> oldRuleList) throws Exception {
         LOGGER.trace("{}: запись правил в файл",filename);
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
-        for (Rule rule : ruleList) {
-            writer.write(rule.getConfig());
+        for (OldRule oldRule : oldRuleList) {
+            writer.write(oldRule.getConfig());
         }
         writer.close();
     }
 
-    public static List<Rule> readFromFile(String filename) throws Exception {
+    public static List<OldRule> readFromFile(String filename) throws Exception {
         LOGGER.trace("{}: чтение правил из файла",filename);
         List<String> lines = readStringsFromFile(folder + filename + ".conf");
-        List<Rule> rules = new ArrayList<>();
+        List<OldRule> oldRules = new ArrayList<>();
         List<String> linesOfRule = new ArrayList<>();
         for (String line : lines) {
             if (line.startsWith("; Start Rule")) {
                 linesOfRule.clear();
             } else if (line.startsWith("; End Rule")) {
-                rules.add(new Rule(linesOfRule));
+                oldRules.add(new OldRule(linesOfRule));
             } else {
                 linesOfRule.add(line);
             }
         }
-        return rules;
+        return oldRules;
     }
 
 
@@ -74,8 +74,8 @@ public class RulesConfigDAO {
 
     public static void removeFileIfNeeded(User user) throws Exception {
         List<String> customerNumbers = new ArrayList<>();
-        List<Rule> rulesToDelete = new ArrayList<>();
-        List<Rule> currentRules = user.getRules();
+        List<OldRule> rulesToDelete = new ArrayList<>();
+        List<OldRule> currentOldRules = user.getOldRules();
 
         if (user.getTracking() != null){
             customerNumbers.addAll(user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
@@ -85,22 +85,22 @@ public class RulesConfigDAO {
             customerNumbers.addAll(user.getTelephony().getOuterPhonesList());
         }
 
-        for (Rule rule : currentRules) {
+        for (OldRule oldRule : currentOldRules) {
             List<String> numbersInRules = new ArrayList<>();
-            numbersInRules.addAll(rule.getFrom());
+            numbersInRules.addAll(oldRule.getFrom());
 //            numbersInRules.addAll(rule.getTo());
 
             for (String s : numbersInRules) {
                 if (!customerNumbers.contains(s)){
-                    rulesToDelete.add(rule);
+                    rulesToDelete.add(oldRule);
                     break;
                 }
             }
         }
 
-        currentRules.removeAll(rulesToDelete);
+        currentOldRules.removeAll(rulesToDelete);
 
-        if (currentRules.size() == 0){
+        if (currentOldRules.size() == 0){
             Files.deleteIfExists(Paths.get(folder + user.getLogin() + ".conf"));
         }else if (rulesToDelete.size() > 0){
             user.saveRules();

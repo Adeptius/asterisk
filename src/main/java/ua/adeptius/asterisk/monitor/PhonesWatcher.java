@@ -21,6 +21,7 @@ public class PhonesWatcher extends Thread {
 
     public PhonesWatcher() {
         setDaemon(true);
+        setName("PhonesWatcher");
         start();
     }
 

@@ -14,6 +14,7 @@ public class DailyCleaner extends Thread {
 
     public DailyCleaner() {
         setDaemon(true);
+        setName("DailyCleaner");
         start();
     }
 

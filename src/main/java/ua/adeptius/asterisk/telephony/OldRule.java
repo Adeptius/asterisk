@@ -13,9 +13,9 @@ import java.util.List;
 import static ua.adeptius.asterisk.telephony.DestinationType.*;
 import static ua.adeptius.asterisk.telephony.ForwardType.*;
 
-public class Rule {
+public class OldRule {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(Rule.class.getSimpleName());
+    private static Logger LOGGER =  LoggerFactory.getLogger(OldRule.class.getSimpleName());
 
     private ArrayList<String> from = new ArrayList<>();
     private ArrayList<String> to = new ArrayList<>();
@@ -24,12 +24,12 @@ public class Rule {
     private int time;
     private String melody;
 
-    public Rule() {
+    public OldRule() {
         melody = "simple";
     }
 
 
-    public Rule(List<String> lines) {
+    public OldRule(List<String> lines) {
         for (String line : lines) {
             String numbers = line.substring(line.indexOf("(")+1, line.lastIndexOf(")")); // получаем то, что содержится в скобках
 

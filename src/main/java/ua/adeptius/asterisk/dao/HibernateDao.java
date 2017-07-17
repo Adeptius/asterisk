@@ -5,11 +5,11 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.Telephony;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.Scenario;
 
 import java.util.List;
 
@@ -27,13 +27,48 @@ public class HibernateDao {
         return list;
     }
 
+    public static List<Scenario> getAllScenarios() throws Exception {
+        Session session = sessionFactory.openSession();
+        List<Scenario> list = session.createQuery("select s from Scenario s").list();
+        session.close();
+        return list;
+    }
+
+    public static Scenario getScenarioById(int id) throws Exception {
+        Session session = sessionFactory.openSession();
+        Scenario scenario = session.get(Scenario.class, id);
+        session.close();
+        return scenario;
+    }
+
+    public static void update(Scenario scenario) {
+        LOGGER.info("Обновление сценария {}", scenario.getId());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.update(scenario);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void saveScenario(Scenario scenario) throws Exception {
+        LOGGER.info("Сохранение сценария {}", scenario.getId());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.update(scenario);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
     public static User getUserByLogin(String login) throws Exception {
         Session session = sessionFactory.openSession();
         User user = session.get(User.class, login);
         session.close();
         return user;
     }
-
 
     public static void saveUser(User user) throws Exception {
         LOGGER.info("Сохранение пользователя {}", user.getLogin());

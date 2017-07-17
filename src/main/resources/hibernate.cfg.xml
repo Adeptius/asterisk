@@ -5,15 +5,26 @@
 <hibernate-configuration>
   <session-factory>
     <property name="connection.url">jdbc:mysql://193.106.59.202:3306/calltrackdb</property>
-    <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
     <property name="connection.username">adapteus</property>
     <property name="connection.password">adapteus4k</property>
+
+    <property name="hibernate.connection.useUnicode">true</property>
+    <property name="hibernate.connection.characterEncoding">UTF-8</property>
+    <property name="hibernate.connection.charSet">UTF-8</property>
+
+    <!--<property name="connection.url">jdbc:mysql://localhost:3306/calltrackdb</property>-->
+    <!--<property name="connection.username">root</property>-->
+    <!--<property name="connection.password">357159</property>-->
+
+    <!--<property name="show_sql">true</property>-->
+    <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
     <mapping class="ua.adeptius.asterisk.model.User"/>
     <mapping class="ua.adeptius.asterisk.model.Tracking"/>
     <mapping class="ua.adeptius.asterisk.model.Telephony"/>
     <mapping class="ua.adeptius.asterisk.model.AmoAccount"/>
     <mapping class="ua.adeptius.asterisk.model.RoistatAccount"/>
+    <mapping class="ua.adeptius.asterisk.model.Scenario"/>
 
     <!-- DB schema will be updated if needed -->
     <!-- <property name="hbm2ddl.auto">update</property> -->

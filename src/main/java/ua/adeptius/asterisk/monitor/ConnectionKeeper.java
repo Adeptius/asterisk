@@ -19,6 +19,7 @@ public class ConnectionKeeper extends Thread {
 
     public ConnectionKeeper() {
         setDaemon(true);
+        setName("ConnectionKeeper");
         start();
     }
 

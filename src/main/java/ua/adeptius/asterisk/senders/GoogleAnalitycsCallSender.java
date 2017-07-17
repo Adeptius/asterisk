@@ -26,6 +26,8 @@ public class GoogleAnalitycsCallSender extends Thread {
 
 
     public GoogleAnalitycsCallSender() {
+        setName("AmoCallSender");
+        setDaemon(true);
         start();
     }
 

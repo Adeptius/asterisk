@@ -31,6 +31,8 @@ public class RoistatCallSender extends Thread {
 
 
     public RoistatCallSender() {
+        setName("RoistatCallSender");
+        setDaemon(true);
         start();
     }
 

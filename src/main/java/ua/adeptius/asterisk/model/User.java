@@ -4,11 +4,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
-import ua.adeptius.asterisk.model.Telephony;
-import ua.adeptius.asterisk.model.Tracking;
-import ua.adeptius.asterisk.telephony.Rule;
-import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
+import ua.adeptius.asterisk.telephony.OldRule;
 
 import javax.persistence.*;
 import javax.persistence.CascadeType;
@@ -55,13 +51,27 @@ public class User {
     @PrimaryKeyJoinColumn
     private RoistatAccount roistatAccount;
 
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "login", referencedColumnName = "login")
+    List<Scenario> scenarios;
+
     @Transient
-    private List<Rule> rules = new ArrayList<>();
+    private List<OldRule> oldRules = new ArrayList<>();
+
+
+    public List<Scenario> getScenarios() {
+        return scenarios;
+    }
+
+    public void setScenarios(List<Scenario> scenarios) {
+        this.scenarios = scenarios;
+    }
 
     public void loadRules(){
         try {
             LOGGER.trace("{}: загрузка правил", login);
-            rules = RulesConfigDAO.readFromFile(login);
+            oldRules = RulesConfigDAO.readFromFile(login);
         } catch (NoSuchFileException ignored) {
         } catch (Exception e){
             LOGGER.error(login+": ошибка загрузки правил", e);
@@ -69,10 +79,10 @@ public class User {
     }
 
     public void saveRules() throws Exception{
-        if (rules.size()==0){
+        if (oldRules.size()==0){
             RulesConfigDAO.removeFile(login);
         }else {
-            RulesConfigDAO.writeToFile(login, rules);
+            RulesConfigDAO.writeToFile(login, oldRules);
         }
     }
 
@@ -88,12 +98,12 @@ public class User {
         return numbers;
     }
 
-    public List<Rule> getRules() {
-        return rules;
+    public List<OldRule> getOldRules() {
+        return oldRules;
     }
 
-    public void setRules(List<Rule> rules) {
-        this.rules = rules;
+    public void setOldRules(List<OldRule> oldRules) {
+        this.oldRules = oldRules;
     }
 
     public Telephony getTelephony() {
@@ -165,6 +175,7 @@ public class User {
         this.roistatAccount = roistatAccount;
     }
 
+
     @Override
     public String toString() {
         return "User{" +
@@ -176,7 +187,8 @@ public class User {
                 "\n  telephony=" + telephony +
                 "\n  amoAccount=" + amoAccount +
                 "\n  roistatAccount=" + roistatAccount +
-                "\n  rules=" + rules +
-                "}";
+                "\n  scenarios=" + scenarios +
+                "\n  oldRules=" + oldRules +
+                "\n}";
     }
 }

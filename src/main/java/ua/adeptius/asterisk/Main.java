@@ -48,8 +48,8 @@ public class Main {
 
         }else { // Это винда
             LOGGER.info("OS Windows");
-            Settings.setSetting("___forwardingRulesFolder","D:\\Java\\Projects\\settings Asterisk\\rules\\");
-            Settings.setSetting("___sipConfigsFolder","D:\\Java\\Projects\\settings Asterisk\\sips\\");
+            Settings.setSetting("___forwardingRulesFolder","D:\\home\\adeptius\\tomcat\\rules\\");
+            Settings.setSetting("___sipConfigsFolder","D:\\home\\adeptius\\tomcat\\sips\\");
         }
 
         if (firstStart && itsLinux) {

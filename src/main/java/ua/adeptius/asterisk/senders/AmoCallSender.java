@@ -32,6 +32,8 @@ public class AmoCallSender extends Thread {
 
 
     public AmoCallSender() {
+        setName("AmoCallSender");
+        setDaemon(true);
         start();
     }
 
@@ -92,7 +94,7 @@ public class AmoCallSender extends Thread {
 
         int startedLeadId = amoAccount.getLeadId(); // айдишник этапа сделки
 
-//        Все данные готовы. Теперь отправляем инфу. TODO возможно стоит проверять эти данные только при создании сделки
+//        Все данные готовы. Теперь отправляем инфу.
 
 
         if (call.getAmoDealId() == 0) {// только позвонили - это первый редирект. Создаём или привязываем сделку
@@ -123,8 +125,8 @@ public class AmoCallSender extends Thread {
 //            Убираем тэги
             try {
                 if (call.getCallState() == NewCall.CallState.ANSWER){
-                    AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, "Звонок принят", call.getAmoDealId(), call.getCalculatedModifiedTime());
-                }else { // TODO расписать подробно по какой причине не принят
+                    AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, "Отвечено", call.getAmoDealId(), call.getCalculatedModifiedTime());
+                }else {
                     AmoDAO.setTagsToDeal(domain, amoLogin, amoApiKey, "Звонок не принят", call.getAmoDealId(), call.getCalculatedModifiedTime());
                 }
             }catch (Exception e){

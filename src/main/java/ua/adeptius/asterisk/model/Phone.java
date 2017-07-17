@@ -19,7 +19,7 @@ public class Phone {
     private String googleId;
     private String ip;
     @JsonIgnore
-    private String busyTime; // время которое телефон занят. Отображается в гуи. Вычисляется наблюдателем относительно времени startedBusy
+    private String busyTime; // время которое телефон занят. Вычисляется наблюдателем относительно времени startedBusy
     @JsonIgnore
     private long updatedTime;   // время аренды. Обновляется при вызове extendTime. Если это значение+12000 больше текущего времени - наблюдатель освобождает телефон
     @JsonIgnore
