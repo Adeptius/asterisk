@@ -64,7 +64,7 @@ public class UserController {
     }
 
 
-    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getUser(@RequestBody JsonUser setUser, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -92,7 +92,7 @@ public class UserController {
     }
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getUser(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

@@ -6,44 +6,78 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
 import ua.adeptius.asterisk.json.Message;
+import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.OldRule;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.telephony.DestinationType.*;
+import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
 
 @Controller
-@RequestMapping("/rules")
-public class RuleController {
+@RequestMapping("/scenario")
+public class ScenarioController {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(RuleController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
 
 
-    @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String getAvailableNumbers(HttpServletRequest request) {
+    public String addScenario(@RequestBody Scenario newOldRules, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
 
-        try{
-            return new ObjectMapper().writeValueAsString(user.getAvailableNumbers());
-        }catch (Exception e){
-            LOGGER.error(user.getLogin()+": ошибка получения доступных номеров для правил", e);
+        return "";
+    }
+
+
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String getScenarios(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+        try {
+            List<Scenario> scenarios = user.getScenarios();
+            return new ObjectMapper().writeValueAsString(scenarios);
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": ошибка получения сценариев", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
+
+//    @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "application/json")
+//    @ResponseBody
+//    public String getAvailableNumbers(HttpServletRequest request) {
+//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+//        if (user == null) {
+//            return new Message(Message.Status.Error, "Authorization invalid").toString();
+//        }
+//
+//        try{
+//            return new ObjectMapper().writeValueAsString(user.getAvailableNumbers());
+//        }catch (Exception e){
+//            LOGGER.error(user.getLogin()+": ошибка получения доступных номеров для правил", e);
+//            return new Message(Message.Status.Error, "Internal error").toString();
+//        }
+//    }
 
 
 //    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
@@ -98,14 +132,14 @@ public class RuleController {
 //        }
 //    }
 
-    @RequestMapping(value = "/getMelodies", method = RequestMethod.POST, produces = "application/json")
-    @ResponseBody
-    public String getHistory() {
-        try {
-            return new Gson().toJson(MySqlCalltrackDao.getMelodies());
-        } catch (Exception e) {
-            LOGGER.error("Ошибка получения списка мелодий", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
-        }
-    }
+//    @RequestMapping(value = "/getMelodies", method = RequestMethod.POST, produces = "application/json")
+//    @ResponseBody
+//    public String getHistory() {
+//        try {
+//            return new Gson().toJson(MySqlCalltrackDao.getMelodies());
+//        } catch (Exception e) {
+//            LOGGER.error("Ошибка получения списка мелодий", e);
+//            return new Message(Message.Status.Error, "Internal error").toString();
+//        }
+//    }
 }

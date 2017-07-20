@@ -234,7 +234,7 @@ public class CallProcessor {
     }
 
 
-    private static void processCall(NewCall call) {
+    private static void     processCall(NewCall call) {
         if (call.getService() == NewCall.Service.TRACKING) {
             MainController.onNewSiteCall(call);
         } else if (call.getService() == NewCall.Service.TELEPHONY) {

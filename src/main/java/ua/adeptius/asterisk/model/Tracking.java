@@ -72,9 +72,9 @@ public class Tracking {
     @JsonIgnore
     public List<String> getAvailableNumbers() {
         List<String> currentPhones = phones.stream().map(Phone::getNumber).collect(Collectors.toList());
-        List<String> currentNumbersInRules = user.getOldRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
-        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
-        return list;
+//        List<String> currentNumbersInRules = user.getOldRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
+//        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
+        return currentPhones;
     }
 
     @Transient

@@ -79,7 +79,7 @@ public class TelephonyController {
             telephony.updateNumbers();
             HibernateController.updateUser(user);
             CallProcessor.updatePhonesHashMap();
-            RulesConfigDAO.removeFileIfNeeded(user);
+//            RulesConfigDAO.removeFileIfNeeded(user); // TODO оно тут надо?
             return new Message(Message.Status.Success, "Number count set").toString();
         } catch (NotEnoughNumbers e){
             telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
@@ -112,7 +112,7 @@ public class TelephonyController {
         }
         try {
             HibernateController.removeTelephony(user);
-            RulesConfigDAO.removeFileIfNeeded(user);
+//            RulesConfigDAO.removeFileIfNeeded(user); // TODO оно тут надо?
             return new Message(Message.Status.Success, "Telephony removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления телефонии",e);

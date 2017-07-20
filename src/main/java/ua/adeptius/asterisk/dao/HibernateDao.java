@@ -52,12 +52,24 @@ public class HibernateDao {
         session.close();
     }
 
+    public static void remove(Scenario scenario) {
+        LOGGER.info("Удаление сценария из БД: {}", scenario.toString());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.remove(scenario);
+        scenario.getUser().getScenarios().remove(scenario);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
     public static void saveScenario(Scenario scenario) throws Exception {
         LOGGER.info("Сохранение сценария {}", scenario.getId());
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        session.update(scenario);
+        session.save(scenario);
 
         session.getTransaction().commit();
         session.close();
@@ -152,7 +164,7 @@ public class HibernateDao {
 
         User user = session.get(User.class, username);
         user.setTelephony(null);
-        user.setTracking(null);
+        user.setTracking(null); // TODO точно ли он удалится?
         session.delete(user);
 
         session.getTransaction().commit();

@@ -24,7 +24,16 @@
         </encoder>
     </appender>
 
-    <logger name="org.hibernate.SQL" level="INFO"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <!--<logger name="org.hibernate.SQL" level="DEBUG"/>-->
+    <!--<logger name="org.hibernate.type" level="TRACE"/>-->
+
+
+    <!--<logger name="org.jboss.logging" level="TRACE"/>-->
+
+    <!--<logger name="org.hibernate" level="trace"/>-->
+
+
     <logger name="org.asteriskjava" level="off"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="com.mchange" level="WARN"/>

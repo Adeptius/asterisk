@@ -81,7 +81,7 @@ public class TrackingController {
             tracking.updateNumbers();
             HibernateController.updateUser(user);
             CallProcessor.updatePhonesHashMap();
-            RulesConfigDAO.removeFileIfNeeded(user);
+//            RulesConfigDAO.removeFileIfNeeded(user);  // TODO оно тут надо?
             return new Message(Message.Status.Success, "Number count set").toString();
         } catch (NotEnoughNumbers e){
             tracking.setSiteNumbersCount(currentNumberCount);
@@ -140,7 +140,7 @@ public class TrackingController {
         }
         try {
             HibernateController.removeTracking(user);
-            RulesConfigDAO.removeFileIfNeeded(user);
+//            RulesConfigDAO.removeFileIfNeeded(user);  // TODO оно тут надо?
             return new Message(Message.Status.Success, "Tracking removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);

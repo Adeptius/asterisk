@@ -2,6 +2,7 @@ package ua.adeptius.asterisk;
 
 
 
+import org.apache.log4j.BasicConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import ua.adeptius.amocrm.monitor.AmoCookieCleaner;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
+import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
@@ -68,6 +70,7 @@ public class Main {
     }
 
     private void afterTomcatRebootInit(){
+
         LOGGER.info("Начало инициализации модели");
         try {
             LOGGER.info("MYSQL: Инициализация");
@@ -75,20 +78,8 @@ public class Main {
             LOGGER.info("MYSQL: Инициализирован");
         } catch (Exception e) {
             LOGGER.error("MYSQL: Ошибка инициализации", e);
+            throw new RuntimeException();
         }
-
-        // Неактуально - наложены внешние ключи в БД
-        // Чистка сервисов, если пользователь по какой-то причине удалён, а сервис остался
-//        LOGGER.info("Начало подготовки");
-//        try {
-//            LOGGER.info("Hibernate: Очистка сервисов владельцев которых больше нет");
-//            HibernateController.cleanServices();
-//            LOGGER.info("Hibernate: Очищено");
-//        }catch (Exception e){
-//            LOGGER.error("Hibernate: Ошибка очистки услуг", e);
-//            throw new RuntimeException("ОШИБКА УДАЛЕНИЯ УСЛУГ ВЛАДЕЛЬЦЕВ КОТОРЫХ БОЛЬШЕ НЕТ");
-//        }
-
 
 //        Загрузка обьектов
         try {
@@ -129,6 +120,7 @@ public class Main {
             LOGGER.info("Синхронизация файлов конфигов завершена");
         } catch (Exception e) {
             LOGGER.error("Ошибка синхронизации файлов конфигов", e);
+            throw new RuntimeException();
         }
 
 
@@ -155,16 +147,16 @@ public class Main {
                 telephonyCount.incrementAndGet();
             } catch (Exception e) {
                 LOGGER.error("Недостаточно номеров для телефонии " + telephony.getLogin(), e);
-                throw  new RuntimeException("Недостаточно номеров");
+                throw new RuntimeException("Недостаточно номеров");
             }
         });
         LOGGER.info("Инициализированы номера для {} услуг телефонии", telephonyCount);
 
 
         // Загрузка правил
-        LOGGER.info("Загрузка правил переадресации для всех пользователей");
-        UserContainer.getUsers().forEach(User::loadRules);
-        LOGGER.info("Правила загружены");
+//        LOGGER.info("Загрузка правил переадресации для всех пользователей");
+//        UserContainer.getUsers().forEach(User::loadRules);
+//        LOGGER.info("Правила загружены");
 
 
         LOGGER.info("Кеширование номеров и пользователей");
@@ -175,6 +167,7 @@ public class Main {
         new DailyCleaner();
         new ConnectionKeeper();
         new AmoCookieCleaner();
+        new ScenarioWatcher();
 
 
         Thread thread = new Thread(() -> initMonitor());
@@ -182,14 +175,14 @@ public class Main {
         thread.start();
 
         // Чистим правила всех пользователей
-        for (User user : UserContainer.getUsers()) {
-            System.out.println(user);
-            try {
-                RulesConfigDAO.removeFileIfNeeded(user);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
+//        for (User user : UserContainer.getUsers()) {
+//            System.out.println(user);
+//            try {
+//                RulesConfigDAO.removeFileIfNeeded(user);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//        }
 
         Calendar calendar = new GregorianCalendar();
         MyLogger.log(DB_OPERATIONS, "Сервер был загружен в " + calendar.get(Calendar.HOUR_OF_DAY) + " часов, " + calendar.get(Calendar.MINUTE) + " минут.");

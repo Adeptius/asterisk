@@ -52,10 +52,10 @@ public class Telephony {
 
     @JsonIgnore
     public List<String> getAvailableNumbers() {
-        List<String> currentPhones = outerPhonesList;
-        List<String> currentNumbersInRules = user.getOldRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
-        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
-        return list;
+//        List<String> currentPhones = outerPhonesList;
+//        List<String> currentNumbersInRules = user.getOldRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
+//        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
+        return outerPhonesList;
     }
 
 
