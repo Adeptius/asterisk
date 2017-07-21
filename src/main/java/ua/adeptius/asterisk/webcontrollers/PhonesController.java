@@ -20,7 +20,7 @@ public class PhonesController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(PhonesController.class.getSimpleName());
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getBlackList(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

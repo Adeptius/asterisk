@@ -23,7 +23,7 @@ public class ScriptController {
     private static Logger LOGGER =  LoggerFactory.getLogger(ScriptController.class.getSimpleName());
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = {"application/json"})
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = {"application/json; charset=UTF-8"})
     @ResponseBody
     public String getScript(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

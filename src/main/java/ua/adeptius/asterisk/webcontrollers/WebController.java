@@ -42,7 +42,7 @@ public class WebController {
     }
 
 
-    @RequestMapping(value = "/getToken", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/getToken", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String checkLogin(@RequestParam String login, @RequestParam String password) {
         User user = UserContainer.getUserByName(login);
@@ -59,7 +59,6 @@ public class WebController {
 
         return "{\"token\":\"" + hash + "\"}";
     }
-
 
 
     public static String convertPhone(String source) {

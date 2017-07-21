@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.model;
 
 import com.sun.istack.internal.NotNull;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.telephony.DestinationType;
@@ -23,12 +24,14 @@ import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 @Table(name = "scenarios", schema = "calltrackdb")
 public class Scenario {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(Scenario.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(Scenario.class.getSimpleName());
 
     public Scenario() {
     }
 
     @Id
+    @GeneratedValue(generator = "increment") //галка в mysql "AI"
+    @GenericGenerator(name = "increment", strategy = "increment")
     @Column(name = "id")
     private int id;
 
@@ -203,7 +206,7 @@ public class Scenario {
         if (!fromNumbers.equals("")) {
             fromNumbers += " ";
         }
-        if (fromNumbers.contains(number)){
+        if (fromNumbers.contains(number)) {
             return;
         }
         fromNumbers += number;
@@ -216,15 +219,6 @@ public class Scenario {
         String[] splitted = fromNumbers.split(" ");
         return new ArrayList<>(Arrays.asList(splitted));
     }
-
-
-
-
-
-
-
-
-
 
 
     public void removeFromToList(@NotNull String number) {
@@ -248,7 +242,7 @@ public class Scenario {
         if (!toNumbers.equals("")) {
             toNumbers += " ";
         }
-        if (toNumbers.contains(number)){
+        if (toNumbers.contains(number)) {
             return;
         }
         toNumbers += number;
@@ -261,8 +255,6 @@ public class Scenario {
         String[] splitted = toNumbers.split(" ");
         return new ArrayList<>(Arrays.asList(splitted));
     }
-
-
 
 
     private String removeZero(String source) {
@@ -306,28 +298,28 @@ public class Scenario {
         // Проверяем временные диапазоны первого и второго сценария
 
         // Первый содержит второго или полное совпадение
-        if (thisStartTime <= anotherStartTime && thisEndTime >= anotherEndTime){
+        if (thisStartTime <= anotherStartTime && thisEndTime >= anotherEndTime) {
             LOGGER.debug("Сценарий \n{}\nсодержит диапазон сценария\n{}", this, another);
             return false;
         }
 
         // Второй содержит первого
-        if (thisStartTime >= anotherStartTime && thisEndTime <= anotherEndTime){
-            LOGGER.debug("Сценарий \n{}\nсодержит диапазон сценария\n{}", another,this);
+        if (thisStartTime >= anotherStartTime && thisEndTime <= anotherEndTime) {
+            LOGGER.debug("Сценарий \n{}\nсодержит диапазон сценария\n{}", another, this);
             System.out.println("Второй содержит первого или полное совпадение");
             return false;
         }
 
         // Первый начинается во время второго
-        if (thisStartTime >= anotherStartTime && thisStartTime < anotherEndTime){// первый может кончится в тоже время когда заканчивается второй
+        if (thisStartTime >= anotherStartTime && thisStartTime < anotherEndTime) {// первый может кончится в тоже время когда заканчивается второй
             LOGGER.debug("Диапазон сценария \n{}\nначинается во время сценария\n{}", this, another);
             System.out.println("Первый начинается во время второго");
             return false;
         }
 
         // Второй начинается во время первого
-        if (anotherStartTime >= thisStartTime && anotherStartTime < thisEndTime){ // второй может кончится в тоже время когда начинается первый
-            LOGGER.debug("Диапазон сценария \n{}\nначинается во время сценария\n{}",another, this);
+        if (anotherStartTime >= thisStartTime && anotherStartTime < thisEndTime) { // второй может кончится в тоже время когда начинается первый
+            LOGGER.debug("Диапазон сценария \n{}\nначинается во время сценария\n{}", another, this);
             System.out.println("Второй начинается во время первого");
             return false;
         }

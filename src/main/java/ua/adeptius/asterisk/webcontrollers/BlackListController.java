@@ -24,7 +24,7 @@ public class BlackListController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(BlackListController.class.getSimpleName());
 
-    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String addToBlackList(@RequestParam String ip, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -53,7 +53,7 @@ public class BlackListController {
     }
 
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String removeFromBlackList(@RequestParam String ip, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -75,7 +75,7 @@ public class BlackListController {
     }
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getBlackList(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.model;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.ScenarioConflictException;
 import ua.adeptius.asterisk.telephony.OldRule;
@@ -57,17 +58,10 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     List<Scenario> scenarios;
 
-    @Transient
-//    private List<OldRule> oldRules = new ArrayList<>();
-
-
     public List<Scenario> getScenarios() {
-        return scenarios;
+//        return HibernateDao.getAllScenariosByUser(this);
+        return scenarios;//#optimization
     }
-
-//    public void setScenarios(List<Scenario> scenarios) {
-//        this.scenarios = scenarios;
-//    }
 
     public void addScenario(Scenario newScenario) throws ScenarioConflictException {
         if (getScenarios().stream().map(Scenario::getName).anyMatch(s -> s.equals(newScenario.getName()))) {
@@ -99,7 +93,7 @@ public class User {
         scenario.setStatus(ScenarioStatus.ACTIVATED); // TODO Протестить
     }
 
-    private Scenario getScenarioById(int id){ // TODO Протестить
+    public Scenario getScenarioById(int id){ // TODO Протестить
         return getScenarios().stream().filter(scenario -> scenario.getId() == id).findFirst().get();
     }
 
@@ -126,24 +120,6 @@ public class User {
         return foundedScenarios;
     }
 
-//    public void loadRules() {
-//        try {
-//            LOGGER.trace("{}: загрузка правил", login);
-//            oldRules = RulesConfigDAO.readFromFile(login);
-//        } catch (NoSuchFileException ignored) {
-//        } catch (Exception e) {
-//            LOGGER.error(login + ": ошибка загрузки правил", e);
-//        }
-//    }
-
-//    public void saveRules() throws Exception {
-//        if (oldRules.size() == 0) {
-//            RulesConfigDAO.removeFile(login);
-//        } else {
-//            RulesConfigDAO.writeToFile(login, oldRules);
-//        }
-//    }
-
     @JsonIgnore
     public List<String> getAvailableNumbers() {
         List<String> numbers = new ArrayList<>();
@@ -155,14 +131,6 @@ public class User {
         }
         return numbers;
     }
-
-//    public List<OldRule> getOldRules() {
-//        return oldRules;
-//    }
-
-//    public void setOldRules(List<OldRule> oldRules) {
-//        this.oldRules = oldRules;
-//    }
 
     public Telephony getTelephony() {
         return telephony;
@@ -216,7 +184,6 @@ public class User {
         this.trackingId = trackingId;
     }
 
-
     public AmoAccount getAmoAccount() {
         return amoAccount;
     }
@@ -233,6 +200,9 @@ public class User {
         this.roistatAccount = roistatAccount;
     }
 
+    public void setScenarios(List<Scenario> scenarios) {
+        this.scenarios = scenarios;
+    }
 
     @Override
     public String toString() {
@@ -246,7 +216,6 @@ public class User {
                 "\n  amoAccount=" + amoAccount +
                 "\n  roistatAccount=" + roistatAccount +
                 "\n  scenarios=" + scenarios +
-//                "\n  oldRules=" + oldRules +
                 "\n}";
     }
 }

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.JsonTracking;
@@ -24,7 +25,7 @@ public class TrackingController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(TrackingController.class.getSimpleName());
 
-    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String addTracking(@RequestBody JsonTracking jsonTracking, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -52,6 +53,7 @@ public class TrackingController {
         user.setTracking(newTracking);
         try {
             HibernateController.updateUser(user);
+            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Tracking added").toString();
         } catch (Exception e) {
             user.setTracking(null);
@@ -60,7 +62,7 @@ public class TrackingController {
         }
     }
 
-    @RequestMapping(value = "/setNumberCount", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/setNumberCount", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String setNumberCount(@RequestBody JsonTracking jsonTracking, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -80,8 +82,10 @@ public class TrackingController {
             tracking.setSiteNumbersCount(neededNumberCount);
             tracking.updateNumbers();
             HibernateController.updateUser(user);
+            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
+            LOGGER.debug("Синхронизация с БД успешна. Обновляем номера повторно.");
+            user.getTracking().updateNumbers();
             CallProcessor.updatePhonesHashMap();
-//            RulesConfigDAO.removeFileIfNeeded(user);  // TODO оно тут надо?
             return new Message(Message.Status.Success, "Number count set").toString();
         } catch (NotEnoughNumbers e){
             tracking.setSiteNumbersCount(currentNumberCount);
@@ -94,7 +98,7 @@ public class TrackingController {
     }
 
 
-    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getUserByName(@RequestBody JsonTracking jsonTracking, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -120,6 +124,7 @@ public class TrackingController {
 
         try {
             HibernateController.updateUser(user);
+            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Tracking updated").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка задания трекинга: "+jsonTracking, e);
@@ -128,7 +133,7 @@ public class TrackingController {
     }
 
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String removeTracking(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -140,7 +145,7 @@ public class TrackingController {
         }
         try {
             HibernateController.removeTracking(user);
-//            RulesConfigDAO.removeFileIfNeeded(user);  // TODO оно тут надо?
+            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Tracking removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);
@@ -149,7 +154,7 @@ public class TrackingController {
     }
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getBlackList(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

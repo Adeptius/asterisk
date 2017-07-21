@@ -22,7 +22,7 @@ public class UserController {
     private static Logger LOGGER =  LoggerFactory.getLogger(UserController.class.getSimpleName());
 
 
-    @RequestMapping(value = "/add", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+    @RequestMapping(value = "/add", method = RequestMethod.POST, consumes = "application/json; charset=UTF-8", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String addUser(@RequestBody JsonUser jsonUser) {
         User currentUser = UserContainer.getUserByName(jsonUser.getLogin());
@@ -107,7 +107,7 @@ public class UserController {
         }
     }
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getHash(@RequestParam String adminPassword, @RequestParam String username) {
         if (AdminController.isAdminPasswordWrong(adminPassword)) {

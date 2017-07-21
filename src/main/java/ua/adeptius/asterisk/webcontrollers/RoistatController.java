@@ -21,6 +21,7 @@ import ua.adeptius.amocrm.exceptions.AmoUnknownException;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.JsonRoistatForController;
 import ua.adeptius.asterisk.json.Message;
@@ -39,7 +40,7 @@ public class RoistatController {
 //    TODO добавить отключение и подключение roistat аккаунта
 
 //TODO протестить
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String get(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -59,7 +60,7 @@ public class RoistatController {
     }
 
 
-    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String set(@RequestBody JsonRoistatForController jsonRoistat, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -86,6 +87,7 @@ public class RoistatController {
 
         try {
             HibernateController.updateUser(user);
+            user.setRoistatAccount(HibernateDao.getRoistatAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Roistat account setted").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка изменения Roistat аккаунта: ", e);
@@ -93,7 +95,7 @@ public class RoistatController {
         }
     }
 
-    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String check(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -113,7 +115,7 @@ public class RoistatController {
             if (allOk){
                 return new Message(Message.Status.Success, "Check complete. It works!").toString();
             }else {
-                return new Message(Message.Status.Error, "Project nubber or API key is wrong").toString();
+                return new Message(Message.Status.Error, "Project number or API key is wrong").toString();
             }
         }catch (Exception e){
             LOGGER.error("Неизвестная ошибка при проверке аккаунта roistat. Аккаунт nextel: " + user.getLogin(), e);
@@ -121,7 +123,7 @@ public class RoistatController {
         }
     }
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String remove(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -135,6 +137,7 @@ public class RoistatController {
 
         try {
             HibernateController.removeRoistatAccount(user);
+            user.setRoistatAccount(HibernateDao.getRoistatAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Roistat account removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления Roistat аккаунта.", e);

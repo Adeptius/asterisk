@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
@@ -28,7 +29,7 @@ public class TelephonyController {
     private static Logger LOGGER =  LoggerFactory.getLogger(TelephonyController.class.getSimpleName());
 
 
-    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String addTracking(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -47,15 +48,22 @@ public class TelephonyController {
         user.setTelephony(telephony);
         try {
             HibernateController.updateUser(user);
+            user.setTelephony(HibernateDao.getTelephonyByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Telephony added").toString();
         } catch (Exception e) {
             user.setTelephony(null);
+            try{
+                user.setTelephony(HibernateDao.getTelephonyByUser(user));
+            }catch (Exception e1){
+                LOGGER.error("Не получилось отбекапится при неудаче добавления телефонии пользователя"
+                        +user.getLogin(), e1);
+            }
             LOGGER.error(user.getLogin()+": ошибка добавления телефонии",e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
 
-    @RequestMapping(value = "/setNumberCount", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/setNumberCount", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String setNumberCount(@RequestBody JsonTelephony jsonTelephony, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -77,9 +85,11 @@ public class TelephonyController {
             telephony.setOuterCount(neededOuterNumberCount);
             telephony.setInnerCount(neededInnerNumberCount);
             telephony.updateNumbers();
-            HibernateController.updateUser(user);
+            HibernateController.updateUser(user); // если тут не вылетело и номеров хватило
+            user.setTelephony(HibernateDao.getTelephonyByUser(user)); // то синхронизируесмся с БД
+            LOGGER.debug("Синхронизация с БД успешна. Снова обновляем номера");
+            user.getTelephony().updateNumbers();// но после этого слетают номера в модели, поэтому снова их обновляем
             CallProcessor.updatePhonesHashMap();
-//            RulesConfigDAO.removeFileIfNeeded(user); // TODO оно тут надо?
             return new Message(Message.Status.Success, "Number count set").toString();
         } catch (NotEnoughNumbers e){
             telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
@@ -100,7 +110,7 @@ public class TelephonyController {
     }
 
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String removeTelephony(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -112,7 +122,7 @@ public class TelephonyController {
         }
         try {
             HibernateController.removeTelephony(user);
-//            RulesConfigDAO.removeFileIfNeeded(user); // TODO оно тут надо?
+            user.setTelephony(HibernateDao.getTelephonyByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Telephony removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления телефонии",e);
@@ -121,7 +131,7 @@ public class TelephonyController {
     }
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getBlackList(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -140,7 +150,7 @@ public class TelephonyController {
         }
     }
 
-    @RequestMapping(value = "/getSipPasswords", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/getSipPasswords", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getPasswords(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

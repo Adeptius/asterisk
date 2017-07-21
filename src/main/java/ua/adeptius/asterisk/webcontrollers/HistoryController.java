@@ -30,7 +30,7 @@ public class HistoryController {
     private static Logger LOGGER =  LoggerFactory.getLogger(HistoryController.class.getSimpleName());
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

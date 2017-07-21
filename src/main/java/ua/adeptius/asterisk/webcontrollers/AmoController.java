@@ -16,6 +16,7 @@ import ua.adeptius.amocrm.exceptions.AmoUnknownException;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.JsonAmoForController;
@@ -36,19 +37,20 @@ public class AmoController {
 
 //    TODO добавить отключение и подключение амо аккаунта
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String get(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
-        if (user.getAmoAccount() == null) {
+        AmoAccount amoAccount = user.getAmoAccount();
+        if (amoAccount == null) {
             return new Message(Message.Status.Error, "User have not connected amo account").toString();
         }
 
         try {
-            return new ObjectMapper().writeValueAsString(user.getAmoAccount());
+            return new ObjectMapper().writeValueAsString(amoAccount);
         }catch (Exception e){
             LOGGER.error(user.getLogin()+": ошибка получения амо аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
@@ -56,7 +58,7 @@ public class AmoController {
     }
 
 
-    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String set(@RequestBody JsonAmoForController jsonAmoAccount, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -85,6 +87,7 @@ public class AmoController {
 
         try {
             HibernateController.updateUser(user);
+            user.setAmoAccount(HibernateDao.getAmoAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Amo account setted").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка изменения амо аккаунта: ", e);
@@ -92,7 +95,7 @@ public class AmoController {
         }
     }
 
-    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String check(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -129,7 +132,7 @@ public class AmoController {
         }
     }
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String remove(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -143,6 +146,7 @@ public class AmoController {
 
         try {
             HibernateController.removeAmoAccount(user);
+            user.setAmoAccount(HibernateDao.getAmoAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Amo account removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);

@@ -48,8 +48,8 @@ public class HibernateController {
         CallProcessor.updatePhonesHashMap();
     }
 
-    @Deprecated
-    public static void cleanServices() {
-        HibernateDao.cleanServices();
-    }
+//    @Deprecated
+//    public static void cleanServices() {
+//        HibernateDao.cleanServices();
+//    }
 }
