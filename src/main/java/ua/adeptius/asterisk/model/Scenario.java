@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.model;
 
+import javax.annotation.Nonnull;
 
-import com.sun.istack.internal.NotNull;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
@@ -68,10 +68,10 @@ public class Scenario {
     private String melody;
 
     @Column(name = "startTime") // todo какое значение по умолчанию?
-    private int startHour;
+    private Integer startHour;
 
     @Column(name = "endTime")
-    private int endHour;
+    private Integer endHour;
 
     @Column(name = "days")
     private String days;
@@ -185,13 +185,13 @@ public class Scenario {
         this.login = login;
     }
 
-    public void removeFromFromList(@NotNull String number) {
+    public void removeFromFromList(@Nonnull String number) {
         List<String> fromList = getFromList();
         fromList.remove(number);
         setFromList(fromList);
     }
 
-    public void setFromList(@NotNull List<String> numbers) {
+    public void setFromList(@Nonnull List<String> numbers) {
         clearFromList();
         for (String number : numbers) {
             addToFromList(number);
@@ -202,7 +202,7 @@ public class Scenario {
         fromNumbers = "";
     }
 
-    public void addToFromList(@NotNull String number) {
+    public void addToFromList(@Nonnull String number) {
         if (!fromNumbers.equals("")) {
             fromNumbers += " ";
         }
@@ -221,13 +221,13 @@ public class Scenario {
     }
 
 
-    public void removeFromToList(@NotNull String number) {
+    public void removeFromToList(@Nonnull String number) {
         List<String> toList = getToList();
         toList.remove(number);
         setToList(toList);
     }
 
-    public void setToList(@NotNull List<String> numbers) {
+    public void setToList(@Nonnull List<String> numbers) {
         clearToList();
         for (String number : numbers) {
             addToToList(number);
@@ -238,7 +238,7 @@ public class Scenario {
         toNumbers = "";
     }
 
-    public void addToToList(@NotNull String number) {
+    public void addToToList(@Nonnull String number) {
         if (!toNumbers.equals("")) {
             toNumbers += " ";
         }

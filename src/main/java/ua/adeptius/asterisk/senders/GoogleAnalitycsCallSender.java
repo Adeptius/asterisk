@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.senders;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.User;
@@ -36,9 +37,7 @@ public class GoogleAnalitycsCallSender extends Thread {
         while (true) {
             try {
                 NewCall call = blockingQueue.take();
-                if (call.getDirection() == NewCall.Direction.IN && !call.getUser().getTrackingId().equals("")) {
-                    sendReport(call);
-                }
+                sendReport(call);
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
             }
@@ -48,8 +47,17 @@ public class GoogleAnalitycsCallSender extends Thread {
 
 
     private void sendReport(NewCall call) {
+        if (call.getDirection() != NewCall.Direction.IN){
+            return;
+        }
+
         User user = call.getUser();
         String userGoogleAnalitycsId = user.getTrackingId();
+        if (StringUtils.isBlank(userGoogleAnalitycsId)){
+            return;
+        }
+
+
         String clientGoogleId = call.getGoogleId();
 
         HashMap<String, Object> map = new HashMap<>();

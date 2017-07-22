@@ -84,16 +84,16 @@ public class HibernateDao {
         return list;
     }
 
-    public static List<Scenario> getAllScenariosByUser(User user) {
-        Session session = sessionFactory.openSession();
-        String hql = "FROM Scenario S WHERE S.login = :login";
-        Query query = session.createQuery(hql);
-        query.setParameter("login", user.getLogin());
-        List<Scenario> list = query.list();
-//        List<Scenario> list = session.createQuery("FROM Scenario S where S.login = '"+user.getLogin()+"'").list();
-        session.close();
-        return list;
-    }
+//    Ерунда какая-то. Если вставить в модель данные отсюда - хибернейт ломается при следующем сохранении user'a
+//    public static List<Scenario> getAllScenariosByUser(User user) {
+//        Session session = sessionFactory.openSession();
+//        String hql = "FROM Scenario S WHERE S.login = :login";
+//        Query query = session.createQuery(hql);
+//        query.setParameter("login", user.getLogin());
+//        List<Scenario> list = query.list();
+//        session.close();
+//        return list;
+//    }
 
     public static Scenario getScenarioById(int id) throws Exception {
         Session session = sessionFactory.openSession();

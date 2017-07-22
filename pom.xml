@@ -178,5 +178,12 @@
             <version>2.5</version>
         </dependency>
 
+        <!--For @Nonnull annotation-->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
     </dependencies>
 </project>

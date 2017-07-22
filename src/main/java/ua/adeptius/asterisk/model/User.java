@@ -8,6 +8,8 @@ import ua.adeptius.asterisk.dao.RulesConfigDAO;
 import ua.adeptius.asterisk.exceptions.ScenarioConflictException;
 import ua.adeptius.asterisk.telephony.OldRule;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -58,14 +60,22 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     List<Scenario> scenarios;
 
+
+    /**
+     * Scenario
+     */
+
     public List<Scenario> getScenarios() {
-//        return HibernateDao.getAllScenariosByUser(this);
-        return scenarios;//#optimization
+        return scenarios;
+    }
+
+    public void setScenarios(List<Scenario> scenarios) {
+        this.scenarios = scenarios;
     }
 
     public void addScenario(Scenario newScenario) throws ScenarioConflictException {
         if (getScenarios().stream().map(Scenario::getName).anyMatch(s -> s.equals(newScenario.getName()))) {
-            throw new ScenarioConflictException("Сценарий с таким именем уже существует");
+            throw new ScenarioConflictException("Scenario with such name already present");
         }
         // TODO проследить что бы с фронтенда не добавили уже активированный сценарий
         getScenarios().add(newScenario);
@@ -74,9 +84,9 @@ public class User {
     public void activateScenario(int id) throws ScenarioConflictException {
         Scenario scenario;
         try {
-             scenario = getScenarioById(id);
+            scenario = getScenarioById(id);
         } catch (NoSuchElementException e) {
-            throw new ScenarioConflictException("Сценарий c id "+id+" не найден");
+            throw new ScenarioConflictException("Сценарий c id " + id + " не найден");
         }
 
         List<String> numbers = scenario.getFromList(); // Это список номеров нового сценария.
@@ -85,15 +95,19 @@ public class User {
             Set<Scenario> scenariosByNumber = getActivatedScenariosByOuterPhoneNumber(number);
             for (Scenario userScenario : scenariosByNumber) {
                 if (!userScenario.isThisScenarioCompatibleWith(scenario)) { // если один из существующих сценариев не совместим с новым.
-                    throw new ScenarioConflictException("Внешнему номеру " + number + " назначен сценарий \""
-                            + userScenario.getName() + "\" который имеет пересекающиеся диапазоны времени с \"" + scenario.getName() + "\"");
+                    throw new ScenarioConflictException("For number '" + number + "'assigned active scenario '"
+                            + userScenario.getName() + "' that has time conflict with '" + scenario.getName() + "'");
                 }
             }
         }
         scenario.setStatus(ScenarioStatus.ACTIVATED); // TODO Протестить
     }
 
-    public Scenario getScenarioById(int id){ // TODO Протестить
+    public void deactivateScenario(int id) throws NoSuchElementException{
+        getScenarioById(id).setStatus(ScenarioStatus.DEACTIVATED);
+    }
+
+    public Scenario getScenarioById(int id) throws NoSuchElementException {
         return getScenarios().stream().filter(scenario -> scenario.getId() == id).findFirst().get();
     }
 
@@ -101,10 +115,9 @@ public class User {
         return getScenariosByOuterPhoneNumber(number).stream().filter(scenario -> scenario.getStatus() == ScenarioStatus.ACTIVATED).collect(Collectors.toSet());
     }
 
-  private Set<Scenario> getDeactivatedScenariosByOuterPhoneNumber(String number) {
+    private Set<Scenario> getDeactivatedScenariosByOuterPhoneNumber(String number) {
         return getScenariosByOuterPhoneNumber(number).stream().filter(scenario -> scenario.getStatus() == ScenarioStatus.DEACTIVATED).collect(Collectors.toSet());
     }
-
 
     private Set<Scenario> getScenariosByOuterPhoneNumber(String number) {
         Set<Scenario> foundedScenarios = new HashSet<>(); // сюда ложим сценарии, которые связаны с данным номером
@@ -120,6 +133,11 @@ public class User {
         return foundedScenarios;
     }
 
+
+    /**
+     * Numbers
+     */
+
     @JsonIgnore
     public List<String> getAvailableNumbers() {
         List<String> numbers = new ArrayList<>();
@@ -132,6 +150,46 @@ public class User {
         return numbers;
     }
 
+    public boolean isThatUsersOuterNumber(@Nonnull List<String> numbers){
+        for (String number : numbers) {
+            if (isThatUsersOuterNumber(number)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isThatUsersOuterNumber(@Nonnull String number){
+        List<String> allOuterPhones = new ArrayList<>();
+        if (getTelephony() != null){
+            allOuterPhones.addAll(getTelephony().getOuterPhonesList());
+        }
+        if (getTracking() != null){
+            allOuterPhones.addAll(getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
+        }
+        return allOuterPhones.stream().anyMatch(s -> s.equals(number));
+    }
+
+    public boolean isThatUsersInnerNumber(@Nonnull List<String> numbers){
+        for (String number : numbers) {
+            if (isThatUsersInnerNumber(number)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isThatUsersInnerNumber(@Nonnull String number){
+       if (getTelephony() != null){
+           return getTelephony().getInnerPhonesList().stream().anyMatch(s -> s.equals(number));
+       }else {
+           return false;
+       }
+    }
+
+
+
+    @Nullable
     public Telephony getTelephony() {
         return telephony;
     }
@@ -140,6 +198,7 @@ public class User {
         this.telephony = telephony;
     }
 
+    @Nullable
     public Tracking getTracking() {
         return tracking;
     }
@@ -172,12 +231,9 @@ public class User {
         this.email = email;
     }
 
+    @Nullable
     public String getTrackingId() {
-        if (trackingId != null) {
             return trackingId;
-        } else {
-            return "";
-        }
     }
 
     public void setTrackingId(String trackingId) {
@@ -200,9 +256,7 @@ public class User {
         this.roistatAccount = roistatAccount;
     }
 
-    public void setScenarios(List<Scenario> scenarios) {
-        this.scenarios = scenarios;
-    }
+
 
     @Override
     public String toString() {

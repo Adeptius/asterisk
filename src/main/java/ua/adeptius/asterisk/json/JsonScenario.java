@@ -19,8 +19,8 @@ public class JsonScenario {
     private DestinationType destinationType;
     private int awaitingTime;
     private String melody;
-    private int startHour;
-    private int endHour;
+    private Integer startHour;
+    private Integer endHour;
     private boolean[] days;
 
     public int getId() {
@@ -71,7 +71,7 @@ public class JsonScenario {
         this.melody = melody;
     }
 
-    public int getStartHour() {
+    public Integer getStartHour() {
         return startHour;
     }
 
@@ -79,7 +79,7 @@ public class JsonScenario {
         this.startHour = startHour;
     }
 
-    public int getEndHour() {
+    public Integer getEndHour() {
         return endHour;
     }
 

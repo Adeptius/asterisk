@@ -2,52 +2,33 @@ package ua.adeptius.asterisk.webcontrollers;
 
 
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
-import ua.adeptius.asterisk.dao.MySqlCalltrackDao;
+import ua.adeptius.asterisk.exceptions.ScenarioConflictException;
 import ua.adeptius.asterisk.json.JsonScenario;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.ScenarioStatus;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.telephony.OldRule;
+import ua.adeptius.asterisk.telephony.DestinationType;
+import ua.adeptius.asterisk.telephony.ForwardType;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
+import java.util.NoSuchElementException;
 
 @Controller
 @RequestMapping("/scenario")
 public class ScenarioController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
-
-
-//    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json")
-//    @ResponseBody
-//    public String addScenario(@RequestBody Scenario newOldRules, HttpServletRequest request) {
-//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-//        if (user == null) {
-//            return new Message(Message.Status.Error, "Authorization invalid").toString();
-//        }
-//        return "";
-//    }
-
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
@@ -57,8 +38,7 @@ public class ScenarioController {
             return new Message(Message.Status.Error, "Authorization invalid").toString();
         }
         try {
-//            List<Scenario> scenarios = user.getScenarios(); //#optimization
-            List<Scenario> scenarios = HibernateDao.getAllScenariosByUser(user);
+            List<Scenario> scenarios = user.getScenarios();
             return new ObjectMapper().writeValueAsString(scenarios);
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка получения сценариев", e);
@@ -66,7 +46,66 @@ public class ScenarioController {
         }
     }
 
-    @RequestMapping(value = "/set", method = RequestMethod.POST, consumes = "application/json; charset=UTF-8",produces = "application/json; charset=UTF-8")
+    @RequestMapping(value = "/activate", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+    @ResponseBody
+    public String activateScenario(HttpServletRequest request, @RequestParam int id) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+
+        Scenario scenario;
+        try {
+            scenario = user.getScenarioById(id);
+        } catch (NoSuchElementException e) {
+            return new Message(Message.Status.Error, "No such scenario by id " + id).toString();
+        }
+
+        try {
+            user.activateScenario(id);
+        } catch (ScenarioConflictException e) {
+            return new Message(Message.Status.Error, e.getMessage()).toString();
+        }
+
+        try {
+            HibernateDao.update(user);
+            return new Message(Message.Status.Success, "Scenario activated").toString();
+        } catch (Exception e) {
+            LOGGER.error("Ошибка БД при активации сценария " + scenario, e);
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
+    }
+
+
+    @RequestMapping(value = "/deactivate", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+    @ResponseBody
+    public String deactivateScenario(HttpServletRequest request, @RequestParam int id) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+
+        Scenario scenario;
+        try {
+            scenario = user.getScenarioById(id);
+        } catch (NoSuchElementException e) {
+            return new Message(Message.Status.Error, "No such scenario by id " + id).toString();
+        }
+
+        user.deactivateScenario(id);
+
+        try {
+            HibernateDao.update(user);
+            return new Message(Message.Status.Success, "Scenario deactivated").toString();
+        } catch (Exception e) {
+            LOGGER.error("Ошибка БД при деактивации сценария " + scenario, e);
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
+    }
+
+
+    @SuppressWarnings("Duplicates")
+    @RequestMapping(value = "/set", method = RequestMethod.POST, consumes = "application/json; charset=UTF-8", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String setScenarios(HttpServletRequest request, @RequestBody JsonScenario jsonScenario) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -76,153 +115,219 @@ public class ScenarioController {
 
         System.out.println("Пришел сценарий " + jsonScenario);
 
+        String name = jsonScenario.getName();
+        List<String> fromNumbers = jsonScenario.getFromNumbers();
+        List<String> toNumbers = jsonScenario.getToNumbers();
+        DestinationType destinationType = jsonScenario.getDestinationType();
+        ForwardType forwardType = jsonScenario.getForwardType();
+        boolean[] days = jsonScenario.getDays();
+        int awaitingTime = jsonScenario.getAwaitingTime();
+        Integer endHour = jsonScenario.getEndHour();
+        Integer startHour = jsonScenario.getStartHour();
+        String melody = jsonScenario.getMelody();
+        int id = jsonScenario.getId();
 
-
-        // TODO status не применять.
-        if (jsonScenario.getId() != 0){
-            Scenario scenario = user.getScenarioById(jsonScenario.getId());
-
-            //TODO любое значение может прийти null
-            scenario.setName(jsonScenario.getName());
-            scenario.setFromList(jsonScenario.getFromNumbers()); // TODO валидация всех данных
-            scenario.setToList(jsonScenario.getToNumbers());
-            scenario.setDestinationType(jsonScenario.getDestinationType());
-            scenario.setForwardType(jsonScenario.getForwardType());
-            scenario.setDays(jsonScenario.getDays()); // TODO если меняем активный сценарий - нужно сначала проверить не возникнет ли конфликтов после изменения
-            scenario.setAwaitingTime(jsonScenario.getAwaitingTime());
-            scenario.setEndHour(jsonScenario.getEndHour());
-            scenario.setStartHour(jsonScenario.getStartHour());
-            scenario.setMelody(jsonScenario.getMelody());
-
-            try{
-                HibernateDao.update(user);
-                user.setScenarios(HibernateDao.getAllScenariosByUser(user));
-                return new Message(Message.Status.Success, "Сценарий обновлён").toString();
-            }catch (Exception e){
-                try{
-                    user.setScenarios(HibernateDao.getAllScenariosByUser(user));
-                }catch (Exception e1){
-                    LOGGER.error("Не получилось отбекапится при неудаче изменения сценария пользователя"
-                            +user.getLogin()+":\nСценарий "+ scenario, e1);
+        if (fromNumbers != null) {
+            List<String> needRemove = new ArrayList<>();
+            for (String number : fromNumbers) {
+                if (!user.isThatUsersOuterNumber(number)) {
+                    needRemove.add(number);
                 }
-                LOGGER.error("Не удалось обновить сценарий ID "+scenario.getId(), e);
+            }
+            fromNumbers.removeAll(needRemove);
+        }
+
+
+        if (id != 0) { // обновление сценария
+            System.out.println("обновление сценария");
+            Scenario scenario;
+
+            try {
+                scenario = user.getScenarioById(id);
+            } catch (NoSuchElementException e) {
+                return new Message(Message.Status.Error, "Wrong id").toString();
+            }
+
+            if (name != null) {
+                List<String> currentNames = new ArrayList<>();
+                for (Scenario sc : user.getScenarios()) {
+                    if (sc.getId() != id) {
+                        currentNames.add(sc.getName());
+                    }
+                }
+                if (currentNames.contains(name)) {
+                    return new Message(Message.Status.Error, "Such scenario name already present").toString();
+                }
+                scenario.setName(name);
+            }
+
+            if (fromNumbers != null) {
+//                for (String number : fromNumbers) {
+//                    if (!user.isThatUsersOuterNumber(number)) {
+//                        return new Message(Message.Status.Error, "That is not user's outer number: " + number).toString();
+//                    }
+//                }  Заменил удалением ошибочных номеров в начале метода
+                scenario.setFromList(fromNumbers);
+            }
+
+            if (destinationType != null) { // TODO а может ли сюда попасть не стандартное значение?
+                scenario.setDestinationType(destinationType);
+            }
+
+            if (toNumbers != null) { // TODO убедится, что dest type не null
+                if (destinationType == DestinationType.SIP) {
+                    List<String> needRemove = new ArrayList<>();
+                    for (String number : toNumbers) {
+                        if (!user.isThatUsersInnerNumber(number)) {
+                            needRemove.add(number);
+                        }
+                    }
+                    toNumbers.removeAll(needRemove);
+                }
+                scenario.setToList(toNumbers);
+            }
+
+
+            if (forwardType != null) {
+                scenario.setForwardType(forwardType);
+            }
+
+            if (days != null) {
+                scenario.setDays(days);
+            }
+
+            if (awaitingTime != 0) {
+                scenario.setAwaitingTime(awaitingTime);
+            }
+
+            if (endHour != null) {
+                scenario.setEndHour(endHour);
+            }
+
+            if (startHour != null) {
+                scenario.setStartHour(startHour);
+            }
+
+            if (melody != null) {
+                scenario.setMelody(melody);
+            }
+
+            boolean wasActivated = scenario.getStatus() == ScenarioStatus.ACTIVATED;
+            scenario.setStatus(ScenarioStatus.DEACTIVATED);
+            boolean errorWhileActivation = false;
+            String errorMessage = null;
+
+            if (wasActivated) {
+                try {
+                    user.activateScenario(id);
+                } catch (ScenarioConflictException e) {
+                    errorWhileActivation = true;
+                    errorMessage = e.getMessage();
+                }
+            }
+
+            try {
+                HibernateDao.update(user);
+                if (!errorWhileActivation) { // если при активации не произошло ошибки
+                    return new Message(Message.Status.Success, "Scenario updated").toString();
+
+                } else { // была ошибка активации
+                    return new Message(Message.Status.Error, "Updated but deactivated: " + errorMessage).toString();
+                }
+            } catch (Exception e) {
+                LOGGER.error("Не удалось обновить сценарий " + scenario, e);
                 return new Message(Message.Status.Error, "Internal error").toString();
             }
-        }else {
-            System.out.println("Новый сценарий");
+
+
+        } else {// Создание сценария
+            System.out.println("Создание сценария");
 
             Scenario scenario = new Scenario();
-            scenario.setName(jsonScenario.getName());
-            scenario.setFromList(jsonScenario.getFromNumbers());
-            scenario.setToList(jsonScenario.getToNumbers());
-            scenario.setDestinationType(jsonScenario.getDestinationType());
-            scenario.setForwardType(jsonScenario.getForwardType());
-            scenario.setDays(jsonScenario.getDays());
-            scenario.setAwaitingTime(jsonScenario.getAwaitingTime());
-            scenario.setEndHour(jsonScenario.getEndHour());
-            scenario.setStartHour(jsonScenario.getStartHour());
-            scenario.setMelody(jsonScenario.getMelody());
+            if (StringUtils.isBlank(name)) {
+                return new Message(Message.Status.Error, "Scenario name is blank").toString();
+            } else {
+                scenario.setName(name);
+            }
+
+            if (fromNumbers != null) {
+//                for (String number : fromNumbers) {
+//                    if (!user.isThatUsersOuterNumber(number)) {
+//                        return new Message(Message.Status.Error, "That is not user's outer number: " + number).toString();
+//                    }
+//                } Заменил удалением ошибочных номеров в начале метода
+                scenario.setFromList(fromNumbers); // TODO валидация всех данных
+            }
+
+            if (toNumbers != null) {
+                if (destinationType == DestinationType.SIP) {
+                    List<String> needRemove = new ArrayList<>();
+                    for (String number : toNumbers) {
+                        if (!user.isThatUsersInnerNumber(number)) {
+                            needRemove.add(number);
+                        }
+                    }
+                    toNumbers.removeAll(needRemove);
+                }
+                scenario.setToList(toNumbers);// TODO валидация всех данных
+            }
+
+            if (destinationType != null) {
+                scenario.setDestinationType(destinationType);
+            } else {
+                return new Message(Message.Status.Error, "Destination type is empty").toString();
+            }
+
+            if (forwardType != null) {
+                scenario.setForwardType(forwardType);
+            } else {
+                return new Message(Message.Status.Error, "Forward type is empty").toString();
+            }
+
+            if (days != null) {
+                scenario.setDays(days);
+            } else {
+                scenario.setDays(new boolean[]{true, true, true, true, true, true, true});
+            }
+
+            if (awaitingTime != 0) {
+                scenario.setAwaitingTime(awaitingTime);
+            } else {
+                scenario.setAwaitingTime(600);
+            }
+
+            if (endHour != null) {
+                scenario.setEndHour(endHour);
+            } else {
+                scenario.setEndHour(24);
+            }
+
+            if (startHour != null) {
+                scenario.setStartHour(startHour);
+            } else {
+                scenario.setStartHour(0);
+            }
+
+            if (melody != null) {
+                scenario.setMelody(melody);
+            } else {
+                scenario.setMelody("none");
+            }
+
             scenario.setStatus(ScenarioStatus.DEACTIVATED);
             scenario.setUser(user);
 
             try {
                 user.addScenario(scenario);
                 HibernateDao.update(user);
-                user.setScenarios(HibernateDao.getAllScenariosByUser(user)); // синхронизация с БД
-                return new Message(Message.Status.Success, "Сценарий обновлён").toString();
-            }catch (Exception e){
-                try{
-                    user.setScenarios(HibernateDao.getAllScenariosByUser(user));
-                }catch (Exception e1){
-                    LOGGER.error("Не получилось отбекапится при неудаче добавления сценария пользователя"
-                            +user.getLogin()+":\nСценарий "+ scenario, e1);
-                }
-                LOGGER.error("Ошибка добавления сценария", e);
+                return new Message(Message.Status.Success, "Scenario added").toString();
+            } catch (ScenarioConflictException e) {
+                LOGGER.debug("Ошибка добавления сценария в модель: " + e.getMessage());
                 return new Message(Message.Status.Error, e.getMessage()).toString();
+            } catch (Exception e) {
+                LOGGER.error("Ошибка добавления сценария " + scenario, e);
+                return new Message(Message.Status.Error, "Internal error").toString();
             }
         }
     }
-
-
-
-
-//    @RequestMapping(value = "/getAvailableNumbers", method = RequestMethod.POST, produces = "application/json")
-//    @ResponseBody
-//    public String getAvailableNumbers(HttpServletRequest request) {
-//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-//        if (user == null) {
-//            return new Message(Message.Status.Error, "Authorization invalid").toString();
-//        }
-//
-//        try{
-//            return new ObjectMapper().writeValueAsString(user.getAvailableNumbers());
-//        }catch (Exception e){
-//            LOGGER.error(user.getLogin()+": ошибка получения доступных номеров для правил", e);
-//            return new Message(Message.Status.Error, "Internal error").toString();
-//        }
-//    }
-
-
-//    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json")
-//    @ResponseBody
-//    public String getRules(HttpServletRequest request) {
-//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-//        if (user == null) {
-//            return new Message(Message.Status.Error, "Authorization invalid").toString();
-//        }
-//        try{
-//            List<OldRule> oldRules = user.getOldRules();
-//            return new ObjectMapper().writeValueAsString(oldRules);
-//        }catch (Exception e){
-//            LOGGER.error(user.getLogin()+": ошибка получения правил", e);
-//            return new Message(Message.Status.Error, "Internal error").toString();
-//        }
-//    }
-
-
-//    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json")
-//    @ResponseBody
-//    public String getRules(@RequestBody ArrayList<OldRule> newOldRules, HttpServletRequest request) {
-//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-//        if (user == null) {
-//            return new Message(Message.Status.Error, "Authorization invalid").toString();
-//        }
-//
-////         Проверяем есть ли дубликаты среди номеров с
-//        Set<String> filterSet = new HashSet<>();
-//        if (newOldRules.stream().flatMap(oldRule -> oldRule.getFrom().stream()).anyMatch(s -> !filterSet.add(s))) {
-//            return new Message(Message.Status.Error, "Duplicates numbers found").toString();
-//        }
-//
-////         Проверяем правильный ли формат номеров
-//        List<String> numbersTo = newOldRules.stream().filter(oldRule -> oldRule.getDestinationType() == GSM)
-//                .flatMap(oldRule -> oldRule.getTo().stream()).collect(Collectors.toList());
-//
-//        for (String s : numbersTo) {
-//            Matcher regexMatcher = Pattern.compile("^0\\d{9}$").matcher(s);
-//            if (!regexMatcher.find()) {
-//                return new Message(Message.Status.Error, "Wrong GSM number format. Must be 0xxxxxxxxx. Regex: ^0\\d{9}$").toString();
-//            }
-//        }
-//
-//        try {
-//            user.setOldRules(newOldRules);
-//            user.saveRules();
-//            return new Message(Message.Status.Success, "Saved").toString();
-//        } catch (Exception e) {
-//            LOGGER.error(user.getLogin()+": ошибка задания правил", e);
-//            return new Message(Message.Status.Error, "Internal error").toString();
-//        }
-//    }
-
-//    @RequestMapping(value = "/getMelodies", method = RequestMethod.POST, produces = "application/json")
-//    @ResponseBody
-//    public String getHistory() {
-//        try {
-//            return new Gson().toJson(MySqlCalltrackDao.getMelodies());
-//        } catch (Exception e) {
-//            LOGGER.error("Ошибка получения списка мелодий", e);
-//            return new Message(Message.Status.Error, "Internal error").toString();
-//        }
-//    }
 }
