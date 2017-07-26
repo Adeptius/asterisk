@@ -34,6 +34,10 @@ public class UserController {
             return new Message(Message.Status.Error, "Invalid name, or too short").toString();
         }
 
+        if (jsonUser.getLogin().contains("test")){
+            return new Message(Message.Status.Error, "Invalid name. Cant use 'test' in name").toString();
+        } // это ограничение связано с правилами переадресации, которые нельзя удалять если в них содержится слово test
+
         String str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         String name = jsonUser.getLogin();
         for (int i = 0; i < name.length(); i++) {

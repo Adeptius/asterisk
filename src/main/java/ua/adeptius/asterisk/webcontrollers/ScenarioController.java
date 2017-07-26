@@ -104,6 +104,33 @@ public class ScenarioController {
     }
 
 
+    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+    @ResponseBody
+    public String removeScenario(HttpServletRequest request, @RequestParam int id) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+
+        Scenario scenario;
+        try {
+            scenario = user.getScenarioById(id);
+        } catch (NoSuchElementException e) {
+            return new Message(Message.Status.Error, "No such scenario by id " + id).toString();
+        }
+
+        user.getScenarios().remove(scenario);
+
+        try {
+            HibernateDao.update(user);
+            return new Message(Message.Status.Success, "Scenario removed").toString();
+        } catch (Exception e) {
+            LOGGER.error("Ошибка БД при удалении сценария " + scenario, e);
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
+    }
+
+
     @SuppressWarnings("Duplicates")
     @RequestMapping(value = "/set", method = RequestMethod.POST, consumes = "application/json; charset=UTF-8", produces = "application/json; charset=UTF-8")
     @ResponseBody
@@ -228,6 +255,15 @@ public class ScenarioController {
 
             try {
                 HibernateDao.update(user);
+                user.setScenarios(HibernateDao.getAllScenariosByUser(user));
+//                User current = user;
+//                User inScenarios = current.getScenarios().get(0).getUser();
+
+//                inScenarios.setEmail("111");
+
+//                System.out.println(current.getEmail());
+//                System.out.println(inScenarios.getEmail());
+
                 if (!errorWhileActivation) { // если при активации не произошло ошибки
                     return new Message(Message.Status.Success, "Scenario updated").toString();
 

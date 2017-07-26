@@ -16,10 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RulesConfigDAO {
@@ -97,7 +94,18 @@ public class RulesConfigDAO {
     }
 
     public static void clearRulesFolder() throws IOException {
-        FileUtils.cleanDirectory(new File(folder));
+        Collection<File> files = FileUtils.listFiles(new File(folder), null, false);
+        files.forEach(file -> {
+            String name = file.getName();
+            if (!name.equals("binotel.conf") && !name.contains("test")){
+                try {
+                    FileUtils.forceDelete(new File(folder+name));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+//        FileUtils.cleanDirectory(new File(folder));
     }
 
 

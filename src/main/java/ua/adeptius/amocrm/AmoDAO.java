@@ -226,7 +226,6 @@ public class AmoDAO {
 
         public static void setTagsToDeal(String domain, String userLogin, String userApiKey, @NotNull String tags, int dealid, int dealTime) throws Exception {
         LOGGER.debug("{}: Запрос изменения тэгов для сделки {}: {}", userLogin, dealid, tags);
-//TODO Thread sleep 1s
         String cookie = getCookie(domain, userLogin, userApiKey);
 //        long time = new Date().getTime() / 1000;
         String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":"+dealid+",\"tags\": \"" + tags + "\",\"last_modified\":"+dealTime+"}]}}}";

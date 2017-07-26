@@ -53,12 +53,13 @@ public class TrackingController {
         user.setTracking(newTracking);
         try {
             HibernateController.updateUser(user);
-            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Tracking added").toString();
         } catch (Exception e) {
             user.setTracking(null);
             LOGGER.error(user.getLogin()+": ошибка добавление трекинга: "+jsonTracking, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            user.reloadTrackingFromDb();
         }
     }
 
@@ -82,10 +83,6 @@ public class TrackingController {
             tracking.setSiteNumbersCount(neededNumberCount);
             tracking.updateNumbers();
             HibernateController.updateUser(user);
-            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
-            LOGGER.debug("Синхронизация с БД успешна. Обновляем номера повторно.");
-            user.getTracking().updateNumbers();
-            CallProcessor.updatePhonesHashMap();
             return new Message(Message.Status.Success, "Number count set").toString();
         } catch (NotEnoughNumbers e){
             tracking.setSiteNumbersCount(currentNumberCount);
@@ -94,6 +91,8 @@ public class TrackingController {
             tracking.setSiteNumbersCount(currentNumberCount);
             LOGGER.error(user.getLogin()+": ошибка задания количества номеров: "+jsonTracking, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            user.reloadTrackingFromDb();
         }
     }
 
@@ -124,11 +123,12 @@ public class TrackingController {
 
         try {
             HibernateController.updateUser(user);
-            user.setTracking(HibernateDao.getTrackingByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Tracking updated").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка задания трекинга: "+jsonTracking, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        }finally {
+            user.reloadTrackingFromDb();
         }
     }
 
@@ -150,6 +150,8 @@ public class TrackingController {
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            user.reloadTrackingFromDb();
         }
     }
 

@@ -127,7 +127,7 @@ public class AdminController {
             return new Message(Message.Status.Error, "Wrong password").toString();
         }
         try {
-            int freeOuter = PhonesDao.getFreePhones(false).size();
+            int freeOuter = PhonesDao.getFreeOuterPhones().size();
             int busyOuter = PhonesDao.getBusyOuterPhones().size();
             int busyInner = PhonesDao.getBusyInnerPhones().size();
             return "{\"freeOuter\":" + freeOuter + ",\"busyInner\":" + busyInner + ",\"busyOuter\":" + busyOuter + "}";

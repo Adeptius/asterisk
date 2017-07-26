@@ -52,7 +52,7 @@ public class Tracking {
 
     public void updateNumbers() throws Exception {
         LOGGER.debug("{}: обновление списка внешних номеров трекинга", login);
-        ArrayList<String> outerPhones = PhonesDao.getCustomersNumbers("trac_" + login,false);
+        ArrayList<String> outerPhones = PhonesDao.getCustomersOuterNumbers("trac_" + login);
         for (String outerPhone : outerPhones) {
             if (!phones.stream().map(Phone::getNumber).anyMatch(s -> s.equals(outerPhone))){
                 phones.add(new Phone(outerPhone));
@@ -60,7 +60,7 @@ public class Tracking {
         }
         if (siteNumbersCount != phones.size()){
             List<String> current = phones.stream().map(Phone::getNumber).collect(Collectors.toList());
-            PhonesController.increaseOrDecrease(siteNumbersCount, current, "trac_" + login,false);
+            PhonesController.increaseOrDecreaseOuterList(siteNumbersCount, current, "trac_" + login);
             phones.clear();
             for (String s : current) {
                 phones.add(new Phone(s));

@@ -62,6 +62,68 @@ public class User {
 
 
     /**
+     * Reloading. Synk with DB
+     */
+
+    public void reloadScenariosFromDb() {
+        try {
+            List<Scenario> scenariosFromDB = HibernateDao.getAllScenariosByUser(this);
+            setScenarios(scenariosFromDB);
+            LOGGER.debug("{}: Синхронизация с БД - {} сценариев перезагружены", login, scenariosFromDB.size());
+        } catch (Exception e) {
+            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации сценариев", e);
+        }
+    }
+
+
+    public void reloadAmoAccountFromDb() {
+        try {
+            AmoAccount amoAccount = HibernateDao.getAmoAccountByUser(this);
+            setAmoAccount(amoAccount);
+            LOGGER.debug("{}: Синхронизация с БД - AmoAccount перезагружен", login);
+        } catch (Exception e) {
+            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации AmoAccount", e);
+        }
+    }
+
+    public void reloadRoistatAccountFromDb() {
+        try {
+            RoistatAccount roistatAccount = HibernateDao.getRoistatAccountByUser(this);
+            setRoistatAccount(roistatAccount);
+            LOGGER.debug("{}: Синхронизация с БД - Roistat account перезагружен", login);
+        } catch (Exception e) {
+            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации Roistat", e);
+        }
+    }
+
+    public void reloadTrackingFromDb() {
+        try {
+            Tracking tracking = HibernateDao.getTrackingByUser(this);
+            setTracking(tracking);
+            if (tracking != null) {
+                tracking.updateNumbers();
+            }
+            LOGGER.debug("{}: Синхронизация с БД - трекинг перезагружен", login);
+        } catch (Exception e) {
+            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации трекинга", e);
+        }
+    }
+
+    public void reloadTelephonyFromDb() {
+        try {
+            Telephony telephony = HibernateDao.getTelephonyByUser(this);
+            setTelephony(telephony);
+            if (telephony != null) {
+                telephony.updateNumbers();
+            }
+            LOGGER.debug("{}: Синхронизация с БД - телефония перезагружена", login);
+        } catch (Exception e) {
+            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации телефонии", e);
+        }
+    }
+
+
+    /**
      * Scenario
      */
 
@@ -95,7 +157,7 @@ public class User {
             Set<Scenario> scenariosByNumber = getActivatedScenariosByOuterPhoneNumber(number);
             for (Scenario userScenario : scenariosByNumber) {
                 if (!userScenario.isThisScenarioCompatibleWith(scenario)) { // если один из существующих сценариев не совместим с новым.
-                    throw new ScenarioConflictException("For number '" + number + "'assigned active scenario '"
+                    throw new ScenarioConflictException("For number '" + number + "' assigned active scenario '"
                             + userScenario.getName() + "' that has time conflict with '" + scenario.getName() + "'");
                 }
             }
@@ -103,7 +165,7 @@ public class User {
         scenario.setStatus(ScenarioStatus.ACTIVATED); // TODO Протестить
     }
 
-    public void deactivateScenario(int id) throws NoSuchElementException{
+    public void deactivateScenario(int id) throws NoSuchElementException {
         getScenarioById(id).setStatus(ScenarioStatus.DEACTIVATED);
     }
 
@@ -150,43 +212,42 @@ public class User {
         return numbers;
     }
 
-    public boolean isThatUsersOuterNumber(@Nonnull List<String> numbers){
+    public boolean isThatUsersOuterNumber(@Nonnull List<String> numbers) {
         for (String number : numbers) {
-            if (isThatUsersOuterNumber(number)){
+            if (isThatUsersOuterNumber(number)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isThatUsersOuterNumber(@Nonnull String number){
+    public boolean isThatUsersOuterNumber(@Nonnull String number) {
         List<String> allOuterPhones = new ArrayList<>();
-        if (getTelephony() != null){
+        if (getTelephony() != null) {
             allOuterPhones.addAll(getTelephony().getOuterPhonesList());
         }
-        if (getTracking() != null){
+        if (getTracking() != null) {
             allOuterPhones.addAll(getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
         }
         return allOuterPhones.stream().anyMatch(s -> s.equals(number));
     }
 
-    public boolean isThatUsersInnerNumber(@Nonnull List<String> numbers){
+    public boolean isThatUsersInnerNumber(@Nonnull List<String> numbers) {
         for (String number : numbers) {
-            if (isThatUsersInnerNumber(number)){
+            if (isThatUsersInnerNumber(number)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isThatUsersInnerNumber(@Nonnull String number){
-       if (getTelephony() != null){
-           return getTelephony().getInnerPhonesList().stream().anyMatch(s -> s.equals(number));
-       }else {
-           return false;
-       }
+    public boolean isThatUsersInnerNumber(@Nonnull String number) {
+        if (getTelephony() != null) {
+            return getTelephony().getInnerPhonesList().stream().anyMatch(s -> s.equals(number));
+        } else {
+            return false;
+        }
     }
-
 
 
     @Nullable
@@ -233,7 +294,7 @@ public class User {
 
     @Nullable
     public String getTrackingId() {
-            return trackingId;
+        return trackingId;
     }
 
     public void setTrackingId(String trackingId) {
@@ -255,7 +316,6 @@ public class User {
     public void setRoistatAccount(RoistatAccount roistatAccount) {
         this.roistatAccount = roistatAccount;
     }
-
 
 
     @Override

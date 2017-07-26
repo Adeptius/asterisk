@@ -49,6 +49,9 @@ public class AmoAccount {
     }
 
     public void setUser(User user) {
+        if (user != null){
+            nextelLogin = user.getLogin();
+        }
         this.user = user;
     }
 

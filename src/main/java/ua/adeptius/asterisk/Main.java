@@ -2,20 +2,18 @@ package ua.adeptius.asterisk;
 
 
 
-import org.apache.log4j.BasicConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ua.adeptius.amocrm.monitor.AmoCookieCleaner;
+import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
-import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,13 +25,8 @@ public class Main {
     public static AsteriskMonitor monitor;
     private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
 
-    public static void main(String[] args) throws Exception {
-        Main main = new Main();
-        main.init();
-    }
-
-    @PostConstruct
-    private void init() {
+    @AfterSpringLoadComplete
+    public void init() {
         Settings.load(this.getClass());
         checkIfNeedRestartAndSetVariables();
     }
@@ -152,13 +145,6 @@ public class Main {
         });
         LOGGER.info("Инициализированы номера для {} услуг телефонии", telephonyCount);
 
-
-        // Загрузка правил
-//        LOGGER.info("Загрузка правил переадресации для всех пользователей");
-//        UserContainer.getUsers().forEach(User::loadRules);
-//        LOGGER.info("Правила загружены");
-
-
         LOGGER.info("Кеширование номеров и пользователей");
         CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
 
@@ -167,22 +153,12 @@ public class Main {
         new DailyCleaner();
         new ConnectionKeeper();
         new AmoCookieCleaner();
-        new ScenarioWatcher();
+        new ScenarioWriter();
 
 
         Thread thread = new Thread(() -> initMonitor());
         thread.setDaemon(true);
         thread.start();
-
-        // Чистим правила всех пользователей
-//        for (User user : UserContainer.getUsers()) {
-//            System.out.println(user);
-//            try {
-//                RulesConfigDAO.removeFileIfNeeded(user);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//        }
 
         Calendar calendar = new GregorianCalendar();
         MyLogger.log(DB_OPERATIONS, "Сервер был загружен в " + calendar.get(Calendar.HOUR_OF_DAY) + " часов, " + calendar.get(Calendar.MINUTE) + " минут.");

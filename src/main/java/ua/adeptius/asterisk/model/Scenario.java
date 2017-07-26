@@ -167,16 +167,6 @@ public class Scenario {
         this.name = name;
     }
 
-    //    public boolean isTodayIsOk(){
-//        int currentDay = new Date().getDay(); // 1 - понедельник, 7 - воскресенье
-//        return days[currentDay-1];
-//    }
-
-//    public boolean isNowIsOk(){
-//        return false;
-//    }
-
-
     public String getLogin() {
         return login;
     }

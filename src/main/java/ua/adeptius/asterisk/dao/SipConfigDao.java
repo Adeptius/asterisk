@@ -70,20 +70,16 @@ public class SipConfigDao {
         MyLogger.log(DB_OPERATIONS, "Синхронизация БД и файлов конфигов sip номеров. Всего конфигов: " + dbSips.size() + ", удалено " + deleted);
     }
 
-    public static void removeFile(String number) throws Exception {
-        LOGGER.trace("Удаление SIP конфига {}", number);
-        Files.deleteIfExists(Paths.get(folder + number + ".conf"));
+
+
+    public static void removeFiles(List<String> numbers) throws Exception {
+        LOGGER.trace("Удаление файлов SIP конфигов {}", numbers);
+        for (String number : numbers) {
+            removeFile(number);
+        }
     }
 
-    public static void removeTelephonyConfigFiles(List<String> numbers) {
-        for (String s : numbers) {
-            try {
-                removeFile(s);
-            }catch (Exception e){
-                e.printStackTrace();
-                LOGGER.error("Ошибка удаления файла конфига "+s, e);
-                MyLogger.log(DB_OPERATIONS, "Ошибка удаления "+s+".conf");
-            }
-        }
+    private static void removeFile(String number) throws Exception {
+        Files.deleteIfExists(Paths.get(folder + number + ".conf"));
     }
 }

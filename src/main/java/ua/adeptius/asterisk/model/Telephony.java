@@ -43,10 +43,11 @@ public class Telephony {
 
     public void updateNumbers() throws Exception{
         LOGGER.debug("{}: обновление списков номеров телефонии", login);
-        outerPhonesList = PhonesDao.getCustomersNumbers("tele_" + login,false);
-        innerPhonesList = PhonesDao.getCustomersNumbers(login,true);
-        PhonesController.increaseOrDecrease(outerCount, outerPhonesList, "tele_" + login, false);
-        PhonesController.increaseOrDecrease(innerCount, innerPhonesList, login, true);
+        outerPhonesList = PhonesDao.getCustomersOuterNumbers("tele_" + login);
+        innerPhonesList = PhonesDao.getCustomersInnerNumbers(login);
+
+        PhonesController.increaseOrDecreaseOuterList(outerCount, outerPhonesList, "tele_" + login);
+        PhonesController.increaseOrDecreaseInnerList(innerCount, innerPhonesList, login);
         CallProcessor.updatePhonesHashMap();
     }
 

@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
@@ -48,8 +49,4 @@ public class HibernateController {
         CallProcessor.updatePhonesHashMap();
     }
 
-//    @Deprecated
-//    public static void cleanServices() {
-//        HibernateDao.cleanServices();
-//    }
 }
