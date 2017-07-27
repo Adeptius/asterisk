@@ -38,7 +38,6 @@ public class AsteriskMonitor implements ManagerEventListener {
             TimeoutException, InterruptedException {
         managerConnection.addEventListener(this);
         managerConnection.login();
-        //TODO сделать сюда отправку екшенов
         managerConnection.sendAction(new StatusAction());
     }
 

@@ -90,12 +90,6 @@ public class HelloManager {
 //        System.err.println(action);
 
 
-
-
-
-
-
-//        TODO сделать это каким-то нормальным классом
         System.err.println(originateResponse);
         managerConnection.logoff();
     }

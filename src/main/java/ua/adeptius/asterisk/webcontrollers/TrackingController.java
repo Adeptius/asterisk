@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/tracking")
 public class TrackingController {
 
+    private static boolean safeMode = true;
     private static Logger LOGGER =  LoggerFactory.getLogger(TrackingController.class.getSimpleName());
 
     @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
@@ -59,7 +60,8 @@ public class TrackingController {
             LOGGER.error(user.getLogin()+": ошибка добавление трекинга: "+jsonTracking, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            user.reloadTrackingFromDb();
+            if (safeMode)
+                user.reloadTrackingFromDb();
         }
     }
 
@@ -92,7 +94,8 @@ public class TrackingController {
             LOGGER.error(user.getLogin()+": ошибка задания количества номеров: "+jsonTracking, e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            user.reloadTrackingFromDb();
+            if (safeMode)
+                user.reloadTrackingFromDb();
         }
     }
 
@@ -127,8 +130,9 @@ public class TrackingController {
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка задания трекинга: "+jsonTracking, e);
             return new Message(Message.Status.Error, "Internal error").toString();
-        }finally {
-            user.reloadTrackingFromDb();
+        } finally {
+            if (safeMode)
+                user.reloadTrackingFromDb();
         }
     }
 
@@ -151,7 +155,8 @@ public class TrackingController {
             LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            user.reloadTrackingFromDb();
+            if (safeMode)
+                user.reloadTrackingFromDb();
         }
     }
 

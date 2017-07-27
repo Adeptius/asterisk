@@ -35,11 +35,9 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/roistat")
 public class RoistatController {
 
+    private static boolean safeMode = true;
     private static Logger LOGGER =  LoggerFactory.getLogger(RoistatController.class.getSimpleName());
 
-//    TODO добавить отключение и подключение roistat аккаунта
-
-//TODO протестить
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String get(HttpServletRequest request) {
@@ -87,11 +85,13 @@ public class RoistatController {
 
         try {
             HibernateController.updateUser(user);
-            user.setRoistatAccount(HibernateDao.getRoistatAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Roistat account setted").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка изменения Roistat аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadRoistatAccountFromDb();
         }
     }
 
@@ -137,11 +137,13 @@ public class RoistatController {
 
         try {
             HibernateController.removeRoistatAccount(user);
-            user.setRoistatAccount(HibernateDao.getRoistatAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Roistat account removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления Roistat аккаунта.", e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadRoistatAccountFromDb();
         }
     }
 

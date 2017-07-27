@@ -33,9 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/amo")
 public class AmoController {
 
+    private static boolean safeMode = true;
     private static Logger LOGGER =  LoggerFactory.getLogger(AmoController.class.getSimpleName());
-
-//    TODO добавить отключение и подключение амо аккаунта
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
@@ -84,14 +83,18 @@ public class AmoController {
         amoAccount.setDomain(domain);
         amoAccount.setAmoLogin(amoLogin);
         amoAccount.setApiKey(apiKey);
+        amoAccount.setPhoneId(null);
+        amoAccount.setPhoneEnumId(null);
 
         try {
             HibernateController.updateUser(user);
-            user.setAmoAccount(HibernateDao.getAmoAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Amo account setted").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка изменения амо аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadAmoAccountFromDb();
         }
     }
 
@@ -146,11 +149,13 @@ public class AmoController {
 
         try {
             HibernateController.removeAmoAccount(user);
-            user.setAmoAccount(HibernateDao.getAmoAccountByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Amo account removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadAmoAccountFromDb();
         }
     }
 }

@@ -67,7 +67,7 @@ public class Scenario {
     @Column(name = "melody")
     private String melody;
 
-    @Column(name = "startTime") // todo какое значение по умолчанию?
+    @Column(name = "startTime")
     private Integer startHour;
 
     @Column(name = "endTime")

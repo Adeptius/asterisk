@@ -1,15 +1,10 @@
 {
-  "note_type": 4,
-  "ATTACHEMENT": "",
-  "editable": "Y",
-  "created_user_id": "1559047",
-  "element_id": "1777119",
-  "element_type": "2",
-  "responsible_user_id": "1559047",
-  "account_id": "15391081",
-  "date_create": 1499680367,
-  "group_id": 0,
-  "id": "12234255",
-  "text": "SomeComent",
-  "last_modified": 1499680391
+  "callee": "2001037",
+  "caller": "0934027182",
+  "marker": "",
+  "duration": 2,
+  "google_client_id": "",
+  "date": "2017-07-26T19:00:23+0300",
+  "save_to_crm": "0",
+  "answer_duration": 0
 }

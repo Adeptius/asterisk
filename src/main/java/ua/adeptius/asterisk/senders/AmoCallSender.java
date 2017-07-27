@@ -179,6 +179,7 @@ public class AmoCallSender extends Thread {
             // нужно найти сделки привязанные к этому контакту
             JsonAmoDeal latestActiveDial = AmoDAO.getContactsLatestActiveDial(domain, userLogin, userApiKey, jsonAmoContact);
 
+
             if (latestActiveDial != null) { // если у контакта есть уже открытая сделка - то просто добавляем комент
                 AmoDAO.addNewComent(domain, userLogin, userApiKey, latestActiveDial.getIdInt(), "Повторный звонок от клиента.", call.getCalculatedModifiedTime());
                 call.setAmoDealId(latestActiveDial.getIdInt());

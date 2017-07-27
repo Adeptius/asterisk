@@ -26,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/telephony")
 public class TelephonyController {
 
+    private static boolean safeMode = true;
     private static Logger LOGGER =  LoggerFactory.getLogger(TelephonyController.class.getSimpleName());
 
 
@@ -48,18 +49,14 @@ public class TelephonyController {
         user.setTelephony(telephony);
         try {
             HibernateController.updateUser(user);
-            user.setTelephony(HibernateDao.getTelephonyByUser(user)); // синхронизация с БД
             return new Message(Message.Status.Success, "Telephony added").toString();
         } catch (Exception e) {
             user.setTelephony(null);
-            try{
-                user.setTelephony(HibernateDao.getTelephonyByUser(user));
-            }catch (Exception e1){
-                LOGGER.error("Не получилось отбекапится при неудаче добавления телефонии пользователя"
-                        +user.getLogin(), e1);
-            }
             LOGGER.error(user.getLogin()+": ошибка добавления телефонии",e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        }finally {
+            if (safeMode)
+                user.reloadTelephonyFromDb();
         }
     }
 
@@ -86,10 +83,6 @@ public class TelephonyController {
             telephony.setInnerCount(neededInnerNumberCount);
             telephony.updateNumbers();
             HibernateController.updateUser(user); // если тут не вылетело и номеров хватило
-            user.setTelephony(HibernateDao.getTelephonyByUser(user)); // то синхронизируесмся с БД
-            LOGGER.debug("Синхронизация с БД успешна. Снова обновляем номера");
-            user.getTelephony().updateNumbers();// но после этого слетают номера в модели, поэтому снова их обновляем
-            CallProcessor.updatePhonesHashMap();
             return new Message(Message.Status.Success, "Number count set").toString();
         } catch (NotEnoughNumbers e){
             telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
@@ -98,15 +91,13 @@ public class TelephonyController {
         } catch (Exception e) {
             telephony.setOuterCount(currentOuterNumberCount); // возвращаем бэкап
             telephony.setInnerCount(currentInnerNumberCount);
-            try {
-                LOGGER.debug("Ошибка с БД после изменения количества номеров пользователя {}. Пытаемся вернуть всё назад.", user.getLogin());
-                telephony.updateNumbers();
-            } catch (Exception e1) {
-                LOGGER.error("Вернуть назад не получилось.", e1);
-            }
             LOGGER.error(user.getLogin()+": ошибка изменения количества номеров телефонии: "+jsonTelephony, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        }finally {
+            if (safeMode)
+                user.reloadTelephonyFromDb();
         }
+
     }
 
 
@@ -127,6 +118,9 @@ public class TelephonyController {
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления телефонии",e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadTelephonyFromDb();
         }
     }
 

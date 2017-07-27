@@ -2,6 +2,8 @@ package ua.adeptius.asterisk;
 
 
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ public class Main {
 
     public static AsteriskMonitor monitor;
     private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
+    private static boolean startedOnWindows;
 
     @AfterSpringLoadComplete
     public void init() {
@@ -43,6 +46,7 @@ public class Main {
 
         }else { // Это винда
             LOGGER.info("OS Windows");
+            startedOnWindows = true;
             Settings.setSetting("___forwardingRulesFolder","D:\\home\\adeptius\\tomcat\\rules\\");
             Settings.setSetting("___sipConfigsFolder","D:\\home\\adeptius\\tomcat\\sips\\");
         }
@@ -163,6 +167,19 @@ public class Main {
         Calendar calendar = new GregorianCalendar();
         MyLogger.log(DB_OPERATIONS, "Сервер был загружен в " + calendar.get(Calendar.HOUR_OF_DAY) + " часов, " + calendar.get(Calendar.MINUTE) + " минут.");
         LOGGER.info("Сервер запущен!");
+
+        if (startedOnWindows){
+            try{
+                HttpResponse<String> response = Unirest
+                        .post("http://cstat.nextel.com.ua/tracking/rules/getMelodies")
+                        .header("content-type", "application/json")
+                        .asString();
+                if (response.getStatus()==200){
+                    System.out.println("!!!!!!!!!!!!!!!!!!!ВНИМАНИЕ! ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!!!!!!!!!!!");
+                }
+            }catch (Exception ignored){
+            }
+        }
     }
 
 

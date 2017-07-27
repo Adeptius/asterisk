@@ -37,10 +37,10 @@ public class ScenarioWriter extends Thread {
         int minutes = calendar.get(Calendar.MINUTE);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
-//        if (minutes <= 50){ // если до нового часа более 10 минут
-//            LOGGER.trace("Конфиги не пишем: до нового часа более 10 минут."); // TODO раскомитить для продакшена
-//            return;
-//        }
+        if (minutes <= 50){ // если до нового часа более 10 минут
+            LOGGER.trace("Конфиги не пишем: до нового часа более 10 минут.");
+            return;
+        }
 
         if (hour == lastHourOfWorks){ // в этом часу уже писали конфиги
             LOGGER.trace("Конфиги не пишем: в этом часу уже конфиги писались.");

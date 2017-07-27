@@ -28,6 +28,7 @@ import java.util.NoSuchElementException;
 @RequestMapping("/scenario")
 public class ScenarioController {
 
+    private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
@@ -73,6 +74,9 @@ public class ScenarioController {
         } catch (Exception e) {
             LOGGER.error("Ошибка БД при активации сценария " + scenario, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadScenariosFromDb();
         }
     }
 
@@ -100,6 +104,9 @@ public class ScenarioController {
         } catch (Exception e) {
             LOGGER.error("Ошибка БД при деактивации сценария " + scenario, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadScenariosFromDb();
         }
     }
 
@@ -127,6 +134,9 @@ public class ScenarioController {
         } catch (Exception e) {
             LOGGER.error("Ошибка БД при удалении сценария " + scenario, e);
             return new Message(Message.Status.Error, "Internal error").toString();
+        } finally {
+            if (safeMode)
+                user.reloadScenariosFromDb();
         }
     }
 
@@ -155,13 +165,13 @@ public class ScenarioController {
         int id = jsonScenario.getId();
 
         if (fromNumbers != null) {
-            List<String> needRemove = new ArrayList<>();
+            List<String> wrongNumbers = new ArrayList<>();
             for (String number : fromNumbers) {
                 if (!user.isThatUsersOuterNumber(number)) {
-                    needRemove.add(number);
+                    wrongNumbers.add(number);
                 }
             }
-            fromNumbers.removeAll(needRemove);
+            fromNumbers.removeAll(wrongNumbers);
         }
 
 
@@ -189,20 +199,15 @@ public class ScenarioController {
             }
 
             if (fromNumbers != null) {
-//                for (String number : fromNumbers) {
-//                    if (!user.isThatUsersOuterNumber(number)) {
-//                        return new Message(Message.Status.Error, "That is not user's outer number: " + number).toString();
-//                    }
-//                }  Заменил удалением ошибочных номеров в начале метода
                 scenario.setFromList(fromNumbers);
             }
 
-            if (destinationType != null) { // TODO а может ли сюда попасть не стандартное значение?
+            if (destinationType != null) {
                 scenario.setDestinationType(destinationType);
             }
 
-            if (toNumbers != null) { // TODO убедится, что dest type не null
-                if (destinationType == DestinationType.SIP) {
+            if (toNumbers != null) {
+                if (scenario.getDestinationType() == DestinationType.SIP) {
                     List<String> needRemove = new ArrayList<>();
                     for (String number : toNumbers) {
                         if (!user.isThatUsersInnerNumber(number)) {
@@ -256,13 +261,6 @@ public class ScenarioController {
             try {
                 HibernateDao.update(user);
                 user.setScenarios(HibernateDao.getAllScenariosByUser(user));
-//                User current = user;
-//                User inScenarios = current.getScenarios().get(0).getUser();
-
-//                inScenarios.setEmail("111");
-
-//                System.out.println(current.getEmail());
-//                System.out.println(inScenarios.getEmail());
 
                 if (!errorWhileActivation) { // если при активации не произошло ошибки
                     return new Message(Message.Status.Success, "Scenario updated").toString();
@@ -273,6 +271,9 @@ public class ScenarioController {
             } catch (Exception e) {
                 LOGGER.error("Не удалось обновить сценарий " + scenario, e);
                 return new Message(Message.Status.Error, "Internal error").toString();
+            } finally {
+                if (safeMode)
+                    user.reloadScenariosFromDb();
             }
 
 
@@ -287,12 +288,7 @@ public class ScenarioController {
             }
 
             if (fromNumbers != null) {
-//                for (String number : fromNumbers) {
-//                    if (!user.isThatUsersOuterNumber(number)) {
-//                        return new Message(Message.Status.Error, "That is not user's outer number: " + number).toString();
-//                    }
-//                } Заменил удалением ошибочных номеров в начале метода
-                scenario.setFromList(fromNumbers); // TODO валидация всех данных
+                scenario.setFromList(fromNumbers);
             }
 
             if (toNumbers != null) {
@@ -305,19 +301,19 @@ public class ScenarioController {
                     }
                     toNumbers.removeAll(needRemove);
                 }
-                scenario.setToList(toNumbers);// TODO валидация всех данных
+                scenario.setToList(toNumbers);
             }
 
             if (destinationType != null) {
                 scenario.setDestinationType(destinationType);
             } else {
-                return new Message(Message.Status.Error, "Destination type is empty").toString();
+                return new Message(Message.Status.Error, "Destination type is wrong or empty").toString();
             }
 
             if (forwardType != null) {
                 scenario.setForwardType(forwardType);
             } else {
-                return new Message(Message.Status.Error, "Forward type is empty").toString();
+                return new Message(Message.Status.Error, "Forward type is wrong or empty").toString();
             }
 
             if (days != null) {
@@ -363,6 +359,9 @@ public class ScenarioController {
             } catch (Exception e) {
                 LOGGER.error("Ошибка добавления сценария " + scenario, e);
                 return new Message(Message.Status.Error, "Internal error").toString();
+            } finally {
+                if (safeMode)
+                    user.reloadScenariosFromDb();
             }
         }
     }

@@ -139,7 +139,9 @@ public class User {
         if (getScenarios().stream().map(Scenario::getName).anyMatch(s -> s.equals(newScenario.getName()))) {
             throw new ScenarioConflictException("Scenario with such name already present");
         }
-        // TODO проследить что бы с фронтенда не добавили уже активированный сценарий
+        if (newScenario.getStatus() == ScenarioStatus.ACTIVATED){
+            throw new ScenarioConflictException("Can't add activated scenario");
+        }
         getScenarios().add(newScenario);
     }
 
@@ -162,7 +164,7 @@ public class User {
                 }
             }
         }
-        scenario.setStatus(ScenarioStatus.ACTIVATED); // TODO Протестить
+        scenario.setStatus(ScenarioStatus.ACTIVATED);
     }
 
     public void deactivateScenario(int id) throws NoSuchElementException {

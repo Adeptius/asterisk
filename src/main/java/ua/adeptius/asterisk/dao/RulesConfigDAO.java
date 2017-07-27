@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Scenario;
+import ua.adeptius.asterisk.model.ScenarioStatus;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.OldRule;
 
@@ -23,17 +24,17 @@ public class RulesConfigDAO {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RulesConfigDAO.class.getSimpleName());
 
-
-    //    private static String folder = Settings.getSetting("___forwardingRulesFolder");
-    private static String folder = "D:\\home\\adeptius\\tomcat\\rules\\";
+    private static String folder = Settings.getSetting("___forwardingRulesFolder");
 
 
-    public static void writeAllNeededScenarios(){
+    public static void writeAllNeededScenarios() {
         LOGGER.info("Подготовка сценариев на следующий час");
-        List<Scenario> scenarios = UserContainer.getUsers().stream().flatMap(user -> user.getScenarios().stream()).collect(Collectors.toList());
-        try{
-            RulesConfigDAO.clearRulesFolder(); // TODO файл тест надо оставить в папке на сервере
-        }catch (IOException e){
+        List<Scenario> scenarios = UserContainer.getUsers().stream().flatMap(user -> user.getScenarios().stream())
+                .filter(scenario -> scenario.getStatus() == ScenarioStatus.ACTIVATED)
+                .collect(Collectors.toList());
+        try {
+            RulesConfigDAO.clearRulesFolder();
+        } catch (IOException e) {
             LOGGER.error("Ошибка очистки папки сценариев", e);
         }
 
@@ -41,7 +42,7 @@ public class RulesConfigDAO {
         Calendar calendar = new GregorianCalendar();
 
         long currentMillis = calendar.getTimeInMillis();
-        long newTimeMillis = currentMillis + (10 * 1000 * 60); // 20 секунд FIXME 10 - это для теста
+        long newTimeMillis = currentMillis + (10 * 1000 * 60); // раз в 10 минут
         calendar.setTimeInMillis(newTimeMillis);
 
         int dayByCalendar = calendar.get(Calendar.DAY_OF_WEEK);
@@ -87,8 +88,8 @@ public class RulesConfigDAO {
 
             try {
                 RulesConfigDAO.writeToFile(scenario);
-            }catch (IOException e){
-                LOGGER.error(scenario.getLogin()+": не удалось записать сценарий (id="+scenario.getId()+") в файл", e);
+            } catch (IOException e) {
+                LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
             }
         }
     }
@@ -97,9 +98,9 @@ public class RulesConfigDAO {
         Collection<File> files = FileUtils.listFiles(new File(folder), null, false);
         files.forEach(file -> {
             String name = file.getName();
-            if (!name.equals("binotel.conf") && !name.contains("test")){
+            if (!name.equals("binotel.conf") && !name.contains("test")) {
                 try {
-                    FileUtils.forceDelete(new File(folder+name));
+                    FileUtils.forceDelete(new File(folder + name));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

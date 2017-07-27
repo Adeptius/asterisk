@@ -140,7 +140,7 @@ public class AmoDAO {
         String cookie = getCookie(domain, userLogin, userApiKey);
 //        String contactJson = new ObjectMapper().writeValueAsString(contact);
         String request = "{\"request\":{\"contacts\":{\"update\":[" + jsonAmoContact + "]}}}";
-        System.out.println("Отправляю: " + request);
+        LOGGER.trace("Отправка: "+request);
         HttpResponse<String> uniresp = Unirest
                 .post("https://" + domain + ".amocrm.ru/private/api/v2/json/contacts/set")
                 .header("Cookie", cookie)
@@ -288,25 +288,24 @@ public class AmoDAO {
     }
 
     public static List<JsonAmoDeal> getAllContactDeals(String domain, String userLogin, String userApiKey, JsonAmoContact contact) throws Exception {
-//        TODO уточнить в саппорте АМО как запросить это всё одним запросом
-        ArrayList<String> dealsIds = contact.getLinked_leads_id();
-        List<JsonAmoDeal> allDeals = new ArrayList<>();
-        for (String dealId : dealsIds) {
-            JsonAmoDeal deal = getDealById(domain, userLogin, userApiKey, dealId);
-            allDeals.add(deal);
-        }
-        return allDeals;
+        return getDealById(domain, userLogin, userApiKey, contact.getLinked_leads_id());
     }
 
     /**
      * Возвращает список сделок по id. String id - перечисление айдишников через запятую
      */
     @Nullable
-    public static JsonAmoDeal getDealById(String domain, String userLogin, String userApiKey, String id) throws Exception {
+    public static List<JsonAmoDeal> getDealById(String domain, String userLogin, String userApiKey, List<String> id) throws Exception {
         LOGGER.debug("{}: Запрос сделки по id: {}", userLogin, id);
         String cookie = getCookie(domain, userLogin, userApiKey);
+
+        String url = "https://" + domain + ".amocrm.ru/private/api/v2/json/leads/list?id[]=" + id.get(0);
+        for (int i = 1; i < id.size(); i++) {
+            url += "&id[]="+id.get(i);
+        }
+
         HttpResponse<String> uniresp = Unirest
-                .get("https://" + domain + ".amocrm.ru/private/api/v2/json/leads/list?id=" + id)
+                .get(url)
                 .header("Cookie", cookie)
                 .asString();
         String body = uniresp.getBody();
@@ -318,7 +317,11 @@ public class AmoDAO {
         if (array.length() == 0) {
             return null;
         }
-        return new JsonAmoDeal(array.getJSONObject(0).toString(), serverTimeWhenResponse);
+        List<JsonAmoDeal> deals = new ArrayList<>();
+        for (Object o : array) {
+            deals.add(new JsonAmoDeal(o.toString(),serverTimeWhenResponse));
+        }
+        return deals;
     }
 
     public static void addNewComent(String domain, String userLogin, String userApiKey, int leadId, String coment, int time) throws Exception {

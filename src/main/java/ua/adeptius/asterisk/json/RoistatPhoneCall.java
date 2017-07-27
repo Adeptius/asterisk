@@ -75,6 +75,8 @@ public class RoistatPhoneCall {
             this.status = "CONGESTION";
         }else if (state == NewCall.CallState.CHANUNAVAIL) {
             this.status = "CHANUNAVAIL"; // вызываемый номер был недоступен
+        }else if (state == NewCall.CallState.NOANSWER) {
+            this.status = "NOANSWER"; // вызываемый номер был недоступен
         }
 
 //        В API отсутствует

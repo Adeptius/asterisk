@@ -87,7 +87,6 @@ public class BlackListController {
         }
 
         try {
-//            LOGGER.debug("{}: запрос черного списка",user.getLogin());
             LinkedList<String> list = user.getTracking().getBlackList();
             return new Gson().toJson(list);
         } catch (Exception e) {

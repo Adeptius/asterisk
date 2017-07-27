@@ -182,7 +182,7 @@ public class JsonAmoContact {
             sb.append("\"id\":").append(id).append(",");
         }
         sb.append("\"name\":\"").append(name).append("\",");
-        sb.append("\"responsible_user_id\":null,"); //TODO реализовать
+        sb.append("\"responsible_user_id\":null,");
         if (last_modified == -1) last_modified = (int) (new Date().getTime() / 1000);
         sb.append("\"last_modified\":").append(last_modified).append(",");
 

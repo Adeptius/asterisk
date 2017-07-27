@@ -101,7 +101,6 @@ public class CallProcessor {
                 if (varSetEvent.getVariable().equals("DIALSTATUS")) {
                     LOGGER.trace("ID {} VarSetEvent: {}", id, varSetEvent);
 
-                    //TODO создавать сделку здесь
                     String dialStatus = varSetEvent.getValue();
                     if ("ANSWER".equals(dialStatus)) { // Кто-то взял трубку
                         // диалстатус бывает второй раз по завершению звонка, а он нам не нужен.
