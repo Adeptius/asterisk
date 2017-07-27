@@ -4,30 +4,30 @@ package ua.adeptius.amocrm;
 import com.mashape.unirest.http.Headers;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
-import javafx.util.Pair;
+import com.mashape.unirest.request.GetRequest;
+import com.mashape.unirest.request.HttpRequestWithBody;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.amocrm.exceptions.AmoAccountNotFoundException;
-import ua.adeptius.amocrm.exceptions.AmoCantCreateDealException;
-import ua.adeptius.amocrm.exceptions.AmoUnknownException;
-import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
+import ua.adeptius.amocrm.exceptions.*;
 import ua.adeptius.amocrm.model.TimePairCookie;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
+import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.IdPairTime;
 
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
+
+@SuppressWarnings("Duplicates")
 public class AmoDAO {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoDAO.class.getSimpleName());
@@ -39,31 +39,39 @@ public class AmoDAO {
         cookiesRepo.put(login, new TimePairCookie(new GregorianCalendar().getTimeInMillis(), cookie));
     }
 
-    private static String getCookie(String domain, String userLogin, String userApiKey) throws Exception {
-        TimePairCookie timePairCookie = cookiesRepo.get(userLogin);
+    private static String getCookie(AmoAccount amoAccount) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        TimePairCookie timePairCookie = cookiesRepo.get(amoLogin);
+        String login = amoAccount.getUser().getLogin();
+
         if (timePairCookie == null) {
-            LOGGER.trace("{}: Cookie пользователя отсутствуют в кеше", userLogin);
-            String cookie = auth(domain, userLogin, userApiKey);
-            storeCookie(userLogin, cookie);
+            LOGGER.trace("{}: Cookie amo пользователя {} отсутствуют в кеше", login, amoLogin);
+            String cookie = auth(amoAccount);
+            storeCookie(amoLogin, cookie);
             return cookie;
         } else {
-            LOGGER.trace("{}: Cookie пользователя имеются в кеше", userLogin);
+            LOGGER.trace("{}: Cookie amo пользователя {} имеются в кеше", login, amoLogin);
             return timePairCookie.getCoockie();
         }
     }
 
 
-    public static String auth(String domain, String userLogin, String userApiKey) throws Exception {
-        LOGGER.trace("{}: Запрос cookie в API", userLogin);
+    public static String auth(AmoAccount amoAccount) throws Exception {
+        String domain = amoAccount.getDomain();
+        String amoLogin = amoAccount.getAmoLogin();
+        String userApiKey = amoAccount.getApiKey();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.trace("{}: Запрос amo cookie для {}", login, amoLogin);
+
         HttpResponse<String> uniRest = Unirest
                 .post("https://" + domain + ".amocrm.ru/private/api/auth.php?type=json")
-                .field("USER_LOGIN", userLogin)
+                .field("USER_LOGIN", amoLogin)
                 .field("USER_HASH", userApiKey)
                 .asString();
 
         String body = uniRest.getBody();
         body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Ответ AMO: {}", userLogin, body);
+        LOGGER.trace("{}: Ответ AMO для {}: {}", login, amoLogin, body);
         JSONObject responseJobject = getJResponseIfAllGood(uniRest.getBody());
         Headers headers = uniRest.getHeaders();
         List<String> list = headers.get("Set-Cookie");
@@ -71,194 +79,128 @@ public class AmoDAO {
         for (String s : list) {
             cookies.append(s).append("; ");
         }
-        LOGGER.trace("{}: Cookie для пользователя: {}", userLogin, cookies);
+        LOGGER.trace("{}: Cookie amo для пользователя {}: {}", login, amoLogin, cookies);
         return cookies.toString();
     }
 
 
-    public static void checkAllAccess(String domain, String userLogin, String userApiKey) throws Exception {
-//        Проверяем права на создание сделок
-        LOGGER.debug("{}: Тест на возможность добавления новой сделки", userLogin);
-        String cookie = getCookie(domain, userLogin, userApiKey);
+    public static void checkAllAccess(AmoAccount amoAccount) throws Exception {
+        String domain = amoAccount.getDomain();
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        String cookie = auth(amoAccount);
+        LOGGER.debug("{}: Тест на возможность добавления новой сделки в amo для {}", login, amoLogin);
+
         String request = "{\"request\": {\"leads\": {\"add\": [{}]}}}";
         HttpResponse<String> uniresp = Unirest
                 .post("https://" + domain + ".amocrm.ru/private/api/v2/json/leads/set")
                 .header("Cookie", cookie)
                 .body(request)
                 .asString();
+
         String body = uniresp.getBody();
         body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ тестового добавления новой сделки: {}", userLogin, body);
+        LOGGER.trace("{}: Получен ответ тестового добавления новой сделки amo для {}: {}", login, amoLogin, body);
         JSONObject jResponse = getJResponseIfAllGood(body);
         int dealId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
         try {
-            AmoDAO.removeDeal(domain, userLogin, userApiKey, dealId);
-        } catch (Exception e) {
+            AmoDAO.removeDeal(amoAccount, dealId);
+        } catch (Exception ignored) {
 //             если нет прав на удаление сделки - ну и ладно: сами потом удалят.
         }
     }
 
 
-    public static JsonAmoAccount getAmoAccount(String amocrmProject, String userLogin, String userApiKey) throws Exception {
-        LOGGER.debug("{}: Запрос информации об аккаунте", userLogin);
-        String cookie = getCookie(amocrmProject, userLogin, userApiKey);
-        HttpResponse<String> uniresp = Unirest
-                .get("https://" + amocrmProject + ".amocrm.ru/private/api/v2/json/accounts/current")
-                .header("Cookie", cookie)
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получена информация об аккаунте: {}", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
+    public static JsonAmoAccount getAmoAccount(AmoAccount amoAccount) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: Запрос информации об аккаунте {}", login, amoLogin);
+        JSONObject jResponse = getJResponse(true, amoAccount, "api/v2/json/accounts/current", null, null);
         String account = jResponse.getJSONObject("account").toString();
         return new JsonAmoAccount(account);
     }
 
     @Nullable
-    public static JsonAmoContact getContactIdByPhoneNumber(String amocrmProject, String userLogin, String userApiKey, String phoneNumber) throws Exception {
-        LOGGER.debug("{}: Запрос id контакта {}", userLogin, phoneNumber);
-        String cookie = getCookie(amocrmProject, userLogin, userApiKey);
-        HttpResponse<String> uniresp = Unirest
-                .get("https://" + amocrmProject + ".amocrm.ru/private/api/v2/json/contacts/list?query=" + phoneNumber)
-                .header("Cookie", cookie)
-                .asString();
-        String body = uniresp.getBody();
-        if (uniresp.getStatus() == 204) { // 204 No Content
-            LOGGER.trace("{}: Контакт {} не найден", userLogin, phoneNumber);
+    public static JsonAmoContact getContactIdByPhoneNumber(AmoAccount amoAccount, String phoneNumber) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: Запрос id контакта {} для {}", login, phoneNumber, amoLogin);
+        String url = "api/v2/json/contacts/list?query=" + phoneNumber;
+        JSONObject jResponse = getJResponse(true, amoAccount, url, null, null);
+        if (jResponse.toString().equals("{\"no content\":\"true\"}")){
             return null;
         }
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("Получен id контакта {} для аккаунта {}: ", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
         String firstContactInArray = jResponse.getJSONArray("contacts").getJSONObject(0).toString();
         return new JsonAmoContact(firstContactInArray);
     }
 
 
-    public static void updateContact(String domain, String userLogin, String userApiKey, JsonAmoContact jsonAmoContact) throws Exception {
+    public static void updateContact(AmoAccount amoAccount, JsonAmoContact jsonAmoContact) throws Exception {
+        String userLogin = amoAccount.getAmoLogin();
         LOGGER.debug("{}: Запрос обновления контакта {}", userLogin, jsonAmoContact.getName());
-        String cookie = getCookie(domain, userLogin, userApiKey);
-//        String contactJson = new ObjectMapper().writeValueAsString(contact);
         String request = "{\"request\":{\"contacts\":{\"update\":[" + jsonAmoContact + "]}}}";
-        LOGGER.trace("Отправка: "+request);
-        HttpResponse<String> uniresp = Unirest
-                .post("https://" + domain + ".amocrm.ru/private/api/v2/json/contacts/set")
-                .header("Cookie", cookie)
-                .body(request)
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ обновления контакта {}: ", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
+        getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
     }
 
-    public static void addNewContactNewMethod(String domain, String userLogin, String userApiKey, String contactNumber,
-                                              int dealId, String phoneId, String phoneEnumId, String tags, String contactName) throws Exception {
-        LOGGER.debug("{}: Запрос добавления контакта {}", userLogin, contactNumber);
-        String contact = "{\"tags\":\"" + tags + "\",\"name\":\"" + contactName + "\",\"custom_fields\": [{\"code\":\"PHONE\",\"values\":[{\"value\":\"" + contactNumber + "\",\"enum\":\"" + phoneEnumId + "\"}],\"name\":\"Телефон\",\"id\":\"" + phoneId + "\"}],\"linked_leads_id\":[\"" + dealId + "\"]}";
-        addNewContact(domain, userLogin, userApiKey, contact);
-    }
+    public static void addNewContactNewMethod(AmoAccount amoAccount, String contactNumber, int dealId,
+                                              String tags, String contactName) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        String phoneEnumId = amoAccount.getPhoneEnumId();
+        String phoneId = amoAccount.getPhoneId();
+        LOGGER.debug("{}: Запрос добавления контакта {} в аккаунт {}", login, contactNumber, amoLogin);
 
-    public static int addNewContact(String domain, String userLogin, String userApiKey, String contact) throws Exception {
-        String cookie = getCookie(domain, userLogin, userApiKey);
+        if (StringUtils.isAnyBlank(phoneEnumId, phoneId)) {
+            LOGGER.error("{}: Отсутствует phoneEnumId и phoneId. AmoAccount {}", login, amoAccount);
+            throw new AmoException("Отсутствует phoneEnumId и phoneId. Не могу создать контакт.");
+        }
+
+        String contact = "{\"tags\":\"" + tags + "\",\"name\":\"" + contactName
+                + "\",\"custom_fields\": [{\"code\":\"PHONE\",\"values\":[{\"value\":\""
+                + contactNumber + "\",\"enum\":\"" + phoneEnumId + "\"}],\"name\":\"Телефон\",\"id\":\""
+                + phoneId + "\"}],\"linked_leads_id\":[\"" + dealId + "\"]}";
         String request = "{\"request\":{\"contacts\":{\"add\":[" + contact + "]}}}";
-        LOGGER.trace("{}: Отправляю: {}", userLogin, request);
-        HttpResponse<String> uniresp = Unirest
-                .post("https://" + domain + ".amocrm.ru/private/api/v2/json/contacts/set")
-                .header("Cookie", cookie)
-                .body(request)
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ добавления контакта {}: ", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
-        int responseId = jResponse.getJSONObject("contacts").getJSONArray("add").getJSONObject(0).getInt("id");
-        return responseId;
-    }
 
+        getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
+    }
 
     /**
      * Регистрация в AmoCRM стандартной сделки нового звонка. Возвращает айдишник сделки, который сразу же
-     * можно привязать к контакту.
+     * можно привязать к контакту. Чуствителен ко времени по этому для дальнейших запросов мы берём его
+     * и отталкиваемся уже от него, с каждым запросом добавляя одну секунду.
      */
-//    public static int addNewDeal(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception {
-//        String body = getBodyOfAddingDeal(domain, userLogin, userApiKey, tags, leadId);
-//        body = StringEscapeUtils.unescapeJava(body);
-//        LOGGER.trace("{}: Получен ответ добавления новой сделки: {}", userLogin, body);
-//        JSONObject jResponse = getJResponseIfAllGood(body);
-//        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
-//        return responseId;
-//    }
+    public static IdPairTime addNewDealAndGetBackIdAndTime(AmoAccount amoAccount, String tags, int leadId) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: Запрос добавления новой сделки в аккаунт {}", login, amoLogin);
 
-    public static IdPairTime addNewDealAndGetBackIdAndTime(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception {
-        long t0 = System.currentTimeMillis();
-        String body = getBodyOfAddingDeal(domain, userLogin, userApiKey, tags, leadId);
-        long millis = System.currentTimeMillis() - t0;
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ добавления новой сделки: {}", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
-        int time = jResponse.getInt("server_time");
-        int currentTime = (int) (new Date().getTime() / 1000);
-        System.out.println("Время сервера: "+time);
-        System.out.println("Время локальн: "+currentTime);
-        System.out.println("Разница во времени: " + (currentTime - time));
-        System.out.println("Время на запрос, милисекунд: " + millis);
-        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
-        return new IdPairTime(responseId, time);
-    }
-
-    private static String getBodyOfAddingDeal(String domain, String userLogin, String userApiKey, String tags, int leadId) throws Exception{
-        LOGGER.debug("{}: Запрос добавления новой сделки", userLogin);
-        String cookie = getCookie(domain, userLogin, userApiKey);
         String request = "{\"request\": {\"leads\": {\"add\": [{\"name\": \"Новая сделка\",\"tags\": \"" + tags + "\""
                 + (leadId > 0 ? ",\"status_id\":" + leadId + "" : "") // добавляем этап сделки, если указан конкретный
                 + "}]}}}";
-        System.out.println("Отправляю: " + request);
-        HttpResponse<String> uniresp = Unirest
-                .post("https://" + domain + ".amocrm.ru/private/api/v2/json/leads/set")
-                .header("Cookie", cookie)
-                .body(request)
-                .asString();
-        return uniresp.getBody();
+        JSONObject jResponse = getJResponse(false, amoAccount, "api/v2/json/leads/set", request, null);
+        int serverTime = jResponse.getInt("server_time");
+        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
+        return new IdPairTime(responseId, serverTime);
     }
 
-
-
-        public static void setTagsToDeal(String domain, String userLogin, String userApiKey, @NotNull String tags, int dealid, int dealTime) throws Exception {
-        LOGGER.debug("{}: Запрос изменения тэгов для сделки {}: {}", userLogin, dealid, tags);
-        String cookie = getCookie(domain, userLogin, userApiKey);
-//        long time = new Date().getTime() / 1000;
-        String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":"+dealid+",\"tags\": \"" + tags + "\",\"last_modified\":"+dealTime+"}]}}}";
-        System.out.println("Отправляю: " + request);
-        HttpResponse<String> uniresp = Unirest
-                .post("https://" + domain + ".amocrm.ru/private/api/v2/json/leads/set")
-                .header("Cookie", cookie)
-                .body(request)
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ добавления тагов в сделку: {}", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
+    public static void setTagsToDeal(AmoAccount amoAccount, @Nonnull String tags, int dealid, int dealTime) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: запрос изменения тэгов сделки {} для {}: {}", login, dealid, amoLogin, tags);
+        String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":" + dealid + ",\"tags\": \"" + tags + "\",\"last_modified\":" + dealTime + "}]}}}";
+        getJResponse(false, amoAccount, "api/v2/json/leads/set", request, null);
     }
 
-    public static void removeDeal(String domain, String userLogin, String userApiKey, int dealId) throws Exception {
-        LOGGER.debug("{}: Запрос удаления сделки {}", userLogin, dealId);
-        String cookie = getCookie(domain, userLogin, userApiKey);
-        HttpResponse<String> uniresp = Unirest
-                .post("https://" + domain + ".amocrm.ru/private/deals/delete.php")
-                .header("Cookie", cookie)
-                .field("ID", dealId)
-                .field("ACTION", "DELETE")
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
-        LOGGER.trace("{}: Получен ответ удаления сделки: {}", userLogin, body);
+    public static void removeDeal(AmoAccount amoAccount, int dealId) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: Запрос удаления сделки {} в аккаунте {}", login, dealId, amoLogin);
+        getJResponse(false, amoAccount, "deals/delete.php", null,"ID", "" + dealId, "ACTION", "DELETE");
     }
 
     @Nullable
-    public static JsonAmoDeal getContactsLatestActiveDial(String domain, String userLogin, String userApiKey, @NotNull JsonAmoContact contact) throws Exception {
-        List<JsonAmoDeal> allDeals = getAllContactDeals(domain, userLogin, userApiKey, contact);
+    public static JsonAmoDeal getContactsLatestActiveDial(AmoAccount amoAccount, @Nonnull JsonAmoContact contact) throws Exception {
+        List<JsonAmoDeal> allDeals = getAllContactDeals(amoAccount, contact);
         List<JsonAmoDeal> activeDials = new ArrayList<>();
         for (JsonAmoDeal deal : allDeals) {
             if (deal.isOpen()) {
@@ -287,31 +229,26 @@ public class AmoDAO {
         return latestDeal;
     }
 
-    public static List<JsonAmoDeal> getAllContactDeals(String domain, String userLogin, String userApiKey, JsonAmoContact contact) throws Exception {
-        return getDealById(domain, userLogin, userApiKey, contact.getLinked_leads_id());
+    //TODO что это такое?
+    public static List<JsonAmoDeal> getAllContactDeals(AmoAccount amoAccount, JsonAmoContact contact) throws Exception {
+        return getDealById(amoAccount, contact.getLinked_leads_id());
     }
 
     /**
      * Возвращает список сделок по id. String id - перечисление айдишников через запятую
      */
     @Nullable
-    public static List<JsonAmoDeal> getDealById(String domain, String userLogin, String userApiKey, List<String> id) throws Exception {
-        LOGGER.debug("{}: Запрос сделки по id: {}", userLogin, id);
-        String cookie = getCookie(domain, userLogin, userApiKey);
+    public static List<JsonAmoDeal> getDealById(AmoAccount amoAccount, List<String> id) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: Запрос сделки в amo {} по id: {}", login, amoLogin, id);
 
-        String url = "https://" + domain + ".amocrm.ru/private/api/v2/json/leads/list?id[]=" + id.get(0);
+        String url = "api/v2/json/leads/list?id[]=" + id.get(0);
         for (int i = 1; i < id.size(); i++) {
-            url += "&id[]="+id.get(i);
+            url += "&id[]=" + id.get(i);
         }
 
-        HttpResponse<String> uniresp = Unirest
-                .get(url)
-                .header("Cookie", cookie)
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ поиска сделки по id: {}", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
+        JSONObject jResponse = getJResponse(true, amoAccount, url, null, null);
         JSONArray array = jResponse.getJSONArray("leads");
         int serverTimeWhenResponse = jResponse.getInt("server_time");
         if (array.length() == 0) {
@@ -319,36 +256,70 @@ public class AmoDAO {
         }
         List<JsonAmoDeal> deals = new ArrayList<>();
         for (Object o : array) {
-            deals.add(new JsonAmoDeal(o.toString(),serverTimeWhenResponse));
+            deals.add(new JsonAmoDeal(o.toString(), serverTimeWhenResponse));
         }
         return deals;
     }
 
-    public static void addNewComent(String domain, String userLogin, String userApiKey, int leadId, String coment, int time) throws Exception {
-        LOGGER.debug("{}: Запрос добавления нового коментария: {}", userLogin, coment);
-        String cookie = getCookie(domain, userLogin, userApiKey);
-
-//        https://developers.amocrm.ru/rest_api/notes_list.php
-//        element_type	Тип привязанного элемента: 1 - контакт, 2 - сделка, 3 - компания, 4 - задача (результат задачи)
-//        element_id	Уникальный идентификатор привязанной сделки/контакта
-//        note_type	    Тип примечания https://developers.amocrm.ru/rest_api/notes_type.php#notetypes
-//        text	        Текстовое обозначение задачи (выводит разную информацию, в зависимости от типов) https://developers.amocrm.ru/rest_api/notes_type.php#notetext
+    public static void addNewComent(AmoAccount amoAccount, int leadId, String coment, int time) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.debug("{}: Запрос добавления нового коментария в аккаунт {} сделка {}: {}", login, amoLogin, leadId, coment);
 
         String stringedTime = "";
-        if (time > 0){ // Если какое-то время указано
-            stringedTime = ",\"last_modified\":"+time;
+        if (time > 0) { // Если какое-то время указано
+            stringedTime = ",\"last_modified\":" + time;
         }
-        String request = "{\"request\":{\"notes\":{\"add\":[{\"element_id\":" + leadId + ",\"element_type\":\"2\",\"note_type\":4 ,\"text\":\"" + coment + "\""+stringedTime+"}]}}}";
-        LOGGER.trace("{}: Отправляю: {}", userLogin, request);
-        HttpResponse<String> uniresp = Unirest
-                .post("https://" + domain + ".amocrm.ru/private/api/v2/json/notes/set")
-                .header("Cookie", cookie)
-                .body(request)
-                .asString();
-        String body = uniresp.getBody();
-        body = StringEscapeUtils.unescapeJava(body);
-        LOGGER.trace("{}: Получен ответ добавления нового коментария: {}", userLogin, body);
-        JSONObject jResponse = getJResponseIfAllGood(body);
+        String request = "{\"request\":{\"notes\":{\"add\":[{\"element_id\":" + leadId
+                + ",\"element_type\":\"2\",\"note_type\":4 ,\"text\":\"" + coment + "\"" + stringedTime + "}]}}}";
+        getJResponse(false, amoAccount, "api/v2/json/notes/set", request, null);
+    }
+
+    private static JSONObject getJResponse(boolean isGET, @Nonnull AmoAccount amoAccount, @Nonnull String relativeUrl,
+                                           @Nullable String body, String... fields) throws Exception {
+
+        String domain = amoAccount.getDomain();
+        String url = "https://" + domain + ".amocrm.ru/private/" + relativeUrl;
+        String cookie = getCookie(amoAccount);
+
+        String login = amoAccount.getUser().getLogin();
+        LOGGER.trace("{}: Отправка URL={} метод={} amoLogin={} данные={}", login, url,(isGET? "GET":"POST"), amoAccount.getAmoLogin() ,body);
+
+        if (isGET && body != null) {
+            throw new Exception("GET не может иметь Body");
+        }
+
+        HttpResponse<String> stringHttpResponse;
+        if (isGET) {
+            GetRequest getRequest = Unirest.get(url);
+            getRequest.header("Cookie", cookie);
+            stringHttpResponse = getRequest.asString();
+
+        } else {
+            HttpRequestWithBody post = Unirest.post(url);
+            post.header("Cookie", cookie);
+            post.body(body);
+            if (fields != null) {
+                for (int i = 0; i < fields.length; i+=2) {
+                    post.field(fields[i], fields[i+1]);
+                }
+            }
+            stringHttpResponse = post.asString();
+        }
+
+        int status = stringHttpResponse.getStatus();
+
+
+        String responseBody = stringHttpResponse.getBody();
+        responseBody = StringEscapeUtils.unescapeJava(responseBody);
+
+        LOGGER.trace("{}: Код {} получен ответ: {}", login, status, responseBody);
+
+        if (status == 204) { // 204 No Content
+            return new JSONObject("{\"no content\":\"true\"}");
+        }
+
+        return getJResponseIfAllGood(responseBody);
     }
 
     private static JSONObject getJResponseIfAllGood(String response) throws Exception {

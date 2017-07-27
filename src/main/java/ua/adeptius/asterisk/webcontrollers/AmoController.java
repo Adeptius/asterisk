@@ -110,12 +110,8 @@ public class AmoController {
             return new Message(Message.Status.Error, "User have not connected amo account").toString();
         }
 
-        String domain = user.getAmoAccount().getDomain();
-        String userLogin = user.getAmoAccount().getAmoLogin();
-        String userApiKey = user.getAmoAccount().getApiKey();
-
         try {
-            AmoDAO.checkAllAccess(domain, userLogin, userApiKey);
+            AmoDAO.checkAllAccess(user.getAmoAccount());
             return new Message(Message.Status.Success, "Check complete. It works!").toString();
         } catch (AmoAccountNotFoundException e) {
             return new Message(Message.Status.Error, "Amo account not found").toString();

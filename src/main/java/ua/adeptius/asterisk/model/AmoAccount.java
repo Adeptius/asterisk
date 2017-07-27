@@ -9,6 +9,15 @@ import javax.persistence.*;
 @Table(name = "amo_accounts", schema = "calltrackdb")
 public class AmoAccount {
 
+    public AmoAccount() {
+    }
+
+    public AmoAccount(String amoLogin, String apiKey, String domain) {
+        this.amoLogin = amoLogin;
+        this.apiKey = apiKey;
+        this.domain = domain;
+    }
+
     @Id
     @Column(name = "nextelLogin")
     private String nextelLogin;

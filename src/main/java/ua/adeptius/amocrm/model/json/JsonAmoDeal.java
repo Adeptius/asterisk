@@ -1,9 +1,10 @@
 package ua.adeptius.amocrm.model.json;
 
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Date;
+import java.util.*;
 
 public class JsonAmoDeal {
 
@@ -15,6 +16,7 @@ public class JsonAmoDeal {
     private String statusId;
     private int dateCreate;
     int serverResponseTime;
+    private Set<String> tags = new HashSet<>();
 
     public JsonAmoDeal(String json, int serverTimeWhenResponse) {
 //        Server Time нужен только для синхронизации времени с серваком.
@@ -30,6 +32,12 @@ public class JsonAmoDeal {
         id = jDeal.getString("id");
         statusId = jDeal.getString("status_id");
         dateCreate = jDeal.getInt("date_create");
+
+        JSONArray jTags = jDeal.getJSONArray("tags");
+        for (int i = 0; i < jTags.length(); i++) {
+            JSONObject jtag = jTags.getJSONObject(i);
+            tags.add(jtag.getString("name"));
+        }
     }
 
     public boolean isOpen(){
@@ -70,6 +78,15 @@ public class JsonAmoDeal {
 
     public void setServerResponseTime(int serverResponseTime) {
         this.serverResponseTime = serverResponseTime;
+    }
+
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override

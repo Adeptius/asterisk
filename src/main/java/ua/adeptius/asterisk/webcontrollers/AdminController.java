@@ -2,6 +2,8 @@ package ua.adeptius.asterisk.webcontrollers;
 
 
 import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,9 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.logging.LogCategory;
 import ua.adeptius.asterisk.utils.logging.MyLogger;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +32,22 @@ public class AdminController {
     private static Logger LOGGER =  LoggerFactory.getLogger(AdminController.class.getSimpleName());
 
 
+    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
+    @ResponseBody
+    public void getLogs(HttpServletRequest request) {
+
+        try {
+            String requestBody = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+            requestBody = StringEscapeUtils.unescapeJava(requestBody);
+            requestBody = URLDecoder.decode(requestBody);
+            System.out.println(requestBody);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
     @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
     public String getLogs(@RequestParam String adminPassword) {
@@ -35,6 +56,8 @@ public class AdminController {
         }
         return new Gson().toJson(MyLogger.logs);
     }
+
+
 
 
     @RequestMapping(value = "/getAllUsers", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")

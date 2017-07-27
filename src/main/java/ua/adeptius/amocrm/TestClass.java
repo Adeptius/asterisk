@@ -3,23 +3,21 @@ package ua.adeptius.amocrm;
 
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
+import ua.adeptius.asterisk.model.AmoAccount;
+import ua.adeptius.asterisk.model.User;
 
 public class TestClass {
 
     public static void main(String[] args) throws Exception  {
-        String userLogin = "adeptius@wid.ua";
-        String userApiKey = "a99ead2f473e150091360d25aecc2878";
-//        String userLogin = "omix@i.ua";
-//        String userApiKey = "a99ead2f473e150091360d25aecc2878";
+        User user = new User();
+        user.setLogin("e404");
+        AmoAccount amoAccount = new AmoAccount("adeptius@wid.ua", "a99ead2f473e150091360d25aecc2878", "adeptiustest2");
+        amoAccount.setUser(user);
 
-        String domain = "adeptiustest2";
-//        String domain = "wid";
-//        String domain = "adeptiustest";
+        JsonAmoContact contact = AmoDAO.getContactIdByPhoneNumber(amoAccount, "0934027182");
+//        System.out.println(contact);
 
-
-        JsonAmoContact contact = AmoDAO.getContactIdByPhoneNumber(domain, userLogin, userApiKey, "0934027182");
-        System.out.println(contact);
-        JsonAmoDeal latestDeal = AmoDAO.getContactsLatestActiveDial(domain, userLogin, userApiKey, contact);
+        JsonAmoDeal latestDeal = AmoDAO.getContactsLatestActiveDial(amoAccount, contact);
         System.out.println(latestDeal);
 
     }
