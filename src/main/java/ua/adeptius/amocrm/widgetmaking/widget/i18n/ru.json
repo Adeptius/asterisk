@@ -1,0 +1,12 @@
+{
+    "widget":{
+        "name":"Nextel",
+        "short_description":"Очень крутая телефония нового поколения",
+        "description":"Для подключения виджета укажите в личном кабинете Nextel Ваш логин: #LOGIN# Ваш ключ: #API_HASH# и домен: #SUBDOMAIN#"
+    },
+    "settings":{
+        "login":"Логин",
+        "api_key":"ключ API",
+        "account":"Аккаунт"
+    }
+}
