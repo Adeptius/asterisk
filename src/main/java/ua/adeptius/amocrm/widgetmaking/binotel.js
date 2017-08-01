@@ -8,53 +8,53 @@ define(['jquery',], function($) {
 
         this.callbacks = {
             init: function() {
-                $.getScript('//s3-eu-west-1.amazonaws.com/jsforamo/ws.client.js', function() {
-                    /**
-                     * Initialize WS
-                     */
-                    ws = createWs({
-                        url: 'wss://ws.binotel.com:9002'
-                    });
+                // $.getScript('//s3-eu-west-1.amazonaws.com/jsforamo/ws.client.js', function() {
+                //     /**
+                //      * Initialize WS
+                //      */
+                //     ws = createWs({
+                //         url: 'wss://ws.binotel.com:9002'
+                //     });
 
 
-                    $.ajax({
-                        type: 'POST',
-                        url: 'https://my.binotel.ua/?module=ajax&action=getAccountData',
-                        dataType: 'jsonp'
-                    }).done(function(resp) {
-                        /* self.get_settings().login */
-                        if (resp.email && resp.sessionMask) {
-                            ws.initMessage({
-                                task: 'authLikeEmployee',
-                                username: resp.email,
-                                sessionMask: resp.sessionMask
-                            });
-                            ws.connect();
-                        } else {
-                            /*
-                            AMOCRM.notifications.show_message_error({
-                                header: 'Виджет Binotel не работает!',
-                                text: 'Пройдите авторизацию в MyBinotel.'
-                            });
-                            */
-                        }
-                    });
+                    // $.ajax({
+                    //     type: 'POST',
+                    //     url: 'https://my.binotel.ua/?module=ajax&action=getAccountData',
+                    //     dataType: 'jsonp'
+                    // }).done(function(resp) {
+                    //     /* self.get_settings().login */
+                    //     if (resp.email && resp.sessionMask) {
+                    //         ws.initMessage({
+                    //             task: 'authLikeEmployee',
+                    //             username: resp.email,
+                    //             sessionMask: resp.sessionMask
+                    //         });
+                    //         ws.connect();
+                    //     } else {
+                    //         /*
+                    //         AMOCRM.notifications.show_message_error({
+                    //             header: 'Виджет Binotel не работает!',
+                    //             text: 'Пройдите авторизацию в MyBinotel.'
+                    //         });
+                    //         */
+                    //     }
+                    // });
 
 
-                    ws.on('connect', function() {
-                        showDisconnectedError = true;
-                    });
+                    // ws.on('connect', function() {
+                    //     showDisconnectedError = true;
+                    // });
 
 
-                    ws.on('disconnect', function() {
-                        if (showDisconnectedError) {
-                            AMOCRM.notifications.show_message_error({
-                                header: 'Виджет Binotel не работает!',
-                                text: 'Обратитесь в техподдержку Binotel.'
-                            });
-                            showDisconnectedError = false;
-                        }
-                    });
+                    // ws.on('disconnect', function() {
+                    //     if (showDisconnectedError) {
+                    //         AMOCRM.notifications.show_message_error({
+                    //             header: 'Виджет Binotel не работает!',
+                    //             text: 'Обратитесь в техподдержку Binotel.'
+                    //         });
+                    //         showDisconnectedError = false;
+                    //     }
+                    // });
 
                     ws.on('message', function(msg) {
                         if (msg === 'Bad username or password!') {
@@ -75,14 +75,14 @@ define(['jquery',], function($) {
                         }
 
                     });
-                });
+                // });
 
                 return true;
             },
 
-            render: function() {
-                return true;
-            },
+            // render: function() {
+            //     return true;
+            // },
 
             bind_actions: function() {
                 AMOCRM.ifvisible.on('blur', function(){
@@ -97,13 +97,13 @@ define(['jquery',], function($) {
                 return true;
             },
 
-            settings: function() {
+            // settings: function() {
+            //
+            // },
 
-            },
-
-            onSave: function(fields) {
-                return true;
-            }
+            // onSave: function(fields) {
+            //     return true;
+            // }
         };
 
 
@@ -115,23 +115,21 @@ define(['jquery',], function($) {
                 return;
             }
 
-            /**
-             * Mapping in amoCRM click to call function
-             */
-            self.add_action('phone', function(data) {
-                self.helpers.clickToCall(data.value);
-            });
+
+            // self.add_action('phone', function(data) {
+            //     self.helpers.clickToCall(data.value);
+            // });
 
             widgetWasInitialized = true;
         }
 
 
-        self.helpers.clickToCall = function(phoneNumber) {
-            ws.send({
-                task: 'click2call',
-                phoneNumber: phoneNumber
-            });
-        }
+        // self.helpers.clickToCall = function(phoneNumber) {
+        //     ws.send({
+        //         task: 'click2call',
+        //         phoneNumber: phoneNumber
+        //     });
+        // }
 
 
         self.helpers.callStartHandler = function(callData) {

@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.monitor;
 
 import org.asteriskjava.manager.action.ManagerAction;
+import org.asteriskjava.manager.action.OriginateAction;
 import org.asteriskjava.manager.event.*;
 import org.asteriskjava.manager.response.ManagerResponse;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
+import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,8 +43,16 @@ public class AsteriskMonitor implements ManagerEventListener {
         managerConnection.sendAction(new StatusAction());
     }
 
+
+
     public ManagerResponse sendAction(ManagerAction action, long timeout) throws IOException, TimeoutException {
         return managerConnection.sendAction(action, timeout);
+    }
+
+
+    public ManagerResponse sendCallToOutsideAction(String from, String to) throws IOException, TimeoutException {
+        OriginateAction callToOutside = AsteriskActionsGenerator.callToOutside(from, to);
+        return managerConnection.sendAction(callToOutside, 10000);
     }
 
     public void onManagerEvent(ManagerEvent event) {

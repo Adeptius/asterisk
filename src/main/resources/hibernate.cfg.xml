@@ -31,6 +31,7 @@
     <mapping class="ua.adeptius.asterisk.model.Scenario"/>
     <mapping class="ua.adeptius.asterisk.model.InnerPhone"/>
     <mapping class="ua.adeptius.asterisk.model.OuterPhone"/>
+    <mapping class="ua.adeptius.asterisk.model.AmoPhoneBinding"/>
 
     <!-- DB schema will be updated if needed -->
     <!-- <property name="hbm2ddl.auto">update</property> -->

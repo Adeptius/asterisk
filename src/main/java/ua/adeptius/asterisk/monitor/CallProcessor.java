@@ -100,33 +100,27 @@ public class CallProcessor {
                 VarSetEvent varSetEvent = (VarSetEvent) event;
                 if (varSetEvent.getVariable().equals("DIALSTATUS")) {
                     LOGGER.trace("ID {} VarSetEvent: {}", id, varSetEvent);
-
                     String dialStatus = varSetEvent.getValue();
-                    if ("ANSWER".equals(dialStatus)) { // Кто-то взял трубку
-                        // диалстатус бывает второй раз по завершению звонка, а он нам не нужен.
-//                        if (newCall.getAnsweredDate() == null){
-//                        } // ввёл эту защиту в сеттере объекта Call
-//                        и этот же call возвращает true если это первый диал статус
-//                        Поэтому если тру - отправляем звонок в Амо.
-                        boolean firstDialStatus = newCall.setAnsweredDate(event.getDateReceived());
-                        newCall.setCallState(ANSWER);
-//                        if (firstDialStatus){
-//                            MainController.amoCallSender.send(newCall);
-//                        } // Дублируем эту отправку в конец метода на случай если состояние звонка будет не ANSWER
-
-                    } else {
-                        if ("BUSY".equals(dialStatus)) {
-                            newCall.setCallState(BUSY);
-                        } else if ("NOANSWER".equals(dialStatus) || "CANCEL".equals(dialStatus)) {
-                            //CANCEL - это если звонить на внешний с редиректом на сип и сип не взял трубку за 90 сек
-                            newCall.setCallState(NOANSWER);
-                        } else if ("CHANUNAVAIL".equals(dialStatus)) {
-                            //вызываемый номер был недоступен
-                            newCall.setCallState(CHANUNAVAIL);
-                        } else {
-                            LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);
-                        }
+                    if (newCall.isStateWasAlreadySetted()){
+                        LOGGER.debug("Состояние звонка не меняется. Это дубль: {}", dialStatus);
+                        return;
                     }
+
+                    if ("ANSWER".equals(dialStatus)) { // Кто-то взял трубку
+                        newCall.setAnsweredDate(event.getDateReceived());
+                        newCall.setCallState(ANSWER);
+                    } else if ("BUSY".equals(dialStatus)) {
+                        newCall.setCallState(BUSY);
+                    } else if ("NOANSWER".equals(dialStatus) || "CANCEL".equals(dialStatus)) {
+                        //CANCEL - это если звонить на внешний с редиректом на сип и сип не взял трубку за 90 сек
+                        newCall.setCallState(NOANSWER);
+                    } else if ("CHANUNAVAIL".equals(dialStatus)) {
+                        //вызываемый номер был недоступен
+                        newCall.setCallState(CHANUNAVAIL);
+                    } else {
+                        LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);
+                    }
+
                     MainController.amoCallSender.send(newCall); // Обновляем статус
                     LOGGER.debug("Состояние звонка установлено на: {}", newCall.getCallState());
                 }
@@ -233,7 +227,7 @@ public class CallProcessor {
     }
 
 
-    private static void     processCall(NewCall call) {
+    private static void processCall(NewCall call) {
         if (call.getService() == NewCall.Service.TRACKING) {
             MainController.onNewSiteCall(call);
         } else if (call.getService() == NewCall.Service.TELEPHONY) {

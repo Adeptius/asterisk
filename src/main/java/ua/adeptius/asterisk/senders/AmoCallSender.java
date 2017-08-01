@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
+import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
+import ua.adeptius.amocrm.javax_web_socket.MessageEventType;
+import ua.adeptius.amocrm.javax_web_socket.WebSocket;
+import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
@@ -17,6 +21,10 @@ import ua.adeptius.asterisk.monitor.NewCall;
 
 
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.answer;
+import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.dial;
+import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
 
 @SuppressWarnings("Duplicates")
 public class AmoCallSender extends Thread {
@@ -50,7 +58,7 @@ public class AmoCallSender extends Thread {
         }
     }
 
-    // TODO повставлять идентификаторы пользователя
+    // TODO повставлять идентификаторы пользователя для понятности логов
     private void prepareCreateContactAndDeal(NewCall call) {
         if (call.getDirection() != NewCall.Direction.IN){
             return; // пока что занимаемся только входящими.
@@ -99,14 +107,25 @@ public class AmoCallSender extends Thread {
             }
         }
 
-        int startedLeadId = amoAccount.getLeadId(); // айдишник этапа сделки
+        int startedLeadId = amoAccount.getLeadId(); // айдишник этапа сделки TODO а это точно работает?
 
 //        Все данные готовы. Теперь отправляем инфу.
 
-
         if (call.getAmoDealId() == 0) {// только позвонили - это первый редирект. Создаём или привязываем сделку
             try {
-                sendFirstCall(amoAccount, call.getCalledFrom(), startedLeadId, user, call);
+                String calledFrom = call.getCalledFrom();
+                sendFirstCall(amoAccount, calledFrom, startedLeadId, user, call);
+                // Сделака создана или была и найдена. Теперь оповещаем пользователя о том, что ему звонят
+                String workersId = amoAccount.getWorkersId(call.getCalledTo());
+                if (workersId != null) {// мы знаем id работника.
+                    WsMessage message = new WsMessage(incomingCall);
+                    message.setFrom(calledFrom);
+                    message.setDealId(""+call.getAmoDealId());
+                    message.setCallId(call.getAsteriskId());
+                    message.setCallPhase(dial);
+                    WebSocket.sendMessage(workersId, message);// отправляем
+                }
+
             } catch (Exception e) {
                 LOGGER.error("Не удалось создать сделку и контакт " + user.getLogin(), e);
             }
@@ -114,7 +133,7 @@ public class AmoCallSender extends Thread {
         }
 
 
-        // если мы здесь - значит первый редирект уже был - просто обновляем таги.
+        // если мы здесь - значит первый редирект уже был. это следующий - просто обновляем таги.
         if (call.getCallState() == null) { // CallState null только если еще никто не ответил, а просто выполнился еще один редирект
             //  меняем тег на
             String tags = "Звонок -> " + call.getCalledTo();
@@ -145,12 +164,17 @@ public class AmoCallSender extends Thread {
 
         // если мы здесь - значит CallState не null - произошел либо ответ либо сбой. выясняем
         if (call.getCallState() == NewCall.CallState.ANSWER) { // на звонок ответили
-            String tags = "Разговор -> " + call.getCalledTo();
-            try {// TODO тут вытащить из call таги, которые были и добавить таг "Разговор"
-                AmoDAO.setTagsToDeal(amoAccount, tags, call.getAmoDealId(), call.getCalculatedModifiedTime());
-            }catch (Exception e){
-                e.printStackTrace();
+            String workersId = amoAccount.getWorkersId(call.getCalledTo());
+            if (workersId != null) {// мы знаем id работника.
+                WsMessage message = new WsMessage(incomingCall);
+                message.setFrom(call.getCalledFrom());
+                message.setDealId(""+call.getAmoDealId());
+                message.setCallId(call.getAsteriskId());
+                message.setCallPhase(answer);
+                WebSocket.sendMessage(workersId, message);// отправляем
             }
+
+
         } else { // на звонок не ответили. Просто пишем что был звонок
             String tags = "Пропущенный звонок";
             try {// TODO тут вытащить из call таги, которые были и добавить таг "Пропущенный звонок"
@@ -163,7 +187,6 @@ public class AmoCallSender extends Thread {
 
 
     private void sendFirstCall(AmoAccount amoAccount, String contactNumber, int startedLeadId, User user, NewCall call) throws Exception {
-        String tags = "Звонок -> " + call.getCalledTo();
         String contactName = "Уточнить имя";
 
         // Сначала проверяем есть ли уже такой контакт
@@ -173,7 +196,7 @@ public class AmoCallSender extends Thread {
             LOGGER.debug("Контакт AMO по телефону {} не найден. Создаём новый контакт и сделку.", contactNumber);
 
 //            int dealId = AmoDAO.addNewDeal(domain, userLogin, userApiKey, tags, startedLeadId);
-            IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, tags, startedLeadId);
+            IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", startedLeadId);
             call.setAmoDealId(idPairTime.getId()); // ПРИВЯЗКА
             call.setLastOperationTime(idPairTime.getTime());
 
@@ -193,7 +216,7 @@ public class AmoCallSender extends Thread {
                 //TODO тут можно вытащить таги, которые уже были и прикрепить к call
 
             } else { // если у клиента нет активной сделки - то создаём новую и в контакте её добавляем.
-                IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, tags, startedLeadId);
+                IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", startedLeadId);
                 call.setAmoDealId(idPairTime.getId());
                 call.setLastOperationTime(idPairTime.getTime());
                 jsonAmoContact.addLinked_leads_id("" + idPairTime.getId());

@@ -292,6 +292,7 @@ public class HibernateDao {
         for (String number : numbersToRelease) {
             InnerPhone phone = session.load(InnerPhone.class, number);
             session.delete(phone);
+            //TODO удалять здесь привязку сотрудника амо к этому номеру
         }
         session.getTransaction().commit();
         session.close();

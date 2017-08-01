@@ -30,7 +30,7 @@ public class WidgetUploader {
         }
     }
 
-    public static void afterCompressCompleted() throws Exception {
+    private static void afterCompressCompleted() throws Exception {
         String manifest = new String(Files.readAllBytes(Paths.get(SOURCE + "widget\\manifest.json")), "UTF-8");
         JSONObject jManifest = new JSONObject(manifest);
         JSONObject jWidget = jManifest.getJSONObject("widget");
@@ -39,7 +39,7 @@ public class WidgetUploader {
         send(widgetCode, secretKey);
     }
 
-    public static void send(String widgetCode, String secretKey) throws Exception{
+    private static void send(String widgetCode, String secretKey) throws Exception{
         HttpResponse<String> stringHttpResponse = Unirest.post("https://widgets.amocrm.ru/adeptiustest2/upload/")
                 .field("widget", new File(OUTPUT_ZIP_FILE))
                 .field("widget", widgetCode)

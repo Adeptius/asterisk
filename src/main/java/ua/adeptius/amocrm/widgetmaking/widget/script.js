@@ -3,64 +3,60 @@ define(['jquery'], function ($) {
         var self = this;
         system = self.system();
 
-
-
+        var URL = 'http://78.159.55.63:8080/tracking/';
+        var user = AMOCRM.constant("user");
+        var account = AMOCRM.constant("account");
+        var domain = account.subdomain;
+        var userId = user.id;
+        var userName = user.name;
+        var userLogin = user.login;
+        var wsUrl = 'wss://adeptius.pp.ua/tracking/ws/' + domain + '/' + userId;
 
         this.callbacks = {
-            render: function () {
+            render: function () {// Это не понадобится
                 console.log('render');
                 return true;
             },
             init: function () {
                 console.log('init');
 
-                self.add_action('phone', function(data) {
-                    self.helpers.clickToCall(data.value);
-                });
+                var ws;
+
+                function startWs() {
+                    ws = new WebSocket(wsUrl);
+                    ws.sendObject = function (obj) {
+                        this.send(JSON.stringify(obj))
+                    };
+                    ws.onopen = function () {
+                        console.log("Соединение открылось");
+                    };
+                    ws.onmessage = function (event) {
+                        var incomingMessage = JSON.parse(event.data);
+                        console.log("Пришло сообщение с содержанием:", incomingMessage);
+                        var eventType = incomingMessage.eventType;
+                        if (eventType === 'incomingCall') {
+                            incomingCall(incomingMessage)
+                        }
+
+
+                    };
+                    ws.onclose = function () {
+                        console.log("Соединение закрылось. Повтор через 5 секунд");
+                        setTimeout(function () {
+                            startWs()
+                        }, 5000);
+                    };
+                }
+
+                startWs();
+
 
                 self.add_action("phone", function (data) {
-                    console.log("data.value",data.value);
-                    console.log('phone pressed');
-                    console.log("this",this);
-                    console.log("self",self);
-                    console.log("system",system);
-
-
-                    // var cardInfo = this.get_ccard_info();
-                    // console.log("cardInfo",cardInfo);
-
-                    var c_data = self.list_selected().selected;
-                    console.log("c_data",c_data);
-
-                    AMOCRM.notifications.show_message_error({
-                        header: 'Виджет nextel работает',
-                        text: 'всё круто'
-                    });
-                    showDisconnectedError = false;
-
-
-                    var phones = $('.card-cf-table-main-entity .phone_wrapper input[type=text]:visible'),
-                        emails = $('.card-cf-table-main-entity .email_wrapper input[type=text]:visible'),
-                        name = $('.card-top-name input').val(),
-                        data = [],
-                        c_phones = [],
-                        c_emails = [];
-                    console.log(phones)
-                    data.name = name;
-                    for (var i = 0; i < phones.length; i++) {
-                        if ($(phones[i]).val().length > 0) {
-                            c_phones[i] = $(phones[i]).val();
-                        }
-                    }
-                    data['phones'] = c_phones;
-                    for (var i = 0; i < emails.length; i++) {
-                        if ($(emails[i]).val().length > 0) {
-                            c_emails[i] = $(emails[i]).val();
-                        }
-                    }
-                    data['emails'] = c_emails;
-                    console.log(data)
-
+                    var pressedPhone = data.value;
+                    ws.sendObject({
+                        eventType: 'click2call',
+                        callTo: pressedPhone
+                    })
 
 
                 });
@@ -70,42 +66,159 @@ define(['jquery'], function ($) {
                 console.log('bind_actions');
                 return true;
             },
-            settings: function () {
+            settings: function () {// Это не понадобится
                 return true;
             },
-            onSave: function () {
-                alert('Нажато сохранение в окне виджетов');
+            onSave: function () {// Это не понадобится
+                console.log('Нажато сохранение в окне виджетов');
                 return true;
             },
             destroy: function () {
 
             },
-            contacts: {
-                //select contacts in list and clicked on widget name
+            contacts: {//select contacts in list and clicked on widget name
                 selected: function () {
                     console.log('contacts');
                 }
             },
-            leads: {
-                //select leads in list and clicked on widget name
+            leads: {//select leads in list and clicked on widget name
                 selected: function () {
                     console.log('leads');
                 }
             },
-            tasks: {
-                //select taks in list and clicked on widget name
+            tasks: {//select taks in list and clicked on widget name
                 selected: function () {
                     console.log('tasks');
                 }
             }
         };
 
-        self.helpers.clickToCall = function(phoneNumber) {
-            console.log("CLICK TO CALL", phoneNumber);
+
+        var incomingCall = function (incomingMessage) {
+            var calledFrom = incomingMessage.from;
+            var createdDealId = incomingMessage.dealId;
+            var asteriskId = incomingMessage.callId;
+            var callPhase = incomingMessage.callPhase;
+
+            jQuery.get('//' + window.location.host + '/private/api/v2/json/contacts/list/?type=all&query=' + subject, function (res) {
+                var contactId, contactName, contactCompany, link_type;
+                if (res != undefined && res.response != undefined && res.response.contacts != undefined) {
+                    var contact = res.response.contacts[0];
+                    contactId = contact.id;
+                    contactName = contact.name;
+                    contactCompany = contact.company_name;
+                    if (contact.type == 'contact') {
+                        link_type = 'contacts';
+                    } else if (contact.type == 'company') {
+                        link_type = 'companies';
+                    }
+                }
+                jQuery.get('//' + window.location.host + '/private/api/v2/json/leads/list?id=' + createdDealId, function (res) {
+                    var dealName;
+                    if (res != undefined && res.response != undefined && res.response.leads != undefined) {
+                        var deal = res.response.leads[0];
+                        dealName = deal.name;
+                    }
+
+                    var notifierBody = '<p><a  href="/contacts/detail/'+contactId+'">'+contactName+'</a>';
+                    notifierBody += (contactCompany ? ', '+ contactCompany : '')+'</p>';
+                    notifierBody += '<p><a  href="/leads/detail/'+createdDealId+'">'+dealName+'</a></p>';
+
+                    var notification = $('#notification-popup-'+ asteriskId);
+                    if (notification.length) {
+                        notification.remove();
+                    }
+
+                    var header = '';
+                    if (callPhase === 'dial'){
+                        header = 'Входящий звонок'
+                    }else if (callPhase === 'answer'){
+                        header = 'Вы разговариваете с'
+                    }else if (callPhase === 'ended'){
+                        header = 'Закончен разговор с'
+                    }
+
+                    AMOCRM.notifications.show_message({
+                        type: 'call',
+                        id: asteriskId,
+                        header: header,
+                        text: notifierBody
+                    });
+                });
+            });
+
+
+            // searchContact(calledFrom, createdDealId, function (contactId, contactName, contactCompany, link_type, dealName) {
+            //
+            //     var notifierBody = '<p><a  href="/contacts/detail/'+contactId+'">'+contactName+'</a>';
+            //     notifierBody += (contactCompany ? ', '+ contactCompany : '')+'</p>';
+            //     notifierBody += '<p><a  href="/leads/detail/'+createdDealId+'">'+dealName+'</a></p>';
+            //
+            //     var notification = $('#notification-popup-'+ asteriskId);
+            //     if (notification.length) {
+            //         notification.remove();
+            //     }
+            //
+            //     var header = '';
+            //     if (callPhase === 'dial'){
+            //         header = 'Входящий звонок'
+            //     }else if (callPhase === 'answer'){
+            //         header = 'Вы разговариваете с'
+            //     }else if (callPhase === 'ended'){
+            //         header = 'Закончен разговор с'
+            //     }
+            //
+            //     AMOCRM.notifications.show_message({
+            //         type: 'call',
+            //         id: asteriskId,
+            //         header: header,
+            //         text: notifierBody
+            //     });
+            // });
         };
+
+
+        // searchContact = function (subject,createdDealId, cb) {
+        //     jQuery.get('//' + window.location.host + '/private/api/v2/json/contacts/list/?type=all&query=' + subject, function (res) {
+        //         var contactId, contactName, contactCompany, link_type;
+        //         if (res != undefined && res.response != undefined && res.response.contacts != undefined) {
+        //             var contact = res.response.contacts[0];
+        //             contactId = contact.id;
+        //             contactName = contact.name;
+        //             contactCompany = contact.company_name;
+        //             if (contact.type == 'contact') {
+        //                 link_type = 'contacts';
+        //             } else if (contact.type == 'company') {
+        //                 link_type = 'companies';
+        //             }
+        //         }
+        //         jQuery.get('//' + window.location.host + '/private/api/v2/json/leads/list?id=' + createdDealId, function (res) {
+        //             var dealName;
+        //             if (res != undefined && res.response != undefined && res.response.leads != undefined) {
+        //                 var deal = res.response.leads[0];
+        //                 dealName = deal.name;
+        //             }
+        //
+        //             cb(contactId, contactName, contactCompany, link_type, dealName);
+        //         });
+        //     });
+        // };
+
 
         return this;
     };
-
     return CustomWidget;
 });
+
+
+// отправка POST
+// self.crm_post(URL + '/tracking/widget/c2c', {
+//         amoUserId: user.id,
+//         amoUserName: user.name,
+//         amoUserLogin: user.login,
+//         pressedPhone: pressedPhone
+//     },
+//     function (msg) {
+//         alert(msg)
+//     }, 'text'// json
+// );

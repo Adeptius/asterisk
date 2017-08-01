@@ -3,7 +3,10 @@ package ua.adeptius.asterisk.model;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "amo_accounts", schema = "calltrackdb")
@@ -45,38 +48,70 @@ public class AmoAccount {
     @PrimaryKeyJoinColumn
     private User user;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "login", referencedColumnName = "nextelLogin")
+    private Set<AmoPhoneBinding> phoneBindings;
+
+    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
+        AmoPhoneBinding binding = new AmoPhoneBinding();
+        binding.setWorker(worker);//TODO проверки на то что такое уже есть
+        binding.setPhone(phone);  //TODO проверка внутренний ли это номер пользователя
+        phoneBindings.add(binding);
+    }
+
+    @Nullable
+    public String getWorkersPhone(String workerId){
+        for (AmoPhoneBinding phoneBinding : phoneBindings) {
+            if (phoneBinding.getWorker().equals(workerId)){
+                return phoneBinding.getPhone();
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public String getWorkersId(String phone){
+        for (AmoPhoneBinding phoneBinding : phoneBindings) {
+            if (phoneBinding.getPhone().equals(phone)){
+                return phoneBinding.getWorker();
+            }
+        }
+        return null;
+    }
+
+
     public int getLeadId() {
         return leadId;
     }
 
-    public void setLeadId(int leadId) {
-        this.leadId = leadId;
-    }
-
+    @Nullable
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(@Nonnull User user) {
         if (user != null){
             nextelLogin = user.getLogin();
         }
         this.user = user;
     }
 
+    @Nonnull
     public String getNextelLogin() {
         return nextelLogin;
     }
 
-    public void setNextelLogin(String nextelLogin) {
+
+    public void setNextelLogin(@Nonnull String nextelLogin) {
         this.nextelLogin = nextelLogin;
     }
 
+    @Nonnull
     public String getAmoLogin() {
         return amoLogin;
     }
 
-    public void setAmoLogin(String amoLogin) {
+    public void setAmoLogin(@Nonnull String amoLogin) {
         this.amoLogin = amoLogin;
     }
 
@@ -112,6 +147,7 @@ public class AmoAccount {
         this.phoneEnumId = phoneEnumId;
     }
 
+
     @Override
     public String toString() {
         return "AmoAccount{" +
@@ -121,7 +157,9 @@ public class AmoAccount {
                 ", domain='" + domain + '\'' +
                 ", phoneId='" + phoneId + '\'' +
                 ", phoneEnumId='" + phoneEnumId + '\'' +
+                ", leadId=" + leadId +
                 ", user=" + user.getLogin() +
+                ", phoneBindings=" + phoneBindings +
                 '}';
     }
 }

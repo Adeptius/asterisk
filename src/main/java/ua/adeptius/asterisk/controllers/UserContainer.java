@@ -85,6 +85,7 @@ public class UserContainer {
         return null;
     }
 
+
     public static String createMd5(User user){
         return createMd5(user.getLogin()+user.getPassword());
     }

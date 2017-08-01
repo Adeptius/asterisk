@@ -44,11 +44,11 @@ public class NewCall {
     private int lastOperationTime;
 
     public int getCalculatedModifiedTime() { // AUTOINCREMENT
-        int currentTime = ((int) ((new Date().getTime()/1000)))+timeDifference;
-        if (currentTime <= lastOperationTime){ // если текущее время совпадает с предыдущим
+        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference;
+        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
             lastOperationTime++;
             return lastOperationTime;
-        }else {
+        } else {
             return currentTime;
         }
     }
@@ -57,10 +57,9 @@ public class NewCall {
     private int timeDifference;
 
 
-
     public void setLastOperationTime(int lastOperationTime) {
         this.lastOperationTime = lastOperationTime;
-        timeDifference = lastOperationTime - ((int) new Date().getTime()/1000);
+        timeDifference = lastOperationTime - ((int) new Date().getTime() / 1000);
     }
 
     public int getAmoDealId() {
@@ -98,7 +97,7 @@ public class NewCall {
         if (secondsToAnswer == -1) { // защита, что бы данные вводились только 1 раз.
             secondsToAnswer = (int) ((answeredDate.getTime() - getCalledMillis()) / 1000);
             return true;
-        }else {
+        } else {
             return false;
         }
     }
@@ -108,7 +107,7 @@ public class NewCall {
     }
 
     public int getSecondsToAnswer() {
-        return secondsToAnswer==-1? secondsFullTime : secondsToAnswer;
+        return secondsToAnswer == -1 ? secondsFullTime : secondsToAnswer;
     }
 
     public int getSecondsTalk() { // Тут высчитывается время разговора
@@ -202,14 +201,21 @@ public class NewCall {
     }
 
     public CallState getCallState() {
-        if (callState == null){
+        if (callState == null) {
             return CallState.FAIL; // null если с сип позвонить на 934027182. Номер не может быть вызван.
         }
         return callState;
     }
 
+    public boolean isStateWasAlreadySetted(){
+        return stateIsSetted;
+    }
+
+    private boolean stateIsSetted;
+
     public void setCallState(CallState callState) {
         this.callState = callState;
+        stateIsSetted = true;
     }
 
     public Direction getDirection() {

@@ -25,6 +25,7 @@ import ua.adeptius.asterisk.model.IdPairTime;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @SuppressWarnings("Duplicates")
@@ -33,7 +34,7 @@ public class AmoDAO {
     private static Logger LOGGER = LoggerFactory.getLogger(AmoDAO.class.getSimpleName());
 
 
-    public static HashMap<String, TimePairCookie> cookiesRepo = new HashMap<>();
+    public static ConcurrentHashMap<String, TimePairCookie> cookiesRepo = new ConcurrentHashMap<>();
 
     private static void storeCookie(String login, String cookie) {
         cookiesRepo.put(login, new TimePairCookie(new GregorianCalendar().getTimeInMillis(), cookie));

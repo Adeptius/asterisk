@@ -1,5 +1,6 @@
 package ua.adeptius.asterisk;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -11,10 +12,7 @@ import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.ForwardType;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
@@ -105,5 +103,15 @@ public class TestClass {
 //
 //        session.getTransaction().commit();
 //        session.close();
+
+
+//        User user = HibernateDao.getUserByLogin("e404");
+//        AmoAccount amoAccount = user.getAmoAccount();
+//        amoAccount.addBinding("111", "222");
+//        HibernateDao.update(user);
+
+        System.out.println(new Date().getTime());
+
+
     }
 }

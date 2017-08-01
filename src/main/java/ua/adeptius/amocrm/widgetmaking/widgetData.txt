@@ -1,2 +1,0 @@
-код виджета nextel_widget
-ключ виджета 0b43577067310d39af336de6f8dac820f9a0b2260f3df6420e6d7c1f78d97de6

@@ -5,7 +5,7 @@
     "short_description": "widget.short_description",
     "code": "nextel_widget",
     "secret_key": "acac807031f14e12c7729da8d05e260e3da4b14f4d5f9f302e7f652c1e1786de",
-    "version": "1.0.8",
+    "version": "1.1.0",
     "interface_version": 2,
     "init_once": false,
     "locale": [
@@ -14,10 +14,10 @@
     "installation": true
   },
   "locations": [
-    "ccard-1",
+    "ccard-0",
     "clist-0",
-    "lcard-1",
-    "llist-0",
+    "lcard-0",
+    "llist-1",
     "settings"
   ],
   "settings": {
