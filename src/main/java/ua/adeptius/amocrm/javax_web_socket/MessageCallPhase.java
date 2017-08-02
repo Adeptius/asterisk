@@ -4,5 +4,6 @@ public enum MessageCallPhase {
 
     dial,
     answer,
-    ended
+    ended,
+    noanswer
 }

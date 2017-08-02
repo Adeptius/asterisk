@@ -29,7 +29,7 @@
     <logger name="org.springframework" level="WARN"/>
     <logger name="com.mchange" level="WARN"/>
     <logger name="org.apache.http" level="WARN"/>
-    <logger name="org.apache.tomcat.websocket.server.WsRemoteEndpointImplServer" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
 
     <root level="trace">
         <appender-ref ref="console"/>

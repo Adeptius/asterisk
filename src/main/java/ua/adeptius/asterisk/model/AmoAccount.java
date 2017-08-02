@@ -23,6 +23,7 @@ public class AmoAccount {
 
     @Id
     @Column(name = "nextelLogin")
+    @JsonIgnore
     private String nextelLogin;
 
     @Column(name = "amoLogin")
@@ -35,13 +36,15 @@ public class AmoAccount {
     private String domain;
 
     @Column(name = "phoneId")
+    @JsonIgnore
     private String phoneId;
 
     @Column(name = "phoneEnumId")
+    @JsonIgnore
     private String phoneEnumId;
 
     @Column(name = "leadId")
-    private int leadId;
+    private int leadId; //TODO Реализовать возможность выбора
 
     @JsonIgnore
     @OneToOne
@@ -52,11 +55,16 @@ public class AmoAccount {
     @JoinColumn(name = "login", referencedColumnName = "nextelLogin")
     private Set<AmoPhoneBinding> phoneBindings;
 
-    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
-        AmoPhoneBinding binding = new AmoPhoneBinding();
-        binding.setWorker(worker);//TODO проверки на то что такое уже есть
-        binding.setPhone(phone);  //TODO проверка внутренний ли это номер пользователя
-        phoneBindings.add(binding);
+//    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
+//        AmoPhoneBinding binding = new AmoPhoneBinding();
+//        binding.setWorker(worker);//TODO проверки на то что такое уже есть
+//        binding.setPhone(phone);  //TODO проверка внутренний ли это номер пользователя
+//        phoneBindings.add(binding);
+//    }
+
+
+    public void setPhoneBindings(Set<AmoPhoneBinding> phoneBindings) {
+        this.phoneBindings = phoneBindings;
     }
 
     @Nullable
@@ -79,6 +87,9 @@ public class AmoAccount {
         return null;
     }
 
+    public Set<AmoPhoneBinding> getPhoneBindings() {
+        return phoneBindings;
+    }
 
     public int getLeadId() {
         return leadId;

@@ -59,7 +59,7 @@ public class CallProcessor {
                 }
             }
 
-            LOGGER.trace("ID {} NewChannelEvent: {}", id, newChannelEvent);
+            LOGGER.trace("ID {} NewChannelEvent: {}", id, makePrettyLog(newChannelEvent));
 
             NewCall newCall = new NewCall();
             newCall.setAsteriskId(newChannelEvent.getUniqueId());
@@ -84,7 +84,7 @@ public class CallProcessor {
 
             if (event instanceof NewExtenEvent) {
                 NewExtenEvent newExtenEvent = (NewExtenEvent) event;
-                LOGGER.trace("ID {} NewExtenEvent: {}", id, newExtenEvent);
+                LOGGER.trace("ID {} NewExtenEvent: {}", id, makePrettyLog(newExtenEvent));
                 String redirectedTo = newExtenEvent.getAppData();
                 if (redirectedTo.contains(",")) {
                     redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1, redirectedTo.indexOf(","));
@@ -99,16 +99,20 @@ public class CallProcessor {
             } else if (event instanceof VarSetEvent) {
                 VarSetEvent varSetEvent = (VarSetEvent) event;
                 if (varSetEvent.getVariable().equals("DIALSTATUS")) {
-                    LOGGER.trace("ID {} VarSetEvent: {}", id, varSetEvent);
+                    LOGGER.trace("ID {} VarSetEvent: {}", id, makePrettyLog(varSetEvent));
                     String dialStatus = varSetEvent.getValue();
                     if (newCall.isStateWasAlreadySetted()){
-                        LOGGER.debug("Состояние звонка не меняется. Это дубль: {}", dialStatus);
+                        LOGGER.debug("Состояние звонка не меняется. Это событие - дубль: {}", dialStatus);
                         return;
                     }
 
                     if ("ANSWER".equals(dialStatus)) { // Кто-то взял трубку
                         newCall.setAnsweredDate(event.getDateReceived());
                         newCall.setCallState(ANSWER);
+                        MainController.amoCallSender.send(newCall); // Обновляем статус только если ANSWER.
+                        // Иначе нет смысла - пользователю потом всё-равно hangup отправится и будет дубль.
+
+
                     } else if ("BUSY".equals(dialStatus)) {
                         newCall.setCallState(BUSY);
                     } else if ("NOANSWER".equals(dialStatus) || "CANCEL".equals(dialStatus)) {
@@ -121,7 +125,6 @@ public class CallProcessor {
                         LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);
                     }
 
-                    MainController.amoCallSender.send(newCall); // Обновляем статус
                     LOGGER.debug("Состояние звонка установлено на: {}", newCall.getCallState());
                 }
                 return;
@@ -129,7 +132,7 @@ public class CallProcessor {
             if (event instanceof HangupEvent) { // Событие определяет окончание звонка. не содержит никакой инфы при звонке sip->gsm
                 HangupEvent hangupEvent = (HangupEvent) event;
                 LOGGER.info("Завершен разговор {} c {}", newCall.getCalledFrom(), newCall.getCalledTo());
-                LOGGER.trace("ID {} HangupEvent: {}", id, hangupEvent);
+                LOGGER.trace("ID {} HangupEvent: {}", id, makePrettyLog(hangupEvent));
 
                 calls.remove(id); // конец звонка. айди звонка больше не будет отслеживатся так как он завершен. Удаляем.
                 if (calls.size() > 5) {// По идее мапа должна чистится calls.remove(id), но я не знаю что будет в будущем.
@@ -168,11 +171,8 @@ public class CallProcessor {
         calls.forEach((s, newCall) -> System.out.println("id " + s + " call: " + newCall.getCalledFrom() + "->" + newCall.getCalledTo()));
     }
 
-    /**
-     * Просто печатает event на экран, предварительно убрав лишнюю информацию.
-     * Метод нужен только для дебага.
-     */
-    private static void print(ManagerEvent event) {
+
+    private static String makePrettyLog(ManagerEvent event) {
         String s = event.toString();
         s = s.substring(31);
         if (s.contains("timestamp=null,")) {
@@ -187,11 +187,23 @@ public class CallProcessor {
         if (s.contains("actionid=null,")) {
             s = s.replaceAll("actionid=null,", "");
         }
+        if (s.contains("connectedlinenum=null,")) {
+            s = s.replaceAll("connectedlinenum=null,", "");
+        }
+        if (s.contains("accountcode=null,")) {
+            s = s.replaceAll("accountcode=null,", "");
+        }
+        if (s.contains("connectedlinename=null,")) {
+            s = s.replaceAll("connectedlinename=null,", "");
+        }
+        if (s.contains("calleridname=null,")) {
+            s = s.replaceAll("calleridname=null,", "");
+        }
         s = removeRegexFromString(s, "dateReceived='.*2017',");
         s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
         s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
         s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
-        System.out.println(s);
+        return s;
     }
 
 

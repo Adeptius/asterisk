@@ -7,7 +7,7 @@
     "secret_key": "acac807031f14e12c7729da8d05e260e3da4b14f4d5f9f302e7f652c1e1786de",
     "version": "1.1.0",
     "interface_version": 2,
-    "init_once": false,
+    "init_once": true,
     "locale": [
       "ru"
     ],
@@ -15,9 +15,11 @@
   },
   "locations": [
     "ccard-0",
-    "clist-0",
     "lcard-0",
-    "llist-1",
+    "clist-0",
+    "llist-0",
+    "culist-0",
+    "tlist-0",
     "settings"
   ],
   "settings": {

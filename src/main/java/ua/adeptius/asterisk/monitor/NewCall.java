@@ -256,20 +256,25 @@ public class NewCall {
     @Override
     public String toString() {
         return "NewCall{" +
-//                "\n firstCall='" + firstCall + '\'' +
-                "\n calledFrom='" + calledFrom + '\'' +
-                "\n calledTo='" + calledTo + '\'' +
-                "\n callState=" + callState +
-                "\n direction=" + direction +
-                "\n asteriskId='" + asteriskId + '\'' +
-                "\n utm='" + utm + '\'' +
-                "\n googleId='" + googleId + '\'' +
-                "\n service=" + service +
-                "\n user=" + user.getLogin() +
-                "\n calledDate='" + calledDate + '\'' +
-                "\n calledMillis=" + calledMillis +
-                "\n secondsToAnswer=" + secondsToAnswer +
-                "\n secondsFullTime=" + secondsFullTime +
-                "\n}";
+                "firstCall='" + firstCall + '\'' +
+                ", calledFrom='" + calledFrom + '\'' +
+                ", calledTo='" + calledTo + '\'' +
+                ", callState=" + callState +
+                ", direction=" + direction +
+                ", asteriskId='" + asteriskId + '\'' +
+                ", utm='" + utm + '\'' +
+                ", googleId='" + googleId + '\'' +
+                ", service=" + service +
+                ", user=" + user.getLogin() +
+                ", calledDate='" + calledDate + '\'' +
+                ", calledMillis=" + calledMillis +
+                ", secondsToAnswer=" + secondsToAnswer +
+                ", secondsFullTime=" + secondsFullTime +
+                ", callIsEnded=" + callIsEnded +
+                ", amoDealId=" + amoDealId +
+                ", lastOperationTime=" + lastOperationTime +
+                ", timeDifference=" + timeDifference +
+                ", stateIsSetted=" + stateIsSetted +
+                '}';
     }
 }

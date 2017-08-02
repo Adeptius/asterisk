@@ -58,7 +58,7 @@ public class User {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "login", referencedColumnName = "login")
-    List<Scenario> scenarios;
+    private List<Scenario> scenarios;
 
 
     /**

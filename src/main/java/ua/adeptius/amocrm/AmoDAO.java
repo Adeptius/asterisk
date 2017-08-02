@@ -184,13 +184,13 @@ public class AmoDAO {
         return new IdPairTime(responseId, serverTime);
     }
 
-    public static void setTagsToDeal(AmoAccount amoAccount, @Nonnull String tags, int dealid, int dealTime) throws Exception {
-        String amoLogin = amoAccount.getAmoLogin();
-        String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: запрос изменения тэгов сделки {} для {}: {}", login, dealid, amoLogin, tags);
-        String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":" + dealid + ",\"tags\": \"" + tags + "\",\"last_modified\":" + dealTime + "}]}}}";
-        getJResponse(false, amoAccount, "api/v2/json/leads/set", request, null);
-    }
+//    public static void setTagsToDeal(AmoAccount amoAccount, @Nonnull String tags, int dealid, int dealTime) throws Exception {
+//        String amoLogin = amoAccount.getAmoLogin();
+//        String login = amoAccount.getUser().getLogin();
+//        LOGGER.debug("{}: запрос изменения тэгов сделки {} для {}: {}", login, dealid, amoLogin, tags);
+//        String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":" + dealid + ",\"tags\": \"" + tags + "\",\"last_modified\":" + dealTime + "}]}}}";
+//        getJResponse(false, amoAccount, "api/v2/json/leads/set", request, null);
+//    }
 
     public static void removeDeal(AmoAccount amoAccount, int dealId) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();

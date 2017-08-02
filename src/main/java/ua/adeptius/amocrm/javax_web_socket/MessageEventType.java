@@ -4,6 +4,7 @@ public enum MessageEventType {
 
     click2call,
     wrongMessage,
-    incomingCall
+    incomingCall,
+    copySession
 
 }

@@ -105,13 +105,18 @@ public class TestClass {
 //        session.close();
 
 
-//        User user = HibernateDao.getUserByLogin("e404");
-//        AmoAccount amoAccount = user.getAmoAccount();
-//        amoAccount.addBinding("111", "222");
-//        HibernateDao.update(user);
+        User user = HibernateDao.getUserByLogin("e404");
+        AmoAccount amoAccount = user.getAmoAccount();
+        Set<AmoPhoneBinding> phoneBindings = amoAccount.getPhoneBindings();
+//        phoneBindings.clear();
 
-        System.out.println(new Date().getTime());
+        Set<AmoPhoneBinding> newSet = new HashSet<>();
 
+        AmoPhoneBinding binding = new AmoPhoneBinding("333", "333", amoAccount);
+        newSet.add(binding);
 
+        amoAccount.setPhoneBindings(newSet);
+
+        HibernateDao.update(user);
     }
 }

@@ -14,9 +14,9 @@ public class JsonAmoContact {
     private int id = -1;
     private String name = "";
     private int last_modified = -1;
-    private HashMap<Integer, String> tags = new HashMap<>();
+//    private HashMap<Integer, String> tags = new HashMap<>();
     private ArrayList<String> linked_leads_id = new ArrayList<>();
-    private ArrayList<CustomField> customFields = new ArrayList<>();
+//    private ArrayList<CustomField> customFields = new ArrayList<>();
 
 
     public JsonAmoContact(String json) {
@@ -26,26 +26,26 @@ public class JsonAmoContact {
         name = jContact.getString("name");
         last_modified = jContact.getInt("last_modified");
 
-        JSONArray jTags = jContact.getJSONArray("tags");
-        for (int i = 0; i < jTags.length(); i++) {
-            JSONObject jTag = jTags.getJSONObject(i);
-            tags.put(jTag.getInt("id"), jTag.getString("name"));
-        }
+//        JSONArray jTags = jContact.getJSONArray("tags");
+//        for (int i = 0; i < jTags.length(); i++) {
+//            JSONObject jTag = jTags.getJSONObject(i);
+//            tags.put(jTag.getInt("id"), jTag.getString("name"));
+//        }
 
-        JSONArray jCustomFields = jContact.getJSONArray("custom_fields");
-        for (int i = 0; i < jCustomFields.length(); i++) {
-            JSONObject jCustomField = jCustomFields.getJSONObject(i);
-            String id = jCustomField.getString("id");
-            String name = jCustomField.getString("name");
-            String code = jCustomField.getString("code");
-            HashMap<String, String> values = new HashMap<>();
-            JSONArray jValues = jCustomField.getJSONArray("values");
-            for (int j = 0; j < jValues.length(); j++) {
-                JSONObject jValue = jValues.getJSONObject(j);
-                values.put(jValue.getString("enum"), jValue.getString("value"));
-            }
-            customFields.add(new CustomField(id, name, code, values));
-        }
+//        JSONArray jCustomFields = jContact.getJSONArray("custom_fields");
+//        for (int i = 0; i < jCustomFields.length(); i++) {
+//            JSONObject jCustomField = jCustomFields.getJSONObject(i);
+//            String id = jCustomField.getString("id");
+//            String name = jCustomField.getString("name");
+//            String code = jCustomField.getString("code");
+//            HashMap<String, String> values = new HashMap<>();
+//            JSONArray jValues = jCustomField.getJSONArray("values");
+//            for (int j = 0; j < jValues.length(); j++) {
+//                JSONObject jValue = jValues.getJSONObject(j);
+//                values.put(jValue.getString("enum"), jValue.getString("value"));
+//            }
+//            customFields.add(new CustomField(id, name, code, values));
+//        }
 
 
         JSONArray jLinkedLeads = jContact.getJSONArray("linked_leads_id");
@@ -58,9 +58,9 @@ public class JsonAmoContact {
     public JsonAmoContact() {
     }
 
-    public void addCustomFields(CustomField custom) {
-        customFields.add(custom);
-    }
+//    public void addCustomFields(CustomField custom) {
+//        customFields.add(custom);
+//    }
 
 
     public static class CustomField {
@@ -121,21 +121,21 @@ public class JsonAmoContact {
         this.last_modified = last_modified;
     }
 
-    public HashMap<Integer, String> getTags() {
-        return tags;
-    }
-
-    public void setTags(HashMap<Integer, String> tags) {
-        this.tags = tags;
-    }
-
-    public void addTag(int key, String value) {
-        tags.put(key, value);
-    }
-
-    public void addTag(String value) {
-        tags.put(0, value);
-    }
+//    public HashMap<Integer, String> getTags() {
+//        return tags;
+//    }
+//
+//    public void setTags(HashMap<Integer, String> tags) {
+//        this.tags = tags;
+//    }
+//
+//    public void addTag(int key, String value) {
+//        tags.put(key, value);
+//    }
+//
+//    public void addTag(String value) {
+//        tags.put(0, value);
+//    }
 
 
     public ArrayList<String> getLinked_leads_id() {
@@ -166,13 +166,13 @@ public class JsonAmoContact {
         linked_leads_id.add(id);
     }
 
-    public ArrayList<CustomField> getCustomFields() {
-        return customFields;
-    }
-
-    public void setCustomFields(ArrayList<CustomField> customFields) {
-        this.customFields = customFields;
-    }
+//    public ArrayList<CustomField> getCustomFields() {
+//        return customFields;
+//    }
+//
+//    public void setCustomFields(ArrayList<CustomField> customFields) {
+//        this.customFields = customFields;
+//    }
 
     @Override
     public String toString() {
@@ -182,46 +182,46 @@ public class JsonAmoContact {
             sb.append("\"id\":").append(id).append(",");
         }
         sb.append("\"name\":\"").append(name).append("\",");
-        sb.append("\"responsible_user_id\":null,");
+//        sb.append("\"responsible_user_id\":null,");
         if (last_modified == -1) last_modified = (int) (new Date().getTime() / 1000);
         sb.append("\"last_modified\":").append(last_modified).append(",");
 
 
-        // Таги
-        sb.append("\"tags\":\"");
-        final int[] cycle = {0};
-        tags.forEach((id, name) -> {
-            sb.append(name);
-            cycle[0]++;
-            if (cycle[0] != tags.size()) { // если элемент не последний
-                sb.append(",");
-            }
-        });
-        sb.append("\",");
-
-
-        // Кастом филды
-        sb.append("\"custom_fields\":[");
-        cycle[0] = 0;
-        customFields.forEach(field -> {
-            sb.append("{\"id\":\"").append(field.id).append("\",\"name\":\"").append(field.name).append("\",\"code\": \"").append(field.code).append("\",\"values\":[");
-
-            final int[] cycle2 = {0}; // закидываем энамы
-            field.values.forEach((enumId, value) -> {
-                sb.append("{\"value\":\"" + value + "\",\"enum\":\"" + enumId + "\"}");
-                cycle2[0]++;
-                if (cycle2[0] != field.values.size()) { // если элемент не последний
-                    sb.append(",");
-                }
-            });
-            sb.append("]}"); // конец энамов
-
-            cycle[0]++;
-            if (cycle[0] != customFields.size()) { // если элемент не последний
-                sb.append(",");
-            }
-        });
-        sb.append("],"); // конец кастом филдов
+//        // Таги
+//        sb.append("\"tags\":\"");
+//        final int[] cycle = {0};
+//        tags.forEach((id, name) -> {
+//            sb.append(name);
+//            cycle[0]++;
+//            if (cycle[0] != tags.size()) { // если элемент не последний
+//                sb.append(",");
+//            }
+//        });
+//        sb.append("\",");
+//
+//
+//        // Кастом филды
+//        sb.append("\"custom_fields\":[");
+//        cycle[0] = 0;
+//        customFields.forEach(field -> {
+//            sb.append("{\"id\":\"").append(field.id).append("\",\"name\":\"").append(field.name).append("\",\"code\": \"").append(field.code).append("\",\"values\":[");
+//
+//            final int[] cycle2 = {0}; // закидываем энамы
+//            field.values.forEach((enumId, value) -> {
+//                sb.append("{\"value\":\"" + value + "\",\"enum\":\"" + enumId + "\"}");
+//                cycle2[0]++;
+//                if (cycle2[0] != field.values.size()) { // если элемент не последний
+//                    sb.append(",");
+//                }
+//            });
+//            sb.append("]}"); // конец энамов
+//
+//            cycle[0]++;
+//            if (cycle[0] != customFields.size()) { // если элемент не последний
+//                sb.append(",");
+//            }
+//        });
+//        sb.append("],"); // конец кастом филдов
 
 
         sb.append("\"linked_leads_id\":[");

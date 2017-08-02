@@ -11,12 +11,14 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.click2call;
+import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.copySession;
 import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.wrongMessage;
 
 @ServerEndpoint(value = "/ws/{amoDomain}/{userId}", decoders = MessageDecoder.class, encoders = MessageEncoder.class)
@@ -24,8 +26,7 @@ public class WebSocket {
 
     private Session session;
     private static final Set<WebSocket> chatEndpoints = new CopyOnWriteArraySet<>();
-    private static ConcurrentHashMap<String, Session> usersAndSessions = new ConcurrentHashMap<>();
-    //    private static ConcurrentHashMap<String, Session> usersAndDomains = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Set<Session>> usersAndSessions = new ConcurrentHashMap<>();
     private static Logger LOGGER = LoggerFactory.getLogger(WebSocket.class.getSimpleName());
 
 
@@ -33,7 +34,17 @@ public class WebSocket {
     public void onOpen(Session session, @PathParam("amoDomain") String amoDomain, @PathParam("userId") String userId) throws IOException {
         this.session = session;
         chatEndpoints.add(this);
-        usersAndSessions.put(userId, session);
+
+        Set<Session> curentUserSessions = usersAndSessions.get(userId);
+        if (curentUserSessions == null) {
+            curentUserSessions = new HashSet<>();
+            curentUserSessions.add(session);
+            usersAndSessions.put(userId, curentUserSessions);
+        } else {
+            usersAndSessions.get(userId).add(session);
+        }
+
+        LOGGER.debug("{}: пользователь {} сессий: {}", amoDomain, userId, usersAndSessions.get(userId).size());
         LOGGER.debug("{}: пользователь {} подключился. EndPoints({}), Users({})", amoDomain, userId, chatEndpoints.size(), usersAndSessions.size());
     }
 
@@ -46,30 +57,33 @@ public class WebSocket {
     @OnClose
     public void onClose(Session session, @PathParam("amoDomain") String amoDomain, @PathParam("userId") String userId) throws IOException {
         chatEndpoints.remove(this);
-        while (usersAndSessions.values().remove(session)) ;
+        Set<Session> curentUserSessions = usersAndSessions.get(userId);
+        curentUserSessions.remove(session);
+        LOGGER.debug("{}: пользователь {} сессий: {}", amoDomain, userId, usersAndSessions.get(userId).size());
         LOGGER.debug("{}: пользователь {} отключился. EndPoints({}), Users({})", amoDomain, userId, chatEndpoints.size(), usersAndSessions.size());
     }
 
     @OnError
     public void onError(Session session, Throwable throwable, @PathParam("amoDomain") String amoDomain, @PathParam("userId") String userId) {
         chatEndpoints.remove(this);
-        while (usersAndSessions.values().remove(session)) ;
-//        LOGGER.debug("{}: пользователь {} вызвал ошибку {}", amoDomain, userId, throwable.getMessage());
+        Set<Session> curentUserSessions = usersAndSessions.get(userId);
+        curentUserSessions.remove(session);
+        LOGGER.debug("{}: пользователь {} ошибка соединения. Сессий: {}", amoDomain, userId, usersAndSessions.get(userId).size());
     }
 
     public static void sendMessage(String userId, WsMessage wsMessage) {
-        Session session = usersAndSessions.get(userId);
-        if (session != null) {// Пользователь подключен в данный момент
-
-            try {
+        Set<Session> sessions = usersAndSessions.get(userId);
+        try {
+            for (Session session : sessions) {
                 session.getBasicRemote().sendObject(wsMessage);
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-
-        } else { // Пользователь не подключен
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+//        if (session != null) {// Пользователь подключен в данный момент
+//        } else { // Пользователь не подключен
+//
+//        }
     }
 
 
@@ -117,20 +131,19 @@ public class WebSocket {
     }
 
 
-
-    public static String cleanAndValidatePhoneNumber(String number) throws IllegalArgumentException{
+    public static String cleanAndValidatePhoneNumber(String number) throws IllegalArgumentException {
         if (number == null) {
             throw new IllegalArgumentException();
         }
-        number = number.replaceAll("\\D+","");
+        number = number.replaceAll("\\D+", "");
 
-        if (number.startsWith("380")){
+        if (number.startsWith("380")) {
             number = number.substring(2);
-        }else if (number.startsWith("80")){
+        } else if (number.startsWith("80")) {
             number = number.substring(1);
         }
         System.out.println("result filtering: " + number);
-        if (number.length() == 10 && number.startsWith("0")){
+        if (number.length() == 10 && number.startsWith("0")) {
             return number;
         }
         throw new IllegalArgumentException();

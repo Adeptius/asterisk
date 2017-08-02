@@ -20,34 +20,15 @@ public class TestClass {
         AmoAccount amoAccount = new AmoAccount("adeptius@wid.ua", "a99ead2f473e150091360d25aecc2878", "wid");
         amoAccount.setUser(user);
 
-        JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-        HashMap<String, String> users = jsonAmoAccount.getUsers();
+//        JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
+//        String phoneId = jsonAmoAccount.getPhoneId();
+//        String phoneEnumId = jsonAmoAccount.getPhoneEnumId();
+//        System.out.println(phoneId + " - " + phoneEnumId);
 
-        new Thread(() -> {
-            while (users.size() > 0){
-                for (Map.Entry<String, String> entry : users.entrySet()) {
-                    String id = entry.getKey();
-                }
-            }
+        JsonAmoContact contact = AmoDAO.getContactIdByPhoneNumber(amoAccount, "0934027182");
 
-        }).start();
+        System.out.println(contact);
 
-        new Thread(() -> {
-            while (users.size() > 0){
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                for (Map.Entry<String, String> entry : users.entrySet()) {
-                    String id = "" + ((int)Math.random()*5);
-                    String id2 = "" + ((int)Math.random()*5);
-                    users.put(id, id2);
-                    break;
-                }
-                System.out.println(users.size());
 
-            }
-        }).start();
     }
 }

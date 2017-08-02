@@ -12,6 +12,5 @@
 
     <bean class="ua.adeptius.asterisk.Main"/>
 
-    <!--<context:component-scan base-package="ua.adeptius.asterisk.dao"/>-->
     <context:property-placeholder location="classpath:database.properties"/>
 </beans>

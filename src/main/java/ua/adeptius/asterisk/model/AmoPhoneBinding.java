@@ -12,6 +12,12 @@ public class AmoPhoneBinding {
     public AmoPhoneBinding() {
     }
 
+    public AmoPhoneBinding(String worker, String phone, AmoAccount amoAccount) {
+        this.worker = worker;
+        this.phone = phone;
+        this.amoAccount = amoAccount;
+    }
+
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
     @GenericGenerator(name = "increment", strategy = "increment")
@@ -29,6 +35,10 @@ public class AmoPhoneBinding {
     @Column(name = "phone")
     private String phone;
 
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "login", referencedColumnName = "nextellogin", insertable = false, updatable = false)
+    private AmoAccount amoAccount;
 
     public int getId() {
         return id;
@@ -62,10 +72,10 @@ public class AmoPhoneBinding {
         this.phone = phone;
     }
 
-    public AmoPhoneBinding(String login, String worker, String phone) {
-        this.login = login;
-        this.worker = worker;
-        this.phone = phone;
+
+    public void setAmoAccount(AmoAccount amoAccount) {
+        this.amoAccount = amoAccount;
+        login = amoAccount.getNextelLogin();
     }
 
     @Override
