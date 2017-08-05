@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.monitor;
+package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;

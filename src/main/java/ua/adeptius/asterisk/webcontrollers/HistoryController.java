@@ -10,7 +10,7 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.NewCall;
+import ua.adeptius.asterisk.model.NewCall;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

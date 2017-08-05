@@ -60,6 +60,7 @@ public class UserContainer {
         hashes.put(createMd5(user), user);
     }
 
+    // todo сделать кеширование через мапу
     public static User getUserByName(String name){
         try {
             return users.stream().filter(user -> user.getLogin().equals(name)).findFirst().get();
@@ -68,13 +69,13 @@ public class UserContainer {
         }
     }
 
-    public static List<Tracking> getAllSites(){
-        return users.stream().filter(user -> user.getTracking() != null).map(User::getTracking).collect(Collectors.toList());
-    }
+//    public static List<Tracking> getAllSites(){
+//        return users.stream().filter(user -> user.getTracking() != null).map(User::getTracking).collect(Collectors.toList());
+//    }
 
-    public static Tracking getSiteByName(String name) throws NoSuchElementException {
-        return getUserByName(name).getTracking();
-    }
+//    public static Tracking getSiteByName(String name) throws NoSuchElementException {
+//        return getUserByName(name).getTracking();
+//    }
 
     public static String getHashOfUser(User user){
         for (Map.Entry<String, User> entry : hashes.entrySet()) {

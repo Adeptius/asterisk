@@ -4,7 +4,8 @@ define(['jquery'], function ($) {
         var isActiveTab = true;
         var domain = AMOCRM.constant("account").subdomain;
         var userId = AMOCRM.constant("user").id;
-        var wsUrl = 'wss://adeptius.pp.ua/tracking/ws/' + domain + '/' + userId;
+        // var wsUrl = 'wss://adeptius.pp.ua/tracking/ws/' + domain + '/' + userId;
+        var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
         var needToClose;
         var ws;
 

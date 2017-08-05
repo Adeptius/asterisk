@@ -16,7 +16,7 @@ import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.IdPairTime;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.NewCall;
+import ua.adeptius.asterisk.model.NewCall;
 
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -155,23 +155,23 @@ public class AmoCallSender extends Thread {
     }
 
     private void sendWsMessage(AmoAccount amoAccount, NewCall call, MessageCallPhase callPhase){
-        String workersId = amoAccount.getWorkersId(call.getCalledTo());
-        if (workersId != null) {// мы знаем id работника.
-            String login = amoAccount.getUser().getLogin();
-            WsMessage message = new WsMessage(incomingCall);
-            message.setFrom(call.getCalledFrom());
-            message.setDealId("" + call.getAmoDealId());
-            message.setCallId(call.getAsteriskId());
-            message.setCallPhase(callPhase);
-            WebSocket.sendMessage(workersId, message);// отправляем
-            if (callPhase == noanswer){
-                LOGGER.trace("{}: Отправлено WS сообщение, что звонок был пропущен.", login);
-            }else if (callPhase == answer || callPhase == ended){
-                LOGGER.trace("{}: Отправлено WS сообщение, что ответ на звонок был.", login);
-            }else if (callPhase == dial){
-                LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
-            }
-        }
+//        String workersId = amoAccount.getWorkersId(call.getCalledTo());
+//        if (workersId != null) {// мы знаем id работника.
+//            String login = amoAccount.getUser().getLogin();
+//            WsMessage message = new WsMessage(incomingCall);
+//            message.setFrom(call.getCalledFrom());
+//            message.setDealId("" + call.getAmoDealId());
+//            message.setCallId(call.getAsteriskId());
+//            message.setCallPhase(callPhase);
+//            WebSocket.sendMessage(workersId, message);// отправляем
+//            if (callPhase == noanswer){
+//                LOGGER.trace("{}: Отправлено WS сообщение, что звонок был пропущен.", login);
+//            }else if (callPhase == answer || callPhase == ended){
+//                LOGGER.trace("{}: Отправлено WS сообщение, что ответ на звонок был.", login);
+//            }else if (callPhase == dial){
+//                LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
+//            }
+//        }
     }
 
 

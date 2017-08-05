@@ -20,6 +20,7 @@ public class PostProxyInvokerContextListener implements ApplicationListener<Cont
         ApplicationContext context = event.getApplicationContext();
         String[] names = context.getBeanDefinitionNames();
         for (String name : names) {
+//            System.out.println(name);
             try {
                 BeanDefinition definition = factory.getBeanDefinition(name);
                 String originalClassName = definition.getBeanClassName();
@@ -32,8 +33,7 @@ public class PostProxyInvokerContextListener implements ApplicationListener<Cont
                         currentMethod.invoke(bean);
                     }
                 }
-            } catch (Exception e) {
-//                e.printStackTrace();
+            } catch (Exception ignored) {
             }
         }
     }

@@ -7,13 +7,11 @@ import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
-import ua.adeptius.asterisk.model.Phone;
+import ua.adeptius.asterisk.model.OldPhone;
 import ua.adeptius.asterisk.model.Telephony;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.telephony.SipConfig;
-import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,104 +38,108 @@ public class PhonesController {
     }
 
 
-    public static void increaseOrDecreaseInnerList(int needCount, List<String> currentList, String name) throws Exception {
-        if (needCount > currentList.size()) { // Если номеров недостаточно
-            LOGGER.debug("{}: Внутренних номеров недостаточно. Нужно {}, есть {}", name, needCount, currentList.size());
-            int needMoreNumbers = needCount - currentList.size();
-            List<String> newSipNumbers = createMoreSipNumbers(needMoreNumbers, name);
-            currentList.addAll(newSipNumbers);
+//    public static void increaseOrDecreaseInnerList(int needCount, List<String> currentList, String name) throws Exception {
+//        if (needCount > currentList.size()) { // Если номеров недостаточно
+//            LOGGER.debug("{}: Внутренних номеров недостаточно. Нужно {}, есть {}", name, needCount, currentList.size());
+//            int needMoreNumbers = needCount - currentList.size();
+//            List<String> newSipNumbers = createMoreSipNumbers(needMoreNumbers, name);
+//            currentList.addAll(newSipNumbers);
+//
+//        } else if (needCount < currentList.size()) { // Если номеров больше чем нужно
+//            LOGGER.debug("Внутренних Номеров больше чем нужно. Должно быть {}, сейчас {}", needCount, currentList.size());
+//            int redundantNumbers = currentList.size() - needCount;
+//            List<String> numbersToRelease = getLastElementsFromList(currentList, redundantNumbers);
+//            HibernateDao.removeInnerPhone(numbersToRelease);// удаляем их с базы и конфиг файлы тоже
+//            SipConfigDao.removeFiles(numbersToRelease);
+//
+//        } else {
+//            LOGGER.debug("{}: Внутренних номеров нужное количество. Список не меняется", name);
+//        }
+//    }
 
-        } else if (needCount < currentList.size()) { // Если номеров больше чем нужно
-            LOGGER.debug("Внутренних Номеров больше чем нужно. Должно быть {}, сейчас {}", needCount, currentList.size());
-            int redundantNumbers = currentList.size() - needCount;
-            List<String> numbersToRelease = getLastElementsFromList(currentList, redundantNumbers);
-            HibernateDao.removeInnerPhone(numbersToRelease);// удаляем их с базы и конфиг файлы тоже
-            SipConfigDao.removeFiles(numbersToRelease);
+//    public static void increaseOrDecreaseOuterList(int needCount, List<String> currentList, String name) throws Exception {
+//        if (needCount > currentList.size()) { // Если номеров недостаточно
+//            LOGGER.debug("{}: внешних номеров недостаточно. Нужно {}, есть {}", name, needCount, currentList.size());
+//            int needMoreNumbers = needCount - currentList.size();
+//            ArrayList<String> availableNumbers = PhonesDao.getFreeOuterPhones(); // взяли все свободные номера
+//            ArrayList<String> preparedNumbers = new ArrayList<>();
+//            if (availableNumbers.size() < needMoreNumbers) { // Если, их не достаточно
+//                LOGGER.debug("Внешних номеров недостаточно! Есть {}, нужно {}", availableNumbers.size(), needMoreNumbers);
+//                throw new NotEnoughNumbers();
+//            }
+//            for (int i = 0; i < needMoreNumbers; i++) { // берём нужное количество
+//                preparedNumbers.add(availableNumbers.get(i));
+//            }
+//            HibernateDao.markOuterPhoneBusy(name, preparedNumbers); // помечаем как занятые
+//            currentList.addAll(preparedNumbers);
+//
+//        } else if (needCount < currentList.size()) { // Если номеров больше чем нужно
+//            LOGGER.debug("Внешних номеров больше чем нужно. Должно быть {}, сейчас {}", needCount, currentList.size());
+//            int redundantNumbers = currentList.size() - needCount;
+//            List<String> numbersToRelease = getLastElementsFromList(currentList, redundantNumbers);
+//            HibernateDao.markOuterPhoneFree(numbersToRelease);
+//
+//        } else {
+//            LOGGER.debug("{}: внешних номеров нужное количество. Список не меняется", name);
+//        }
+//    }
 
-        } else {
-            LOGGER.debug("{}: Внутренних номеров нужное количество. Список не меняется", name);
-        }
-    }
+//    private static List<String> getLastElementsFromList(List<String> listFrom, int count) {
+//        ArrayList<String> lastElements = new ArrayList<>();
+//        for (int i = 0; i < count; i++) {
+//            lastElements.add(listFrom.remove(listFrom.size() - 1));
+//        }
+//        return lastElements;
+//    }
 
-    public static void increaseOrDecreaseOuterList(int needCount, List<String> currentList, String name) throws Exception {
-        if (needCount > currentList.size()) { // Если номеров недостаточно
-            LOGGER.debug("{}: внешних номеров недостаточно. Нужно {}, есть {}", name, needCount, currentList.size());
-            int needMoreNumbers = needCount - currentList.size();
-            ArrayList<String> availableNumbers = PhonesDao.getFreeOuterPhones(); // взяли все свободные номера
-            ArrayList<String> preparedNumbers = new ArrayList<>();
-            if (availableNumbers.size() < needMoreNumbers) { // Если, их не достаточно
-                LOGGER.debug("Внешних номеров недостаточно! Есть {}, нужно {}", availableNumbers.size(), needMoreNumbers);
-                throw new NotEnoughNumbers();
-            }
-            for (int i = 0; i < needMoreNumbers; i++) { // берём нужное количество
-                preparedNumbers.add(availableNumbers.get(i));
-            }
-            HibernateDao.markOuterPhoneBusy(name, preparedNumbers); // помечаем как занятые
-            currentList.addAll(preparedNumbers);
+//    public static void releaseAllCustomerNumbers(User user) throws Exception {
+//        LOGGER.debug("{}: Освобождаем все номера пользователя", user);
+//        if (user.getTracking() != null) {
+//            releaseAllTrackingNumbers(user.getTracking());
+//        }
+//        if (user.getTelephony() != null) {
+//            releaseAllTelephonyNumbers(user.getTelephony());
+//        }
+//    }
 
-        } else if (needCount < currentList.size()) { // Если номеров больше чем нужно
-            LOGGER.debug("Внешних номеров больше чем нужно. Должно быть {}, сейчас {}", needCount, currentList.size());
-            int redundantNumbers = currentList.size() - needCount;
-            List<String> numbersToRelease = getLastElementsFromList(currentList, redundantNumbers);
-            HibernateDao.markOuterPhoneFree(numbersToRelease);
+//    public static void releaseAllTrackingNumbers(Tracking tracking) throws Exception {
+//        HibernateDao.markOuterPhoneFree(tracking.getOldPhones().stream().map(OldPhone::getNumber).collect(Collectors.toList()));
+//    }
 
-        } else {
-            LOGGER.debug("{}: внешних номеров нужное количество. Список не меняется", name);
-        }
-    }
+//    public static void releaseAllTelephonyNumbers(Telephony telephony) throws Exception {
+//        HibernateDao.markOuterPhoneFree(telephony.getOuterPhonesList());
+//        HibernateDao.removeInnerPhone(telephony.getInnerPhonesList());
+//        SipConfigDao.removeFiles(telephony.getInnerPhonesList());
+//    }
 
-    private static List<String> getLastElementsFromList(List<String> listFrom, int count) {
-        ArrayList<String> lastElements = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            lastElements.add(listFrom.remove(listFrom.size() - 1));
-        }
-        return lastElements;
-    }
 
-    public static void releaseAllCustomerNumbers(User user) throws Exception {
-        LOGGER.debug("{}: Освобождаем все номера пользователя", user);
-        if (user.getTracking() != null) {
-            releaseAllTrackingNumbers(user.getTracking());
-        }
-        if (user.getTelephony() != null) {
-            releaseAllTelephonyNumbers(user.getTelephony());
-        }
-    }
 
-    public static void releaseAllTrackingNumbers(Tracking tracking) throws Exception {
-        HibernateDao.markOuterPhoneFree(tracking.getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
-    }
 
-    public static void releaseAllTelephonyNumbers(Telephony telephony) throws Exception {
-        HibernateDao.markOuterPhoneFree(telephony.getOuterPhonesList());
-        HibernateDao.removeInnerPhone(telephony.getInnerPhonesList());
-        SipConfigDao.removeFiles(telephony.getInnerPhonesList());
-    }
 
-    public static void scanAndClean() throws Exception {
-        LOGGER.debug("Начало очистки БД на предмет занятых номеров несуществующими пользователями");
-        HashMap<String, String> innerMap = PhonesDao.getBusyInnerPhones();
-        HashMap<String, String> outerMap = PhonesDao.getBusyOuterPhones();
-        List<String> users = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
-        List<String> innerToClean = new ArrayList<>();
-        List<String> outerToClean = new ArrayList<>();
-        for (Map.Entry<String, String> entry : innerMap.entrySet()) {
-            if (!users.contains(entry.getValue())) {
-                innerToClean.add(entry.getKey());
-            }
-        }
-        for (Map.Entry<String, String> entry : outerMap.entrySet()) {
-            // busyBy - получаем значение после прочерка (trac_newUser или tele_newUser)
-            String busyBy = entry.getValue().substring(entry.getValue().indexOf("_") + 1);
-            if (!users.contains(busyBy)) {
-                outerToClean.add(entry.getKey());
-            }
-        }
-
-        HibernateDao.removeInnerPhone(innerToClean);
-        HibernateDao.markOuterPhoneFree(outerToClean);
-        SipConfigDao.removeFiles(innerToClean);
-        LOGGER.debug("\"Синхронизация БД освобождено номеров внешних {}, внутренних {}", outerToClean.size(), innerToClean.size());
-        MyLogger.log(LogCategory.DB_OPERATIONS, "Синхронизация БД освобождено номеров внешних " + outerToClean.size() + ", внутренних " + innerToClean.size());
-    }
+    // Это не нужно так как теперь при удалении обьекта - номера освобождаются автоматически хибернейтом.
+//    public static void scanAndClean() throws Exception {
+//        LOGGER.debug("Начало очистки БД на предмет занятых номеров несуществующими пользователями");
+//        HashMap<String, String> innerMap = PhonesDao.getBusyInnerPhones();
+//        HashMap<String, String> outerMap = PhonesDao.getBusyOuterPhones();
+//        List<String> users = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
+//        List<String> innerToClean = new ArrayList<>();
+//        List<String> outerToClean = new ArrayList<>();
+//        for (Map.Entry<String, String> entry : innerMap.entrySet()) {
+//            if (!users.contains(entry.getValue())) {
+//                innerToClean.add(entry.getKey());
+//            }
+//        }
+//        for (Map.Entry<String, String> entry : outerMap.entrySet()) {
+//            // busyBy - получаем значение после прочерка (trac_newUser или tele_newUser)
+//            String busyBy = entry.getValue().substring(entry.getValue().indexOf("_") + 1);
+//            if (!users.contains(busyBy)) {
+//                outerToClean.add(entry.getKey());
+//            }
+//        }
+//
+//        HibernateDao.removeInnerPhone(innerToClean);
+//        HibernateDao.markOuterPhoneFree(outerToClean);
+//        SipConfigDao.removeFiles(innerToClean);
+//        LOGGER.debug("\"Синхронизация БД освобождено номеров внешних {}, внутренних {}", outerToClean.size(), innerToClean.size());
+//    }
 }

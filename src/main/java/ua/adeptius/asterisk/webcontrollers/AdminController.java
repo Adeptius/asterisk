@@ -13,8 +13,6 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.utils.logging.LogCategory;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
@@ -47,18 +45,6 @@ public class AdminController {
         }
 
     }
-
-    @RequestMapping(value = "/logs", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
-    @ResponseBody
-    public String getLogs(@RequestParam String adminPassword) {
-        if (isAdminPasswordWrong(adminPassword)) {
-            return new Message(Message.Status.Error, "Wrong password").toString();
-        }
-        return new Gson().toJson(MyLogger.logs);
-    }
-
-
-
 
     @RequestMapping(value = "/getAllUsers", method = RequestMethod.POST, produces = "text/html; charset=UTF-8")
     @ResponseBody
@@ -136,7 +122,6 @@ public class AdminController {
         Settings.setSetting(name, value);
         if (!name.equals("ACTIVE_SITE")) {
             String result = "Success: saved value " + value + " for " + name;
-            MyLogger.log(LogCategory.DB_OPERATIONS, result);
             return new Message(Message.Status.Success, "Saved").toString();
         } else {
             return new Message(Message.Status.Error, "Internal error").toString();

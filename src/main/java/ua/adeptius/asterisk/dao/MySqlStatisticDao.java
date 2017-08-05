@@ -5,8 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.NewCall;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
+import ua.adeptius.asterisk.model.NewCall;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -15,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
-import static ua.adeptius.asterisk.utils.logging.MyLogger.log;
 
 public class MySqlStatisticDao extends MySqlDao {
 
@@ -38,7 +35,6 @@ public class MySqlStatisticDao extends MySqlDao {
             e.printStackTrace();
             LOGGER.error("Ошибка загрузки списка таблиц из БД", e);
         }
-        log(DB_OPERATIONS, "Ошибка при поиске таблиц статистики с БД");
         throw new Exception("Ошибка при загрузке таблиц статистики с БД");
     }
 
@@ -71,7 +67,6 @@ public class MySqlStatisticDao extends MySqlDao {
         } catch (Exception e) {
             LOGGER.error(user+": ошибка получения истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
         }
-        log(DB_OPERATIONS, "Ошибка при загрузке статистики с БД");
         throw new Exception("Ошибка при загрузке статистики с БД");
     }
 
@@ -82,10 +77,9 @@ public class MySqlStatisticDao extends MySqlDao {
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
-                log(DB_OPERATIONS, "Таблица статистики " + s + " была удалена.");
+                LOGGER.debug("Таблица статистики {} была удалена.", s);
             } catch (Exception e) {
                 LOGGER.error("Ошибка удаления таблицы "+s, e);
-                log(DB_OPERATIONS, "Ошибка удаления ненужной таблицы статистики с бд " + s);
             }
         }
     }
@@ -108,10 +102,9 @@ public class MySqlStatisticDao extends MySqlDao {
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
-                log(DB_OPERATIONS, "Таблица статистики " + s + " была создана.");
+                LOGGER.debug("Таблица статистики {} была создана.", s);
             } catch (Exception e) {
                 LOGGER.error("Ошибка создания таблицы"+s, e);
-                log(DB_OPERATIONS, "Ошибка при создании таблицы статистики в БД " + s);
             }
         }
     }
@@ -134,7 +127,6 @@ public class MySqlStatisticDao extends MySqlDao {
             statement.execute(sql);
         } catch (Exception e) {
             LOGGER.error(call.getUser().getLogin()+": ошибка сохранения звонка "+call.getCalledFrom()+" -> "+call.getCalledTo(), e);
-            log(DB_OPERATIONS, call.getUser().getLogin() + ": Ошибка при сохранении отчета в БД ");
         }
     }
 
@@ -145,7 +137,7 @@ public class MySqlStatisticDao extends MySqlDao {
         List<String> customerNames = UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
         List<String> tablesToDelete = tables.stream().filter(table -> !customerNames.contains(table)).collect(Collectors.toList());
         List<String> tablesToCreate = customerNames.stream().filter(name -> !tables.contains(name)).collect(Collectors.toList());
-        MyLogger.log(DB_OPERATIONS, "Синхронизация таблиц статистики. Создано: " + tablesToCreate.size() + ", удалено: " + tablesToDelete.size());
+        LOGGER.debug("Синхронизация таблиц статистики. Создано: {}, удалено: {}", tablesToCreate.size(), tablesToDelete.size());
         deleteTables(tablesToDelete);
         createStatisticTables(tablesToCreate);
     }

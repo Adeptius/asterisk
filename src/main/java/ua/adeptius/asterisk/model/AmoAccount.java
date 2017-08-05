@@ -2,15 +2,18 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
 @Table(name = "amo_accounts", schema = "calltrackdb")
-public class AmoAccount {
+public class AmoAccount implements Serializable {
 
     public AmoAccount() {
     }
@@ -22,7 +25,13 @@ public class AmoAccount {
     }
 
     @Id
-    @Column(name = "nextelLogin")
+    @GeneratedValue(generator = "increment") //галка в mysql "AI"
+    @GenericGenerator(name = "increment", strategy = "increment")
+    @Column(name = "id")
+    private int id;
+
+
+    @Column(name = "nextelLogin", insertable = false, updatable = false)
     @JsonIgnore
     private String nextelLogin;
 
@@ -47,13 +56,14 @@ public class AmoAccount {
     private int leadId; //TODO Реализовать возможность выбора
 
     @JsonIgnore
-    @OneToOne
-    @PrimaryKeyJoinColumn
+    @ManyToOne
+    @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "nextelLogin")
-    private Set<AmoPhoneBinding> phoneBindings;
+//    @Transient
+
+
+
 
 //    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
 //        AmoPhoneBinding binding = new AmoPhoneBinding();
@@ -63,33 +73,33 @@ public class AmoAccount {
 //    }
 
 
-    public void setPhoneBindings(Set<AmoPhoneBinding> phoneBindings) {
-        this.phoneBindings = phoneBindings;
-    }
+//    public void setPhoneBindings(Set<AmoPhoneBinding> phoneBindings) {
+//        this.phoneBindings = phoneBindings;
+//    }
 
-    @Nullable
-    public String getWorkersPhone(String workerId){
-        for (AmoPhoneBinding phoneBinding : phoneBindings) {
-            if (phoneBinding.getWorker().equals(workerId)){
-                return phoneBinding.getPhone();
-            }
-        }
-        return null;
-    }
+//    @Nullable
+//    public String getWorkersPhone(String workerId){
+//        for (AmoPhoneBinding phoneBinding : phoneBindings) {
+//            if (phoneBinding.getWorker().equals(workerId)){
+//                return phoneBinding.getPhone();
+//            }
+//        }
+//        return null;
+//    }
 
-    @Nullable
-    public String getWorkersId(String phone){
-        for (AmoPhoneBinding phoneBinding : phoneBindings) {
-            if (phoneBinding.getPhone().equals(phone)){
-                return phoneBinding.getWorker();
-            }
-        }
-        return null;
-    }
+//    @Nullable
+//    public String getWorkersId(String phone){
+//        for (AmoPhoneBinding phoneBinding : phoneBindings) {
+//            if (phoneBinding.getPhone().equals(phone)){
+//                return phoneBinding.getWorker();
+//            }
+//        }
+//        return null;
+//    }
 
-    public Set<AmoPhoneBinding> getPhoneBindings() {
-        return phoneBindings;
-    }
+//    public Set<AmoPhoneBinding> getPhoneBindings() {
+//        return phoneBindings;
+//    }
 
     public int getLeadId() {
         return leadId;
@@ -100,7 +110,7 @@ public class AmoAccount {
         return user;
     }
 
-    public void setUser(@Nonnull User user) {
+    public void setUser(User user) {
         if (user != null){
             nextelLogin = user.getLogin();
         }
@@ -158,11 +168,19 @@ public class AmoAccount {
         this.phoneEnumId = phoneEnumId;
     }
 
+//    public Set<AmoOperatorLocation> getOperatorLocations() {
+//        return operatorLocations;
+//    }
+
+//    public void setOperatorLocations(Set<AmoOperatorLocation> operatorLocations) {
+//        this.operatorLocations = operatorLocations;
+//    }
 
     @Override
     public String toString() {
         return "AmoAccount{" +
-                "nextelLogin='" + nextelLogin + '\'' +
+                "id=" + id +
+                ", nextelLogin='" + nextelLogin + '\'' +
                 ", amoLogin='" + amoLogin + '\'' +
                 ", apiKey='" + apiKey + '\'' +
                 ", domain='" + domain + '\'' +
@@ -170,7 +188,7 @@ public class AmoAccount {
                 ", phoneEnumId='" + phoneEnumId + '\'' +
                 ", leadId=" + leadId +
                 ", user=" + user.getLogin() +
-                ", phoneBindings=" + phoneBindings +
+//                ", operatorLocations=" + operatorLocations +
                 '}';
     }
 }

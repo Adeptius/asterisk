@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
+import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
+
+import java.util.Set;
 
 
 @Controller
@@ -17,15 +20,19 @@ public class WebController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(WebController.class.getSimpleName());
 
-    @RequestMapping(value = "/{sitename}/getnumber/{googleid}/{ip}/{pagerequest}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    // todo кеширование юзеров в мапу
+
+    @RequestMapping(value = "/getnumber/{user}/{site}/{googleid}/{ip}/{pagerequest}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
     public
     @ResponseBody
-    String plaintext(@PathVariable String sitename,
+    String plaintext(@PathVariable String user,
+                     @PathVariable String site,
                      @PathVariable String googleid,
                      @PathVariable String ip,
                      @PathVariable String pagerequest) {
-        Tracking tracking = UserContainer.getSiteByName(sitename);
-        String phone = MainController.getFreeNumberFromSite(tracking, googleid, ip, pagerequest);
+        User userObject = UserContainer.getUserByName(user); // todo тут нуллпоинтеры
+        Site siteObject = userObject.getSiteByName(site);
+        String phone = MainController.getFreeNumberFromSite(userObject, siteObject, googleid, ip, pagerequest);
         return convertPhone(phone);
     }
 

@@ -7,19 +7,11 @@ import com.mashape.unirest.http.Unirest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import ua.adeptius.amocrm.monitor.AmoCookieCleaner;
 import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
-import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
-import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.*;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
 @Component
 public class Main {
@@ -28,9 +20,20 @@ public class Main {
     private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
     private static boolean startedOnWindows;
 
+
+//    public Main(SessionFactory sessionFactory) {
+//        HibernateDao.sessionFactory = sessionFactory;
+//    }
+//    @Autowired
+//    SecondDao secondDao;
+
+
     @AfterSpringLoadComplete
     public void init() {
         Settings.load(this.getClass());
+//        User e404 = secondDao.getUser("e404");
+//        System.out.println(e404);
+//        secondDao.changePass("e404", "222");
         checkIfNeedRestartAndSetVariables();
     }
 
@@ -43,12 +46,14 @@ public class Main {
             LOGGER.info("OS Linux");
             Settings.setSetting("___forwardingRulesFolder","/var/www/html/admin/modules/core/etc/clients/");
             Settings.setSetting("___sipConfigsFolder","/etc/asterisk/sip_clients/");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","cstat.nextel.com.ua:8443");
 
         }else { // Это винда
             LOGGER.info("OS Windows");
             startedOnWindows = true;
             Settings.setSetting("___forwardingRulesFolder","D:\\home\\adeptius\\tomcat\\rules\\");
             Settings.setSetting("___sipConfigsFolder","D:\\home\\adeptius\\tomcat\\sips\\");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","adeptius.pp.ua:8443");
         }
 
         if (firstStart && itsLinux) {
@@ -95,25 +100,23 @@ public class Main {
             LOGGER.info("MySQL: Таблицы статистики синхронизированы");
         } catch (Exception e) {
             LOGGER.error("MySQL: Ошибка синхронизации таблиц статистики", e);
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТЕЛЕФОНИИ");
             throw new RuntimeException("ОШИБКА СОЗДАНИЯ ИДИ УДАЛЕНИЯ ТАБЛИЦ СТАТИСТИКИ В БАЗЕ ТЕЛЕФОНИИ");
         }
 
-        try {
-            LOGGER.info("MySQL:Синхронизация номеров с БД");
-            PhonesController.scanAndClean();
-            LOGGER.info("MySQL: Номера синхронизированы");
-        } catch (Exception e) {
-            LOGGER.error("MySQL: Ошибка синхронизации номеров", e);
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
-            throw new RuntimeException("ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
-        }
+//        try {  Это не нужно так как теперь при удалении обьекта - номера освобождаются автоматически хибернейтом.
+//            LOGGER.info("MySQL:Синхронизация номеров с БД");
+//            PhonesController.scanAndClean();
+//            LOGGER.info("MySQL: Номера синхронизированы");
+//        } catch (Exception e) {
+//            LOGGER.error("MySQL: Ошибка синхронизации номеров", e);
+//            throw new RuntimeException("ОШИБКА ОЧИСТКИ ЗАНЯТЫХ НОМЕРОВ В БАЗЕ");
+//        }
 
 
         // создаём файлы конфигов номеров, если их нет
         try {
             LOGGER.info("Синхронизация файлов конфигов");
-            SipConfigDao.synchronizeFilesAndDb();
+            SipConfigDao.synchronizeSipFilesAndInnerDb();
             LOGGER.info("Синхронизация файлов конфигов завершена");
         } catch (Exception e) {
             LOGGER.error("Ошибка синхронизации файлов конфигов", e);
@@ -122,51 +125,43 @@ public class Main {
 
 
         // Инициализация всех номеров телефонов
-        LOGGER.info("Инициализация номеров трекинга");
-        final AtomicInteger trackingCount = new AtomicInteger(0);
-        UserContainer.getUsers().stream().filter(user -> user.getTracking() != null).map(User::getTracking).forEach(site -> {
-            try {
-                trackingCount.incrementAndGet();
-                site.updateNumbers();
-            } catch (Exception e) {
-                LOGGER.error("Недостаточно номеров для трекинга " + site.getLogin(), e);
-                throw new RuntimeException("Недостаточно номеров");
-            }
-        });
-        LOGGER.info("Инициализированы номера для {} услуг трекинга", trackingCount);
+//        LOGGER.info("Инициализация номеров трекинга");
+//        final AtomicInteger trackingCount = new AtomicInteger(0);
+//        UserContainer.getUsers().stream().filter(user -> user.getTracking() != null).map(User::getTracking).forEach(site -> {
+//            try {
+//                trackingCount.incrementAndGet();
+//                site.updateNumbers();
+//            } catch (Exception e) {
+//                LOGGER.error("Недостаточно номеров для трекинга " + site.getLogin(), e);
+//                throw new RuntimeException("Недостаточно номеров");
+//            }
+//        });
+//        LOGGER.info("Инициализированы номера для {} услуг трекинга", trackingCount);
 
 
-        LOGGER.info("Инициализация номеров телефонии");
-        final AtomicInteger telephonyCount = new AtomicInteger(0);
-        UserContainer.getUsers().stream().filter(user -> user.getTelephony() != null).map(User::getTelephony).forEach(telephony -> {
-            try {
-                telephony.updateNumbers();
-                telephonyCount.incrementAndGet();
-            } catch (Exception e) {
-                LOGGER.error("Недостаточно номеров для телефонии " + telephony.getLogin(), e);
-                throw new RuntimeException("Недостаточно номеров");
-            }
-        });
-        LOGGER.info("Инициализированы номера для {} услуг телефонии", telephonyCount);
+//        LOGGER.info("Инициализация номеров телефонии");
+//        final AtomicInteger telephonyCount = new AtomicInteger(0);
+//        UserContainer.getUsers().stream().filter(user -> user.getTelephony() != null).map(User::getTelephony).forEach(telephony -> {
+//            try {
+//                telephony.updateNumbers();
+//                telephonyCount.incrementAndGet();
+//            } catch (Exception e) {
+//                LOGGER.error("Недостаточно номеров для телефонии " + telephony.getLogin(), e);
+//                throw new RuntimeException("Недостаточно номеров");
+//            }
+//        });
+//        LOGGER.info("Инициализированы номера для {} услуг телефонии", telephonyCount);
 
         LOGGER.info("Кеширование номеров и пользователей");
         CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
-
-        // Загрузка наблюдателя. Только для сайтов
-        new PhonesWatcher();
-        new DailyCleaner();
-        new ConnectionKeeper();
-        new AmoCookieCleaner();
-        new ScenarioWriter();
-
 
         Thread thread = new Thread(() -> initMonitor());
         thread.setDaemon(true);
         thread.start();
 
-        Calendar calendar = new GregorianCalendar();
-        MyLogger.log(DB_OPERATIONS, "Сервер был загружен в " + calendar.get(Calendar.HOUR_OF_DAY) + " часов, " + calendar.get(Calendar.MINUTE) + " минут.");
-        LOGGER.info("Сервер запущен!");
+//        Calendar calendar = new GregorianCalendar();
+//        MyLogger.log(DB_OPERATIONS, "Сервер был загружен в " + calendar.get(Calendar.HOUR_OF_DAY) + " часов, " + calendar.get(Calendar.MINUTE) + " минут.");
+//        LOGGER.info("Сервер запущен!");
 
         if (startedOnWindows){
             try{
@@ -182,7 +177,6 @@ public class Main {
         }
     }
 
-
     private void initMonitor() {
         LOGGER.info("Запуск мониторинга астериска");
         try {
@@ -191,7 +185,6 @@ public class Main {
             LOGGER.info("Монитор астериска запущен");
         } catch (Exception e) {
             LOGGER.error("Ошибка запуска мониторинга телефонии {}", e.getMessage());
-            MyLogger.log(DB_OPERATIONS, "ОШИБКА ЗАПУСКА МОНИТОРИНГА ТЕЛЕФОНИИ " + e.getMessage());
             try {
                 Thread.sleep(60000);
             } catch (InterruptedException e1) {
@@ -199,7 +192,6 @@ public class Main {
             } finally {
             }
             LOGGER.info("Повторный запуск монитора телефонии");
-            MyLogger.log(DB_OPERATIONS, "ПОВТОРНО ЗАПУСКАЮ ТЕЛЕФОНИЮ");
             initMonitor();
         }
     }

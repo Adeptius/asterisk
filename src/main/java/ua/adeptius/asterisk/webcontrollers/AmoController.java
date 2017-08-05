@@ -23,10 +23,7 @@ import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.JsonTracking;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.model.AmoAccount;
-import ua.adeptius.asterisk.model.AmoPhoneBinding;
-import ua.adeptius.asterisk.model.Tracking;
-import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -93,14 +90,14 @@ public class AmoController {
         amoAccount.setPhoneEnumId(null);
 
         try {
-            HibernateController.updateUser(user);
+            HibernateDao.update(user);
             return new Message(Message.Status.Success, "Amo account setted").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка изменения амо аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            if (safeMode)
-                user.reloadAmoAccountFromDb();
+//            if (safeMode)
+//                user.reloadAmoAccountFromDb();todo
         }
     }
 
@@ -149,15 +146,17 @@ public class AmoController {
             return new Message(Message.Status.Error, "User have not connected Amo account").toString();
         }
 
+        user.setAmoAccount(null);
+
         try {
-            HibernateController.removeAmoAccount(user);
+            HibernateDao.update(user);
             return new Message(Message.Status.Success, "Amo account removed").toString();
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            if (safeMode)
-                user.reloadAmoAccountFromDb();
+//            if (safeMode)
+//                user.reloadAmoAccountFromDb();//todo
         }
     }
 
@@ -175,12 +174,17 @@ public class AmoController {
             return new Message(Message.Status.Error, "User have not connected Amo account").toString();
         }
 
+        HashMap<String, String> workerIdAndPhones;
+
+
         // получаем текущий список привязок и конвертируем его в мапу id работника <-> номер телефона
-        Set<AmoPhoneBinding> phoneBindings = amoAccount.getPhoneBindings();
-        HashMap<String, String> workerIdAndPhones = new HashMap<>();
-        for (AmoPhoneBinding phoneBinding : phoneBindings) {
-            workerIdAndPhones.put(phoneBinding.getWorker(), phoneBinding.getPhone());
+        Set<AmoOperatorLocation> operatorLocations = user.getOperatorLocations();
+        if (operatorLocations.isEmpty()) {
+            workerIdAndPhones = new HashMap<>();
+        } else {
+            workerIdAndPhones = operatorLocations.iterator().next().getAmoUserIdAndInnerNumber();
         }
+
 
         try {
             // Загружаем из Amo список работников пользователя
@@ -215,39 +219,52 @@ public class AmoController {
             return new Message(Message.Status.Error, "User have not connected Amo account").toString();
         }
 
-        Set<AmoPhoneBinding> currentBindings = amoAccount.getPhoneBindings();
+//        Set<AmoPhoneBinding> currentBindings = amoAccount.getPhoneBindings();
 
         try {
             JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
             HashMap<String, String> usersNameAndId = jsonAmoAccount.getUsersNameAndId();
 
-            Set<AmoPhoneBinding> newAmoBindings = new HashSet<>();
+//            Set<AmoPhoneBinding> newAmoBindings = new HashSet<>();
+            HashMap<String, String> newHashAmoBindings = new HashMap<>();
 
             for (Map.Entry<String, String> entry : newBindings.entrySet()) {
                 String worker = entry.getKey();
                 String phone = entry.getValue();
 
-                if (StringUtils.isAnyBlank(worker, phone)){
+                if (StringUtils.isAnyBlank(worker, phone)) {
                     continue;
                 }
 
-                if (!user.isThatUsersInnerNumber(phone)){
-                    return new Message(Message.Status.Error, "Phone "+phone+" is not user own").toString();
-                }
+//                if (!user.isThatUsersInnerNumber(phone)){todo
+//                    return new Message(Message.Status.Error, "Phone "+phone+" is not user own").toString();
+//                }
 
                 String workerId = usersNameAndId.get(worker);
                 if (workerId == null) {
-                    return new Message(Message.Status.Error, "User "+worker+" not found in amo account.").toString();
+                    return new Message(Message.Status.Error, "User " + worker + " not found in amo account.").toString();
                 }
 
-                AmoPhoneBinding binding = new AmoPhoneBinding(workerId, phone, amoAccount);
-                newAmoBindings.add(binding);
+//                AmoPhoneBinding binding = new AmoPhoneBinding(workerId, phone, amoAccount);
+//                newAmoBindings.add(binding);
+                newHashAmoBindings.put(worker, phone);
             }
 
-            currentBindings.clear();
-            for (AmoPhoneBinding newAmoBinding : newAmoBindings) {
-                amoAccount.getPhoneBindings().add(newAmoBinding);
+            Set<AmoOperatorLocation> operatorLocations = user.getOperatorLocations();
+            if (!operatorLocations.isEmpty()) {
+                operatorLocations.clear();
             }
+
+            AmoOperatorLocation location = new AmoOperatorLocation();
+            location.setLogin(user.getLogin());
+            location.setName("location");
+            location.setAmoUserIdAndInnerNumber(newHashAmoBindings);
+            operatorLocations.add(location);
+
+//            currentBindings.clear();
+//            for (AmoPhoneBinding newAmoBinding : newAmoBindings) {
+//                amoAccount.getPhoneBindings().add(newAmoBinding);
+//            }
 
             HibernateDao.update(user);
 

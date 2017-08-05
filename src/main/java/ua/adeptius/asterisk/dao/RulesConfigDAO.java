@@ -5,11 +5,8 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.model.Phone;
 import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.ScenarioStatus;
-import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.telephony.OldRule;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,9 +26,9 @@ public class RulesConfigDAO {
 
     public static void writeAllNeededScenarios() {
         LOGGER.info("Подготовка сценариев на следующий час");
-        List<Scenario> scenarios = UserContainer.getUsers().stream().flatMap(user -> user.getScenarios().stream())
-                .filter(scenario -> scenario.getStatus() == ScenarioStatus.ACTIVATED)
-                .collect(Collectors.toList());
+//        List<Scenario> scenarios = UserContainer.getUsers().stream().flatMap(user -> user.getScenarios().stream())
+//                .filter(scenario -> scenario.getStatus() == ScenarioStatus.ACTIVATED)
+//                .collect(Collectors.toList());
         try {
             RulesConfigDAO.clearRulesFolder();
         } catch (IOException e) {
@@ -66,32 +63,32 @@ public class RulesConfigDAO {
 
         LOGGER.debug("Ищем сценарии на {} день (нумерация с нуля) недели, {} час", day, hour);
 
-        for (Scenario scenario : scenarios) { // проходимся по всем сценариям и проверяем какие из них можно активировать на следующий час.
-            boolean[] days = scenario.getDays();
-            int startTime = scenario.getStartHour();
-            int endTime = scenario.getEndHour();
-
-            if (!days[day]) {
-                LOGGER.trace("Не тот день для сценария {}", scenario);
-                continue;
-            }
-
-            if (startTime > hour) {
-                LOGGER.trace("Не наступило время сценария {}", scenario);
-                continue;
-            }
-
-            if (endTime <= hour) {
-                LOGGER.trace("Прошло время сценария {}", scenario);
-                continue;
-            }
-
-            try {
-                RulesConfigDAO.writeToFile(scenario);
-            } catch (IOException e) {
-                LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
-            }
-        }
+//        for (Scenario scenario : scenarios) { // проходимся по всем сценариям и проверяем какие из них можно активировать на следующий час.
+//            boolean[] days = scenario.getDays();
+//            int startTime = scenario.getStartHour();
+//            int endTime = scenario.getEndHour();
+//
+//            if (!days[day]) {
+//                LOGGER.trace("Не тот день для сценария {}", scenario);
+//                continue;
+//            }
+//
+//            if (startTime > hour) {
+//                LOGGER.trace("Не наступило время сценария {}", scenario);
+//                continue;
+//            }
+//
+//            if (endTime <= hour) {
+//                LOGGER.trace("Прошло время сценария {}", scenario);
+//                continue;
+//            }
+//
+//            try {
+//                RulesConfigDAO.writeToFile(scenario);
+//            } catch (IOException e) {
+//                LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
+//            }
+//        }
     }
 
     public static void clearRulesFolder() throws IOException {
@@ -119,50 +116,50 @@ public class RulesConfigDAO {
     }
 
 
-    public static void writeToFile(String filename, List<OldRule> oldRuleList) throws Exception {
-        LOGGER.trace("{}: запись правил в файл", filename);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
-        for (OldRule oldRule : oldRuleList) {
-            writer.write(oldRule.getConfig());
-        }
-        writer.close();
-    }
+//    public static void writeToFile(String filename, List<OldRule> oldRuleList) throws Exception {
+//        LOGGER.trace("{}: запись правил в файл", filename);
+//        BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
+//        for (OldRule oldRule : oldRuleList) {
+//            writer.write(oldRule.getConfig());
+//        }
+//        writer.close();
+//    }
 
-    public static List<OldRule> readFromFile(String filename) throws Exception {
-        LOGGER.trace("{}: чтение правил из файла", filename);
-        List<String> lines = readStringsFromFile(folder + filename + ".conf");
-        List<OldRule> oldRules = new ArrayList<>();
-        List<String> linesOfRule = new ArrayList<>();
-        for (String line : lines) {
-            if (line.startsWith("; Start Rule")) {
-                linesOfRule.clear();
-            } else if (line.startsWith("; End Rule")) {
-                oldRules.add(new OldRule(linesOfRule));
-            } else {
-                linesOfRule.add(line);
-            }
-        }
-        return oldRules;
-    }
+//    public static List<OldRule> readFromFile(String filename) throws Exception {
+//        LOGGER.trace("{}: чтение правил из файла", filename);
+//        List<String> lines = readStringsFromFile(folder + filename + ".conf");
+//        List<OldRule> oldRules = new ArrayList<>();
+//        List<String> linesOfRule = new ArrayList<>();
+//        for (String line : lines) {
+//            if (line.startsWith("; Start Rule")) {
+//                linesOfRule.clear();
+//            } else if (line.startsWith("; End Rule")) {
+//                oldRules.add(new OldRule(linesOfRule));
+//            } else {
+//                linesOfRule.add(line);
+//            }
+//        }
+//        return oldRules;
+//    }
 
 
-    public static List<String> readStringsFromFile(String path) throws Exception {
-        List<String> fileEnrty = Files.readAllLines(Paths.get(path));
-        List<String> filteredEntry = new ArrayList<>();
-        for (String s : fileEnrty) {
-            if (!s.endsWith(",1,Noop(${CALLERID(num)})")
-                    && !s.endsWith(",n,Gosub(sub-record-check,s,1(in,${EXTEN},force))")
-                    && !s.endsWith(",n,Set(__FROM_DID=${EXTEN})")
-                    && !s.endsWith(",n,Set(CDR(did)=${FROM_DID})")
-                    && !s.endsWith(",n,Set(num=${CALLERID(num)})")
-                    && !s.equals("\n")
-                    && !s.equals("")
-                    ) {
-                filteredEntry.add(s);
-            }
-        }
-        return filteredEntry;
-    }
+//    public static List<String> readStringsFromFile(String path) throws Exception {
+//        List<String> fileEnrty = Files.readAllLines(Paths.get(path));
+//        List<String> filteredEntry = new ArrayList<>();
+//        for (String s : fileEnrty) {
+//            if (!s.endsWith(",1,Noop(${CALLERID(num)})")
+//                    && !s.endsWith(",n,Gosub(sub-record-check,s,1(in,${EXTEN},force))")
+//                    && !s.endsWith(",n,Set(__FROM_DID=${EXTEN})")
+//                    && !s.endsWith(",n,Set(CDR(did)=${FROM_DID})")
+//                    && !s.endsWith(",n,Set(num=${CALLERID(num)})")
+//                    && !s.equals("\n")
+//                    && !s.equals("")
+//                    ) {
+//                filteredEntry.add(s);
+//            }
+//        }
+//        return filteredEntry;
+//    }
 
     public static void removeFile(String name) throws Exception {
         LOGGER.trace("{}: удаление файла правил", name);

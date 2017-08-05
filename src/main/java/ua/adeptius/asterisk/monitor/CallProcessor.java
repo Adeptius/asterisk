@@ -6,8 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.model.Phone;
-import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,9 +15,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.monitor.NewCall.CallState.*;
-import static ua.adeptius.asterisk.monitor.NewCall.Service.TELEPHONY;
-import static ua.adeptius.asterisk.monitor.NewCall.Service.TRACKING;
+import static ua.adeptius.asterisk.model.NewCall.CallState.*;
+import static ua.adeptius.asterisk.model.NewCall.Service.TELEPHONY;
+import static ua.adeptius.asterisk.model.NewCall.Service.TRACKING;
 
 @SuppressWarnings("Duplicates")
 public class CallProcessor {
@@ -221,21 +220,21 @@ public class CallProcessor {
         String from = call.getCalledFrom();
         String to = call.getCalledTo();
 
-        if (user.getTracking() != null) {
-            List<String> list = user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
-            if (list.contains(to) || list.contains(from)) {
-                call.setService(TRACKING);
-                return;
-            }
-        }
-
-        if (user.getTelephony() != null) {
-            List<String> inner = user.getTelephony().getInnerPhonesList();
-            List<String> outer = user.getTelephony().getOuterPhonesList();
-            if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)) {
-                call.setService(TELEPHONY);
-            }
-        }
+//        if (user.getTracking() != null) {
+//            List<String> list = user.getTracking().getPhones().stream().map(OldPhone::getNumber).collect(Collectors.toList());
+//            if (list.contains(to) || list.contains(from)) {
+//                call.setService(TRACKING);
+//                return;
+//            }
+//        }
+//
+//        if (user.getTelephony() != null) {
+//            List<String> inner = user.getTelephony().getInnerPhonesList();
+//            List<String> outer = user.getTelephony().getOuterPhonesList();
+//            if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)) {
+//                call.setService(TELEPHONY);
+//            }
+//        }
     }
 
 
@@ -263,9 +262,9 @@ public class CallProcessor {
         LOGGER.trace("Обновление карты Number <-> User");
         phonesAndUsers.clear();
         for (User user : UserContainer.getUsers()) {
-            List<String> numbers = user.getTracking() == null ? new ArrayList<>() : user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList());
-            numbers.addAll(user.getTelephony() == null ? new ArrayList<>() : user.getTelephony().getOuterPhonesList());
-            numbers.addAll(user.getTelephony() == null ? new ArrayList<>() : user.getTelephony().getInnerPhonesList());
+            List<String> numbers =  new ArrayList<>();
+            numbers.addAll(user.getOuterPhones().stream().map(OuterPhone::getNumber).collect(Collectors.toList()));
+            numbers.addAll(user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList()));
             numbers.forEach(s -> phonesAndUsers.put(s, user));
         }
     }

@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.NewCall;
+import ua.adeptius.asterisk.model.NewCall;
 
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;

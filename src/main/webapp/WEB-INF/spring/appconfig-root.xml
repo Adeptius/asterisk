@@ -7,10 +7,9 @@
 
     <context:annotation-config/>
 
+    <context:component-scan base-package="ua.adeptius"/>
 
     <bean class="ua.adeptius.asterisk.annotations.PostProxyInvokerContextListener"/>
-
-    <bean class="ua.adeptius.asterisk.Main"/>
 
     <context:property-placeholder location="classpath:database.properties"/>
 </beans>

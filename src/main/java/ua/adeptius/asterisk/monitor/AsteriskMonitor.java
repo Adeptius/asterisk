@@ -6,20 +6,12 @@ import org.asteriskjava.manager.event.*;
 import org.asteriskjava.manager.response.ManagerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
 import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
 import java.io.IOException;
-import java.util.HashMap;
-
-import static ua.adeptius.asterisk.utils.logging.LogCategory.ANSWER_CALL;
-import static ua.adeptius.asterisk.utils.logging.LogCategory.ENDED_CALL;
-import static ua.adeptius.asterisk.utils.logging.LogCategory.INCOMING_CALL;
 
 @SuppressWarnings("Duplicates")
 public class AsteriskMonitor implements ManagerEventListener {

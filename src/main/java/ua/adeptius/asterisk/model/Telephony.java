@@ -13,115 +13,115 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Entity
-@Table(name = "telephony", schema = "calltrackdb")
+//@Entity
+//@Table(name = "telephony", schema = "calltrackdb")
 public class Telephony {
-
-    private static Logger LOGGER =  LoggerFactory.getLogger(Telephony.class.getSimpleName());
-
-    @JsonIgnore
-    @Id
-    @Column(name = "login")
-    private String login;
-
-    @Column(name = "innerCount")
-    private Integer innerCount;
-
-    @Column(name = "outerCount")
-    private Integer outerCount;
-
-    @JsonIgnore
-    @OneToOne
-    @PrimaryKeyJoinColumn
-    private User user;
-
-    @Transient
-    private ArrayList<String> innerPhonesList = new ArrayList<>();
-
-    @Transient
-    private ArrayList<String> outerPhonesList = new ArrayList<>();
-
-    public void updateNumbers() throws Exception{
-        LOGGER.debug("{}: обновление списков номеров телефонии", login);
-        outerPhonesList = PhonesDao.getCustomersOuterNumbers("tele_" + login);
-        innerPhonesList = PhonesDao.getCustomersInnerNumbers(login);
-
-        PhonesController.increaseOrDecreaseOuterList(outerCount, outerPhonesList, "tele_" + login);
-        PhonesController.increaseOrDecreaseInnerList(innerCount, innerPhonesList, login);
-        CallProcessor.updatePhonesHashMap();
-    }
-
-    @JsonIgnore
-    public List<String> getAvailableNumbers() {
-//        List<String> currentPhones = outerPhonesList;
-//        List<String> currentNumbersInRules = user.getOldRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
-//        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
-        return outerPhonesList;
-    }
-
-
-    public ArrayList<String> getInnerPhonesList() {
-        return innerPhonesList;
-    }
-
-    public void setInnerPhonesList(ArrayList<String> innerPhonesList) {
-        this.innerPhonesList = innerPhonesList;
-    }
-
-    public ArrayList<String> getOuterPhonesList() {
-        return outerPhonesList;
-    }
-
-    public void setOuterPhonesList(ArrayList<String> outerPhonesList) {
-        this.outerPhonesList = outerPhonesList;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public Integer getInnerCount() {
-        return innerCount;
-    }
-
-    public void setInnerCount(Integer innerCount) {
-        this.innerCount = innerCount;
-    }
-
-    public Integer getOuterCount() {
-        return outerCount;
-    }
-
-    public void setOuterCount(Integer outerCount) {
-        this.outerCount = outerCount;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        if (user != null){
-            this.login = user.getLogin();
-        }
-        this.user = user;
-    }
-
-    @Override
-    public String toString() {
-        return "Telephony{" +
-                "login='" + login + '\'' +
-                ", innerCount=" + innerCount +
-                ", outerCount=" + outerCount +
-                ", user=" + user.getLogin() +
-                ", innerPhonesList=" + innerPhonesList +
-                ", outerPhonesList=" + outerPhonesList +
-                '}';
-    }
-
+//
+//    private static Logger LOGGER =  LoggerFactory.getLogger(Telephony.class.getSimpleName());
+//
+//    @JsonIgnore
+//    @Id
+//    @Column(name = "login")
+//    private String login;
+//
+//    @Column(name = "innerCount")
+//    private Integer innerCount;
+//
+//    @Column(name = "outerCount")
+//    private Integer outerCount;
+//
+//    @JsonIgnore
+//    @OneToOne
+//    @PrimaryKeyJoinColumn
+//    private User user;
+//
+//    @Transient
+//    private ArrayList<String> innerPhonesList = new ArrayList<>();
+//
+//    @Transient
+//    private ArrayList<String> outerPhonesList = new ArrayList<>();
+//
+//    public void updateNumbers() throws Exception{
+//        LOGGER.debug("{}: обновление списков номеров телефонии", login);
+//        outerPhonesList = PhonesDao.getCustomersOuterNumbers("tele_" + login);
+//        innerPhonesList = PhonesDao.getCustomersInnerNumbers(login);
+//
+//        PhonesController.increaseOrDecreaseOuterList(outerCount, outerPhonesList, "tele_" + login);
+//        PhonesController.increaseOrDecreaseInnerList(innerCount, innerPhonesList, login);
+//        CallProcessor.updatePhonesHashMap();
+//    }
+//
+//    @JsonIgnore
+//    public List<String> getAvailableNumbers() {
+////        List<String> currentPhones = outerPhonesList;
+////        List<String> currentNumbersInRules = user.getOldRules().stream().flatMap(rule -> rule.getFrom().stream()).collect(Collectors.toList());
+////        List<String> list = currentPhones.stream().filter(s -> !currentNumbersInRules.contains(s)).collect(Collectors.toList());
+//        return outerPhonesList;
+//    }
+//
+//
+//    public ArrayList<String> getInnerPhonesList() {
+//        return innerPhonesList;
+//    }
+//
+//    public void setInnerPhonesList(ArrayList<String> innerPhonesList) {
+//        this.innerPhonesList = innerPhonesList;
+//    }
+//
+//    public ArrayList<String> getOuterPhonesList() {
+//        return outerPhonesList;
+//    }
+//
+//    public void setOuterPhonesList(ArrayList<String> outerPhonesList) {
+//        this.outerPhonesList = outerPhonesList;
+//    }
+//
+//    public String getLogin() {
+//        return login;
+//    }
+//
+//    public void setLogin(String login) {
+//        this.login = login;
+//    }
+//
+//    public Integer getInnerCount() {
+//        return innerCount;
+//    }
+//
+//    public void setInnerCount(Integer innerCount) {
+//        this.innerCount = innerCount;
+//    }
+//
+//    public Integer getOuterCount() {
+//        return outerCount;
+//    }
+//
+//    public void setOuterCount(Integer outerCount) {
+//        this.outerCount = outerCount;
+//    }
+//
+//    public User getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(User user) {
+//        if (user != null){
+//            this.login = user.getLogin();
+//        }
+//        this.user = user;
+//    }
+//
+//    @Override
+//    public String toString() {
+//        return "Telephony{" +
+//                "login='" + login + '\'' +
+//                ", innerCount=" + innerCount +
+//                ", outerCount=" + outerCount +
+//                ", user=" + user.getLogin() +
+//                ", innerPhonesList=" + innerPhonesList +
+//                ", outerPhonesList=" + outerPhonesList +
+//                '}';
+//    }
+//
 
 }

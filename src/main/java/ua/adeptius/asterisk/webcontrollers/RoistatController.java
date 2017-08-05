@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 public class RoistatController {
 
     private static boolean safeMode = true;
-    private static Logger LOGGER =  LoggerFactory.getLogger(RoistatController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(RoistatController.class.getSimpleName());
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
@@ -51,8 +51,8 @@ public class RoistatController {
 
         try {
             return new ObjectMapper().writeValueAsString(user.getRoistatAccount());
-        }catch (Exception e){
-            LOGGER.error(user.getLogin()+": ошибка получения Roistat аккаунта: ", e);
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": ошибка получения Roistat аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
@@ -84,14 +84,15 @@ public class RoistatController {
         roistatAccount.setApiKey(apiKey);
 
         try {
-            HibernateController.updateUser(user);
+            HibernateDao.update(user);
             return new Message(Message.Status.Success, "Roistat account setted").toString();
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка изменения Roistat аккаунта: ", e);
+            LOGGER.error(user.getLogin() + ": ошибка изменения Roistat аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            if (safeMode)
-                user.reloadRoistatAccountFromDb();
+            if (safeMode) {
+//                user.reloadRoistatAccountFromDb(); // todo включить
+            }
         }
     }
 
@@ -112,12 +113,12 @@ public class RoistatController {
 
         try {
             boolean allOk = testRoistat(projectNumber, userApiKey);
-            if (allOk){
+            if (allOk) {
                 return new Message(Message.Status.Success, "Check complete. It works!").toString();
-            }else {
+            } else {
                 return new Message(Message.Status.Error, "Project number or API key is wrong").toString();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.error("Неизвестная ошибка при проверке аккаунта roistat. Аккаунт nextel: " + user.getLogin(), e);
             return new Message(Message.Status.Error, "Internal error").toString();
         }
@@ -136,18 +137,20 @@ public class RoistatController {
         }
 
         try {
-            HibernateController.removeRoistatAccount(user);
+            user.setRoistatAccount(null);
+            HibernateDao.update(user);
             return new Message(Message.Status.Success, "Roistat account removed").toString();
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка удаления Roistat аккаунта.", e);
+            LOGGER.error(user.getLogin() + ": ошибка удаления Roistat аккаунта.", e);
             return new Message(Message.Status.Error, "Internal error").toString();
         } finally {
-            if (safeMode)
-                user.reloadRoistatAccountFromDb();
+            if (safeMode) {
+//                user.reloadRoistatAccountFromDb(); // todo включить
+            }
         }
     }
 
-    public static boolean testRoistat(String projectNumber, String apiKey) throws Exception{
+    public static boolean testRoistat(String projectNumber, String apiKey) throws Exception {
         HttpResponse<String> response = Unirest
                 .post("https://cloud.roistat.com/api/v1/project/phone-call?project=" + projectNumber + "&key=" + apiKey)
                 .header("content-type", "application/json")
@@ -156,11 +159,11 @@ public class RoistatController {
         LOGGER.trace("Ответ от roistat при проверке учетных данных: {}", body);
         JSONObject object = new JSONObject(body);
         String status = object.getString("status");
-        if ("error".equals(status)){
+        if ("error".equals(status)) {
             String error = object.getString("error");
-            if (error.startsWith("incorrect_request")){
+            if (error.startsWith("incorrect_request")) {
                 return false;
-            } else if (error.startsWith("request_data_validation_error")){
+            } else if (error.startsWith("request_data_validation_error")) {
                 return true;
             }
         }

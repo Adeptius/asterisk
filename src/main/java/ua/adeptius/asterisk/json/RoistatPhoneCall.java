@@ -1,11 +1,11 @@
 package ua.adeptius.asterisk.json;
 
 
-import ua.adeptius.asterisk.monitor.NewCall;
+import ua.adeptius.asterisk.model.NewCall;
 
 import java.text.SimpleDateFormat;
 
-import static ua.adeptius.asterisk.monitor.NewCall.CallState.ANSWER;
+import static ua.adeptius.asterisk.model.NewCall.CallState.ANSWER;
 
 public class RoistatPhoneCall {
 

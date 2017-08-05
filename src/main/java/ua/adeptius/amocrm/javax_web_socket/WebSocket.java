@@ -113,20 +113,20 @@ public class WebSocket {
                 //TODO вернуть ошибку пользователю
             }
 
-            List<User> users = UserContainer.getUsers();
-            for (User user : users) {
-                AmoAccount amoAccount = user.getAmoAccount();
-                if (amoAccount != null) {
-                    String workersNumber = amoAccount.getWorkersPhone(userId);
-                    if (workersNumber != null) {
-                        try {
-                            Main.monitor.sendCallToOutsideAction(workersNumber, callTo);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
+//            List<User> users = UserContainer.getUsers();
+//            for (User user : users) {
+//                AmoAccount amoAccount = user.getAmoAccount();
+//                if (amoAccount != null) {
+//                    String workersNumber = amoAccount.getWorkersPhone(userId);
+//                    if (workersNumber != null) {
+//                        try {
+//                            Main.monitor.sendCallToOutsideAction(workersNumber, callTo);
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 

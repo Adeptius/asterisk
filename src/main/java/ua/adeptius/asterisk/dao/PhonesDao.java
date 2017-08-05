@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.model.OuterPhone;
-import ua.adeptius.asterisk.telephony.SipConfig;
 
 import java.util.ArrayList;
 import java.util.HashMap;

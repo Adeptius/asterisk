@@ -6,9 +6,9 @@ import ua.adeptius.asterisk.utils.StringUtils;
 
 import java.util.GregorianCalendar;
 
-public class Phone {
+public class OldPhone {
 
-    public Phone(String number) {
+    public OldPhone(String number) {
         this.number = number;
         googleId = "";
         ip = "";

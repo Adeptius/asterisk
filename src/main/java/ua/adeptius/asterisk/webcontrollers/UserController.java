@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonUser;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
@@ -59,7 +60,7 @@ public class UserController {
             newUser.setPassword(jsonUser.getPassword());
             newUser.setEmail(jsonUser.getEmail());
             newUser.setTrackingId(jsonUser.getTrackingId());
-            HibernateController.saveNewUser(newUser);
+            HibernateDao.saveUser(newUser);
             return new Message(Message.Status.Success, "User created").toString();
         } catch (Exception e) {
             LOGGER.error("Ошибка создания нового пользователя "+jsonUser, e);
@@ -86,7 +87,7 @@ public class UserController {
         user.setEmail(setUser.getEmail());
 
         try {
-            HibernateController.updateUser(user);
+            HibernateDao.update(user);
             UserContainer.recalculateHashesForAllUsers();
             return new Message(Message.Status.Success, "User changed").toString();
         } catch (Exception e) {
@@ -111,23 +112,23 @@ public class UserController {
         }
     }
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String getHash(@RequestParam String adminPassword, @RequestParam String username) {
-        if (AdminController.isAdminPasswordWrong(adminPassword)) {
-            return new Message(Message.Status.Error, "Wrong password").toString();
-        }
-
-        User user = UserContainer.getUserByName(username);
-        if (user == null) {
-            return new Message(Message.Status.Error, "User not found").toString();
-        }
-        try {
-            HibernateController.removeUser(user);
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка удаления пользователя", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
-        }
-        return new Message(Message.Status.Success, "Removed").toString();
-    }
+//    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+//    @ResponseBody
+//    public String getHash(@RequestParam String adminPassword, @RequestParam String username) {
+//        if (AdminController.isAdminPasswordWrong(adminPassword)) {
+//            return new Message(Message.Status.Error, "Wrong password").toString();
+//        }
+//
+//        User user = UserContainer.getUserByName(username);
+//        if (user == null) {
+//            return new Message(Message.Status.Error, "User not found").toString();
+//        }
+//        try {
+//            HibernateController.removeUser(user);
+//        } catch (Exception e) {
+//            LOGGER.error(user.getLogin()+": ошибка удаления пользователя", e);
+//            return new Message(Message.Status.Error, "Internal error").toString();
+//        }
+//        return new Message(Message.Status.Success, "Removed").toString();
+//    }
 }

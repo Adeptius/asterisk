@@ -3,19 +3,16 @@ package ua.adeptius.asterisk.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.telephony.SipConfig;
-import ua.adeptius.asterisk.utils.logging.MyLogger;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
 
 public class SipConfigDao {
 
@@ -31,9 +28,14 @@ public class SipConfigDao {
     }
 
 
-    public static void synchronizeFilesAndDb() throws Exception{
+    public static void synchronizeSipFilesAndInnerDb() throws Exception{
         LOGGER.debug("Синхронизация SIP конфигов с БД");
-        HashMap<String, String> dbSips = PhonesDao.getAllSipsAndPass();
+        List<InnerPhone> allInnerPhones = HibernateDao.getAllInnerPhones();
+        HashMap<String, String> dbSips = new HashMap<>();
+        for (InnerPhone phone : allInnerPhones) {
+            dbSips.put(phone.getNumber(), phone.getPass());
+        }
+//        HashMap<String, String> dbSips = PhonesDao.getAllSipsAndPass();
 
         // почему-то не работает в папке  /etc/asterisk/sip_clients/
 //        Path path = Paths.get(folder);
@@ -61,13 +63,13 @@ public class SipConfigDao {
         }
         int deleted = 0;
 
-        for (String file : fileList) {
+        for (String file : fileList) { // удаляем лишние
             if (!dbSips.containsKey(file)){
                 deleted++;
                 removeFile(file);
             }
         }
-        MyLogger.log(DB_OPERATIONS, "Синхронизация БД и файлов конфигов sip номеров. Всего конфигов: " + dbSips.size() + ", удалено " + deleted);
+        LOGGER.info("Синхронизация БД и файлов конфигов sip номеров. Всего конфигов: {}, удалено {}", dbSips.size(), deleted);
     }
 
 

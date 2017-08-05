@@ -9,9 +9,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ua.adeptius.asterisk.utils.logging.LogCategory.DB_OPERATIONS;
-import static ua.adeptius.asterisk.utils.logging.MyLogger.logAndThrow;
-
 public class MySqlCalltrackDao extends MySqlDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(MySqlCalltrackDao.class.getSimpleName());
@@ -31,7 +28,6 @@ public class MySqlCalltrackDao extends MySqlDao {
         } catch (Exception e) {
             LOGGER.error("Не удалось загрузить мелодии с БД", e);
         }
-        logAndThrow(DB_OPERATIONS, "Ошибка при загрузке пользователей телефонии с БД");
         throw new Exception("Ошибка при загрузке пользователей телефонии с БД");
     }
 }

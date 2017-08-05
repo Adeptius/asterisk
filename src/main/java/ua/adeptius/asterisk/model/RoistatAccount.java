@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -10,7 +11,12 @@ import javax.persistence.*;
 public class RoistatAccount {
 
     @Id
-    @Column(name = "nextelLogin")
+    @GeneratedValue(generator = "increment")
+    @GenericGenerator(name = "increment", strategy = "increment")
+    @Column(name = "id")
+    private int id;
+
+    @Column(name = "nextelLogin",  insertable = false, updatable = false)
     private String nextelLogin;
 
     @Column(name = "projectNumber")
@@ -21,7 +27,7 @@ public class RoistatAccount {
 
     @JsonIgnore
     @OneToOne
-    @PrimaryKeyJoinColumn
+    @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;
 
     public String getNextelLogin() {
