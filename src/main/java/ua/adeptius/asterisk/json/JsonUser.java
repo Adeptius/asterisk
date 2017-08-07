@@ -40,4 +40,14 @@ public class JsonUser {
     public void setTrackingId(String trackingId) {
         this.trackingId = trackingId;
     }
+
+    @Override
+    public String toString() {
+        return "JsonUser{" +
+                "login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", trackingId='" + trackingId + '\'' +
+                '}';
+    }
 }

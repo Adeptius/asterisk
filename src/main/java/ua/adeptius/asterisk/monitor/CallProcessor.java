@@ -15,9 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.model.NewCall.CallState.*;
-import static ua.adeptius.asterisk.model.NewCall.Service.TELEPHONY;
-import static ua.adeptius.asterisk.model.NewCall.Service.TRACKING;
+import static ua.adeptius.asterisk.model.Call.CallState.*;
 
 @SuppressWarnings("Duplicates")
 public class CallProcessor {
@@ -25,7 +23,7 @@ public class CallProcessor {
     private static Logger LOGGER = LoggerFactory.getLogger(CallProcessor.class.getSimpleName());
 
     //    public static HashMap<String, Call> calls = new HashMap<>();
-    public static HashMap<String, NewCall> calls = new HashMap<>();
+    public static HashMap<String, Call> calls = new HashMap<>();
     private static HashMap<String, User> phonesAndUsers = new HashMap<>();
 
     public static void processEvent(ManagerEvent event, String id) {
@@ -47,10 +45,10 @@ public class CallProcessor {
 
             // Ищем связь с сервисом и определяем направление звонка
             User user = phonesAndUsers.get(to);
-            NewCall.Direction direction = NewCall.Direction.IN;
+            Call.Direction direction = Call.Direction.IN;
             if (user == null) {
                 user = phonesAndUsers.get(from);
-                direction = NewCall.Direction.OUT;
+                direction = Call.Direction.OUT;
                 if (user == null) {
                     // Связь звонящих номеров с каким-либо сервисом не обнаружена
                     // Следовательно дальше не идём
@@ -60,24 +58,30 @@ public class CallProcessor {
 
             LOGGER.trace("ID {} NewChannelEvent: {}", id, makePrettyLog(newChannelEvent));
 
-            NewCall newCall = new NewCall();
-            newCall.setAsteriskId(newChannelEvent.getUniqueId());
-            newCall.setCalledTo(newChannelEvent.getExten());
-            newCall.setFirstCall(newChannelEvent.getExten());
-            newCall.setCalledFrom(newChannelEvent.getCallerIdNum());
-            newCall.setUser(user);
-            newCall.setCalledDate(newChannelEvent.getDateReceived());
-            newCall.setDirection(direction);
+            OuterPhone outerPhone = user.getOuterPhones().stream()
+                    .filter(phone -> phone.getNumber().equals(from))
+                    .findFirst().get();//todo тут null вообще возможен?
 
-            calls.put(newChannelEvent.getUniqueId(), newCall);
-            LOGGER.debug("Поступил новый звонок {} ->", newCall.getCalledFrom());
+
+            Call call = new Call();
+            call.setOuterPhone(outerPhone);
+            call.setAsteriskId(newChannelEvent.getUniqueId());
+            call.setCalledTo(newChannelEvent.getExten());
+            call.setFirstCall(newChannelEvent.getExten());
+            call.setCalledFrom(newChannelEvent.getCallerIdNum());
+            call.setUser(user);
+            call.setCalledDate(newChannelEvent.getDateReceived());
+            call.setDirection(direction);
+
+            calls.put(newChannelEvent.getUniqueId(), call);
+            LOGGER.debug("Поступил новый звонок {} ->", call.getCalledFrom());
 
         } else {
             //Если это событие не новый звонок - то убеждаемся по его id что соответствующий обьект Call c таким ID уже существует.
             //А если это прилетело что-то непонятное - дальше не идём и не захламляем логи.
 
-            NewCall newCall = calls.get(id);
-            if (newCall == null) {
+            Call call = calls.get(id);
+            if (call == null) {
                 return;
             }
 
@@ -90,9 +94,9 @@ public class CallProcessor {
                 } else {
                     redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1);
                 }
-                newCall.setCalledTo(redirectedTo);
-                LOGGER.debug("Звонок перенаправлен на {} -> {}", newCall.getCalledFrom(), newCall.getCalledTo());
-                MainController.amoCallSender.send(newCall); // Создаём сделку в Amo или обновляем существующую
+                call.setCalledTo(redirectedTo);
+                LOGGER.debug("Звонок перенаправлен на {} -> {}", call.getCalledFrom(), call.getCalledTo());
+                MainController.amoCallSender.send(call); // Создаём сделку в Amo или обновляем существующую
 
 
             } else if (event instanceof VarSetEvent) {
@@ -100,37 +104,37 @@ public class CallProcessor {
                 if (varSetEvent.getVariable().equals("DIALSTATUS")) {
                     LOGGER.trace("ID {} VarSetEvent: {}", id, makePrettyLog(varSetEvent));
                     String dialStatus = varSetEvent.getValue();
-                    if (newCall.isStateWasAlreadySetted()){
+                    if (call.isStateWasAlreadySetted()){
                         LOGGER.debug("Состояние звонка не меняется. Это событие - дубль: {}", dialStatus);
                         return;
                     }
 
                     if ("ANSWER".equals(dialStatus)) { // Кто-то взял трубку
-                        newCall.setAnsweredDate(event.getDateReceived());
-                        newCall.setCallState(ANSWER);
-                        MainController.amoCallSender.send(newCall); // Обновляем статус только если ANSWER.
+                        call.setAnsweredDate(event.getDateReceived());
+                        call.setCallState(ANSWER);
+                        MainController.amoCallSender.send(call); // Обновляем статус только если ANSWER.
                         // Иначе нет смысла - пользователю потом всё-равно hangup отправится и будет дубль.
 
 
                     } else if ("BUSY".equals(dialStatus)) {
-                        newCall.setCallState(BUSY);
+                        call.setCallState(BUSY);
                     } else if ("NOANSWER".equals(dialStatus) || "CANCEL".equals(dialStatus)) {
                         //CANCEL - это если звонить на внешний с редиректом на сип и сип не взял трубку за 90 сек
-                        newCall.setCallState(NOANSWER);
+                        call.setCallState(NOANSWER);
                     } else if ("CHANUNAVAIL".equals(dialStatus)) {
                         //вызываемый номер был недоступен
-                        newCall.setCallState(CHANUNAVAIL);
+                        call.setCallState(CHANUNAVAIL);
                     } else {
                         LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);
                     }
 
-                    LOGGER.debug("Состояние звонка установлено на: {}", newCall.getCallState());
+                    LOGGER.debug("Состояние звонка установлено на: {}", call.getCallState());
                 }
                 return;
             }
             if (event instanceof HangupEvent) { // Событие определяет окончание звонка. не содержит никакой инфы при звонке sip->gsm
                 HangupEvent hangupEvent = (HangupEvent) event;
-                LOGGER.info("Завершен разговор {} c {}", newCall.getCalledFrom(), newCall.getCalledTo());
+                LOGGER.info("Завершен разговор {} c {}", call.getCalledFrom(), call.getCalledTo());
                 LOGGER.trace("ID {} HangupEvent: {}", id, makePrettyLog(hangupEvent));
 
                 calls.remove(id); // конец звонка. айди звонка больше не будет отслеживатся так как он завершен. Удаляем.
@@ -139,23 +143,23 @@ public class CallProcessor {
                 }// Если в мапе будут накапливатся айдишники, а такое наверное может быть если астериск по какой-то причине
                 // создаст новый канал, а в конце не выдаст по нему hangUpEvent, то надо будет что-то думать.
 
-                newCall.setEndedDate(event.getDateReceived());
+                call.setEndedDate(event.getDateReceived());
 
-                if ("s".equals(newCall.getCalledTo())) {
-                    LOGGER.trace("{} не дождался совершения исходящего звонка", newCall.getCalledTo());
+                if ("s".equals(call.getCalledTo())) {
+                    LOGGER.trace("{} не дождался совершения исходящего звонка", call.getCalledTo());
                     return; // обязательно нужен этот отбойник для фильтрования второго звонка при звонке снаружи на сип (gsm - outer- sip)
                 }
 
-                detectService(newCall); // смотрит по сервисам пользователя и добавляет в call тип сервиса
+//                detectService(newCall); // смотрит по сервисам пользователя и добавляет в call тип сервиса
 
-                MainController.amoCallSender.send(newCall); // Обновляем
+                MainController.amoCallSender.send(call); // Обновляем
 
-                processCall(newCall); // отправляет законченный обьект call для дальнейшей отправки в различные сервисы
+                processCall(call); // отправляет законченный обьект call для дальнейшей отправки в различные сервисы
 
-                if (newCall.getCallState() == null) {
-                    LOGGER.error("Завершен разговор c состоянием null! " + newCall);
+                if (call.getCallState() == null) {
+                    LOGGER.error("Завершен разговор c состоянием null! " + call);
                 } else {
-                    LOGGER.debug("Завершен разговор: {}", newCall);
+                    LOGGER.debug("Завершен разговор: {}", call);
                 }
             }
         }
@@ -214,34 +218,37 @@ public class CallProcessor {
         return log;
     }
 
-    private static void detectService(NewCall call) {
-        User user = call.getUser();
-
-        String from = call.getCalledFrom();
-        String to = call.getCalledTo();
-
-//        if (user.getTracking() != null) {
-//            List<String> list = user.getTracking().getPhones().stream().map(OldPhone::getNumber).collect(Collectors.toList());
-//            if (list.contains(to) || list.contains(from)) {
-//                call.setService(TRACKING);
-//                return;
-//            }
-//        }
+//    private static void detectService(NewCall call) {
+//        User user = call.getUser();
 //
-//        if (user.getTelephony() != null) {
-//            List<String> inner = user.getTelephony().getInnerPhonesList();
-//            List<String> outer = user.getTelephony().getOuterPhonesList();
-//            if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)) {
-//                call.setService(TELEPHONY);
-//            }
-//        }
-    }
+//        String from = call.getCalledFrom();
+//        String to = call.getCalledTo();
+//
+////        if (user.getTracking() != null) {
+////            List<String> list = user.getTracking().getPhones().stream().map(OldPhone::getNumber).collect(Collectors.toList());
+////            if (list.contains(to) || list.contains(from)) {
+////                call.setService(TRACKING);
+////                return;
+////            }
+////        }
+////
+////        if (user.getTelephony() != null) {
+////            List<String> inner = user.getTelephony().getInnerPhonesList();
+////            List<String> outer = user.getTelephony().getOuterPhonesList();
+////            if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)) {
+////                call.setService(TELEPHONY);
+////            }
+////        }
+//    }
 
 
-    private static void processCall(NewCall call) {
-        if (call.getService() == NewCall.Service.TRACKING) {
+    private static void processCall(Call call) {
+
+
+
+        if (call.getService() == Call.Service.TRACKING) {
             MainController.onNewSiteCall(call);
-        } else if (call.getService() == NewCall.Service.TELEPHONY) {
+        } else if (call.getService() == Call.Service.TELEPHONY) {
             MainController.onNewTelephonyCall(call);
         }
     }
@@ -258,7 +265,7 @@ public class CallProcessor {
         return source;
     }
 
-    public static void updatePhonesHashMap() {
+    public static void updatePhonesHashMap() { // todo стоит сделать карту number <-> OuterPhone
         LOGGER.trace("Обновление карты Number <-> User");
         phonesAndUsers.clear();
         for (User user : UserContainer.getUsers()) {

@@ -10,7 +10,7 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.NewCall;
+import ua.adeptius.asterisk.model.Call;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,17 +25,17 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/history")
-public class HistoryController {
+public class HistoryController { // todo попробовать убрать лишние аннотации
 
     private static Logger LOGGER =  LoggerFactory.getLogger(HistoryController.class.getSimpleName());
 
 
     @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
     @ResponseBody
-    public String getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {
+    public Object getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         String dateFrom = query.getDateFrom();
@@ -43,25 +43,25 @@ public class HistoryController {
         String direction = query.getDirection();
 
         if (!direction.equals("IN") && !direction.equals("OUT")) {
-            return new Message(Message.Status.Error, "Wrong direction").toString();
+            return new Message(Message.Status.Error, "Wrong direction");
         }
 
         if (!Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}").matcher(dateFrom).find()) {
-            return new Message(Message.Status.Error, "Wrong FROM date").toString();
+            return new Message(Message.Status.Error, "Wrong FROM date");
         }
 
         if (!Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}").matcher(dateTo).find()) {
-            return new Message(Message.Status.Error, "Wrong TO date").toString();
+            return new Message(Message.Status.Error, "Wrong TO date");
         }
 
         String login = user.getLogin();
         try {
             LOGGER.debug("{}: запрос истории c {} по {}, направление {}", login, dateFrom, dateTo, direction);
-            List<NewCall> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction);
-            return new ObjectMapper().writeValueAsString(calls);
+            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction);
+            return calls;
         } catch (Exception e) {
             LOGGER.error(login +": ошибка запроса истории c "+dateFrom+" по "+dateTo+", направление "+direction, e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         }
     }
 

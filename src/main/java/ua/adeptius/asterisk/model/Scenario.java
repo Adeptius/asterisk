@@ -2,7 +2,8 @@ package ua.adeptius.asterisk.model;
 
 import javax.annotation.Nonnull;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,13 @@ import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 
 @Entity
 @Table(name = "scenarios", schema = "calltrackdb")
+@JsonAutoDetect(
+        creatorVisibility = JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = JsonAutoDetect.Visibility.NONE,
+        getterVisibility = JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+        setterVisibility = JsonAutoDetect.Visibility.NONE
+)
 public class Scenario {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Scenario.class.getSimpleName());

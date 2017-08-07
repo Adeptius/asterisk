@@ -1,83 +1,76 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Controller
-@RequestMapping("/blacklist")
+@RequestMapping(value = "/blacklist", produces = "application/json; charset=UTF-8")
+@ResponseBody
 public class BlackListController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(BlackListController.class.getSimpleName());
 
-    @RequestMapping(value = "/add", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String addToBlackList(@RequestParam String ip, String sitename, HttpServletRequest request) {
+    @PostMapping("/add")
+    public Object addToBlackList(@RequestParam String ip, String siteName, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no tracking sites").toString();
+            return new Message(Message.Status.Error, "User have no tracking sites");
         }
         try {
             Matcher regexMatcher = Pattern.compile("(\\d{1,3}[.]){3}\\d{1,3}").matcher(ip.trim());
             regexMatcher.find();
             regexMatcher.group();
         }catch (Exception e){
-            return new Message(Message.Status.Error, "Wrong ip").toString();
+            return new Message(Message.Status.Error, "Wrong ip");
         }
-        Site site = user.getSiteByName(sitename);
+        Site site = user.getSiteByName(siteName);
         if (site == null) {
-            return new Message(Message.Status.Error, "User have no such site").toString();
+            return new Message(Message.Status.Error, "User have no such site");
         }
 
         site.addIpToBlackList(ip);
         try {
             LOGGER.debug("{}: сайт {} добавление IP {} в черный список",user.getLogin(), site, ip);
-            HibernateDao.update(user);
+            HibernateDao.update(user); // todo это затратно по ресурсам
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка добавления IP "+ip+" в черный список", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         }
-        return new Message(Message.Status.Success, "Added").toString();
+        return new Message(Message.Status.Success, "Added");
     }
 
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String removeFromBlackList(@RequestParam String ip, String sitename, HttpServletRequest request) {
+    @PostMapping("/remove")
+    public Object removeFromBlackList(@RequestParam String ip, String siteName, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no tracking sites").toString();
+            return new Message(Message.Status.Error, "User have no tracking sites");
         }
-        Site site = user.getSiteByName(sitename);
+        Site site = user.getSiteByName(siteName);
         if (site == null) {
-            return new Message(Message.Status.Error, "User have no such site").toString();
+            return new Message(Message.Status.Error, "User have no such site");
         }
 
         site.removeIpFromBlackList(ip);
@@ -87,34 +80,32 @@ public class BlackListController {
             HibernateDao.update(user);
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления IP "+ip+" из черного списка", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         }
-        return new Message(Message.Status.Success, "Removed").toString();
+        return new Message(Message.Status.Success, "Removed");
     }
 
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String getBlackList(HttpServletRequest request, String sitename) {
+    @PostMapping("/get")
+    public Object getBlackList(HttpServletRequest request, String siteName) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no tracking sites").toString();
+            return new Message(Message.Status.Error, "User have no tracking sites");
         }
-        Site site = user.getSiteByName(sitename);
+        Site site = user.getSiteByName(siteName);
         if (site == null) {
-            return new Message(Message.Status.Error, "User have no such site").toString();
+            return new Message(Message.Status.Error, "User have no such site");
         }
 
         try {
-            LinkedList<String> list = site.getBlackList();
-            return new Gson().toJson(list);
+            return site.getBlackList();
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка получения черного списка для сайта" + sitename, e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            LOGGER.error(user.getLogin()+": ошибка получения черного списка для сайта" + siteName, e);
+            return new Message(Message.Status.Error, "Internal error");
         }
     }
 }

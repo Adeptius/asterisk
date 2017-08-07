@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
-import ua.adeptius.amocrm.javax_web_socket.WebSocket;
-import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
@@ -16,21 +14,20 @@ import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.IdPairTime;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.NewCall;
+import ua.adeptius.asterisk.model.Call;
 
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
-import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
 
 @SuppressWarnings("Duplicates")
 public class AmoCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoCallSender.class.getSimpleName());
-    private LinkedBlockingQueue<NewCall> blockingQueue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
 
-    public void send(NewCall call) {
+    public void send(Call call) {
         try {
             blockingQueue.put(call);
         } catch (InterruptedException ignored) {
@@ -48,7 +45,7 @@ public class AmoCallSender extends Thread {
     public void run() {
         while (true) {
             try {
-                NewCall call = blockingQueue.take();
+                Call call = blockingQueue.take();
                 prepareCreateContactAndDeal(call);
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
@@ -56,8 +53,8 @@ public class AmoCallSender extends Thread {
         }
     }
 
-    private void prepareCreateContactAndDeal(NewCall call) {
-        if (call.getDirection() != NewCall.Direction.IN) {
+    private void prepareCreateContactAndDeal(Call call) {
+        if (call.getDirection() != Call.Direction.IN) {
             return; // пока что занимаемся только входящими.
         }
 
@@ -132,7 +129,7 @@ public class AmoCallSender extends Thread {
         //Проверим сначала не завершен ли звонок
         if (call.isCallIsEnded()) {
             LOGGER.trace("{}: Звонок завершен проверяем отвечен ли он или нет", login);
-            if (call.getCallState() == NewCall.CallState.ANSWER) {
+            if (call.getCallState() == Call.CallState.ANSWER) {
                 sendWsMessage(amoAccount, call,ended);
                 return;
 
@@ -144,7 +141,7 @@ public class AmoCallSender extends Thread {
 
 
         // если мы здесь - значит CallState не null - произошел либо ответ либо сбой. выясняем
-        if (call.getCallState() == NewCall.CallState.ANSWER) { // на звонок ответили
+        if (call.getCallState() == Call.CallState.ANSWER) { // на звонок ответили
             LOGGER.trace("{}: Произошел какой-то сбой при звонке, но он был отвечен", login);
             sendWsMessage(amoAccount, call,answer);
 
@@ -154,7 +151,7 @@ public class AmoCallSender extends Thread {
         }
     }
 
-    private void sendWsMessage(AmoAccount amoAccount, NewCall call, MessageCallPhase callPhase){
+    private void sendWsMessage(AmoAccount amoAccount, Call call, MessageCallPhase callPhase){
 //        String workersId = amoAccount.getWorkersId(call.getCalledTo());
 //        if (workersId != null) {// мы знаем id работника.
 //            String login = amoAccount.getUser().getLogin();
@@ -175,7 +172,7 @@ public class AmoCallSender extends Thread {
     }
 
 
-    private void createOrFindDeal(AmoAccount amoAccount, int startedLeadId, User user, NewCall call) throws Exception {
+    private void createOrFindDeal(AmoAccount amoAccount, int startedLeadId, User user, Call call) throws Exception {
         String contactName = "Уточнить имя";
         String contactNumber = call.getCalledFrom();
 

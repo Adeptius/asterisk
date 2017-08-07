@@ -4,6 +4,7 @@ import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TestClass {
 
@@ -11,23 +12,43 @@ public class TestClass {
 
         User user = HibernateDao.getUserByLogin("e404");
         System.out.println(user);
-//        AmoOperatorLocation operatorLocation = new AmoOperatorLocation();
-//        operatorLocation.setName("операторы");
-//        operatorLocation.setBindingString("111=222");
-//        operatorLocation.setLogin(user.getLogin());
-//        user.getOperatorLocations().remove(user.getOperatorLocations().iterator().next());
-//        user.getAmoAccount().getOperatorLocations().add(operatorLocation);
-//        user.getAmoAccount().getOperatorLocations().remove(user.getAmoAccount().getOperatorLocations().iterator().next());
-//        List<OuterPhone> freeOuterPhones = HibernateDao.getAllFreeOuterPhones();
-//        OuterPhone phone = freeOuterPhones.get(0);
-//        user.getOuterPhones().add(phone);
+
+        OuterPhone needRemove = null;
+
+        Set<OuterPhone> outerPhones = user.getOuterPhones();
+//        for (OuterPhone outerPhone : outerPhones) {
+//            if ("0443211128".equals(outerPhone.getNumber())){
+//                needRemove = outerPhone;
+////                outerPhone.setNumber("28");
+////                outerPhone.setSitename(null);
+//            }
+//        }
+//
+//        if (needRemove != null){
+//            user.getOuterPhones().remove(needRemove);
+//        }
+//
 //        HibernateDao.update(user);
 
-//        TestClass testClass = new TestClass();
-
-//        System.out.println(testClass.getAmoUserIdAndInnerNumber());
+        List<OuterPhone> lastElementsFromList = getLastElementsFromList(outerPhones, 5);
+        lastElementsFromList.forEach(System.out::println);
 
     }
 
 
+    private static List<OuterPhone> getLastElementsFromList(Set<OuterPhone> setFrom, int count) {
+        return setFrom.stream()
+                .sorted(Comparator.comparing(OuterPhone::getNumber))
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+
+    private static List<String> getLastElementsFromList(List<String> listFrom, int count) {
+        ArrayList<String> lastElements = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            lastElements.add(listFrom.remove(listFrom.size() - 1));
+        }
+        return lastElements;
+    }
 }

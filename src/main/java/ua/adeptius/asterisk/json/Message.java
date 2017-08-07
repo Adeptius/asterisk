@@ -9,17 +9,11 @@ public class Message {
     }
 
     private Status status;
-    private String message;
 
+    private String message;
 
     public enum Status {
         Success, Error
-    }
-
-
-    @Override
-    public String toString() {
-        return "{\"Status\":\""+status+"\",\"Message\":\""+message+"\"}";
     }
 
     public Status getStatus() {

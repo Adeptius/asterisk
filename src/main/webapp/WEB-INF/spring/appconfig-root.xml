@@ -12,4 +12,5 @@
     <bean class="ua.adeptius.asterisk.annotations.PostProxyInvokerContextListener"/>
 
     <context:property-placeholder location="classpath:database.properties"/>
+
 </beans>

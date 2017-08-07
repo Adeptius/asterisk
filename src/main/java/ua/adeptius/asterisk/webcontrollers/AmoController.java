@@ -8,64 +8,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpStatusCodeException;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.AmoAccountNotFoundException;
 import ua.adeptius.amocrm.exceptions.AmoCantCreateDealException;
 import ua.adeptius.amocrm.exceptions.AmoUnknownException;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
-import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
-import ua.adeptius.asterisk.dao.RulesConfigDAO;
-import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
 import ua.adeptius.asterisk.json.JsonAmoForController;
-import ua.adeptius.asterisk.json.JsonTracking;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 @Controller
-@RequestMapping("/amo")
+@RequestMapping(value = "/amo", produces = "application/json; charset=UTF-8")
+@ResponseBody
 public class AmoController {
 
     private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(AmoController.class.getSimpleName());
+    private static ObjectMapper mapper = new ObjectMapper();
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String get(HttpServletRequest request) {
+
+    @PostMapping("/get")
+    public Object get(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
+
         AmoAccount amoAccount = user.getAmoAccount();
         if (amoAccount == null) {
-            return new Message(Message.Status.Error, "User have not connected amo account").toString();
+            return new Message(Message.Status.Error, "User have not connected amo account");
         }
 
-        try {
-            return new ObjectMapper().writeValueAsString(amoAccount);
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": ошибка получения амо аккаунта: ", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
-        }
+        return amoAccount;
     }
 
-
-    @RequestMapping(value = "/set", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String set(@RequestBody JsonAmoForController jsonAmoAccount, HttpServletRequest request) {
+    @PostMapping("/set")
+    public Object set(@RequestBody JsonAmoForController jsonAmoAccount, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         String domain = jsonAmoAccount.getDomain();
@@ -73,7 +62,7 @@ public class AmoController {
         String apiKey = jsonAmoAccount.getApiKey();
 
         if (StringUtils.isAnyBlank(domain, amoLogin, apiKey)) {
-            return new Message(Message.Status.Error, "Some params are blank!").toString();
+            return new Message(Message.Status.Error, "Some params are blank!");
         }
 
         if (user.getAmoAccount() == null) {
@@ -91,69 +80,67 @@ public class AmoController {
 
         try {
             HibernateDao.update(user);
-            return new Message(Message.Status.Success, "Amo account setted").toString();
+            return new Message(Message.Status.Success, "Amo account setted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка изменения амо аккаунта: ", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         } finally {
 //            if (safeMode)
 //                user.reloadAmoAccountFromDb();todo
         }
     }
 
-    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String check(HttpServletRequest request) {
+    @PostMapping("/test")
+    public Object check(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         if (user.getAmoAccount() == null) {
-            return new Message(Message.Status.Error, "User have not connected amo account").toString();
+            return new Message(Message.Status.Error, "User have not connected amo account");
         }
 
         try {
             AmoDAO.checkAllAccess(user.getAmoAccount());
-            return new Message(Message.Status.Success, "Check complete. It works!").toString();
+            return new Message(Message.Status.Success, "Check complete. It works!");
         } catch (AmoAccountNotFoundException e) {
-            return new Message(Message.Status.Error, "Amo account not found").toString();
+            return new Message(Message.Status.Error, "Amo account not found");
         } catch (AmoWrongLoginOrApiKeyExeption e) {
-            return new Message(Message.Status.Error, "Wrong login or password").toString();
+            return new Message(Message.Status.Error, "Wrong login or password");
         } catch (AmoCantCreateDealException e) {
-            return new Message(Message.Status.Error, "User have not enough rights for create contacts and deals").toString();
+            return new Message(Message.Status.Error, "User have not enough rights for create contacts and deals");
         } catch (UnirestException e) {
             LOGGER.error("Ошибка соединения или парсинга для проверки аккаунта амо. Аккаунт Nextel " + user.getLogin(), e);
-            return new Message(Message.Status.Error, "Internal error. Please try again").toString();
+            return new Message(Message.Status.Error, "Internal error. Please try again");
         } catch (AmoUnknownException e) {
             LOGGER.error("Неизвестный код ответа от АМО", e);
-            return new Message(Message.Status.Error, "Internal error. Please contact us.").toString();
+            return new Message(Message.Status.Error, "Internal error. Please contact us.");
         } catch (Exception e) {
             LOGGER.error("Неизвестная ошибка при проверке аккаунта амо. Аккаунт nextel: " + user.getLogin(), e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         }
     }
 
-    @RequestMapping(value = "/remove", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String remove(HttpServletRequest request) {
+    @PostMapping("/remove")
+    public Object remove(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         if (user.getAmoAccount() == null) {
-            return new Message(Message.Status.Error, "User have not connected Amo account").toString();
+            return new Message(Message.Status.Error, "User have not connected Amo account");
         }
 
         user.setAmoAccount(null);
 
         try {
             HibernateDao.update(user);
-            return new Message(Message.Status.Success, "Amo account removed").toString();
+            return new Message(Message.Status.Success, "Amo account removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         } finally {
 //            if (safeMode)
 //                user.reloadAmoAccountFromDb();//todo
@@ -161,21 +148,19 @@ public class AmoController {
     }
 
 
-    @RequestMapping(value = "/getBindings", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String getBindings(HttpServletRequest request) {
+    @PostMapping("/getBindings")
+    public Object getBindings(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         AmoAccount amoAccount = user.getAmoAccount();
         if (amoAccount == null) {
-            return new Message(Message.Status.Error, "User have not connected Amo account").toString();
+            return new Message(Message.Status.Error, "User have not connected Amo account");
         }
 
         HashMap<String, String> workerIdAndPhones;
-
 
         // получаем текущий список привязок и конвертируем его в мапу id работника <-> номер телефона
         Set<AmoOperatorLocation> operatorLocations = user.getOperatorLocations();
@@ -199,33 +184,29 @@ public class AmoController {
                 completeMap.put(name, workerIdAndPhones.get(id));
             }
 
-            return new ObjectMapper().writeValueAsString(completeMap);
+            return completeMap;
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         }
     }
 
-    @RequestMapping(value = "/setBindings", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public String setBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newBindings) {
+    @PostMapping("/setBindings")
+    public Object setBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newBindings) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
 
         AmoAccount amoAccount = user.getAmoAccount();
         if (amoAccount == null) {
-            return new Message(Message.Status.Error, "User have not connected Amo account").toString();
+            return new Message(Message.Status.Error, "User have not connected Amo account");
         }
-
-//        Set<AmoPhoneBinding> currentBindings = amoAccount.getPhoneBindings();
 
         try {
             JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
             HashMap<String, String> usersNameAndId = jsonAmoAccount.getUsersNameAndId();
 
-//            Set<AmoPhoneBinding> newAmoBindings = new HashSet<>();
             HashMap<String, String> newHashAmoBindings = new HashMap<>();
 
             for (Map.Entry<String, String> entry : newBindings.entrySet()) {
@@ -236,17 +217,11 @@ public class AmoController {
                     continue;
                 }
 
-//                if (!user.isThatUsersInnerNumber(phone)){todo
-//                    return new Message(Message.Status.Error, "Phone "+phone+" is not user own").toString();
-//                }
-
                 String workerId = usersNameAndId.get(worker);
                 if (workerId == null) {
-                    return new Message(Message.Status.Error, "User " + worker + " not found in amo account.").toString();
+                    return new Message(Message.Status.Error, "User " + worker + " not found in amo account.");
                 }
 
-//                AmoPhoneBinding binding = new AmoPhoneBinding(workerId, phone, amoAccount);
-//                newAmoBindings.add(binding);
                 newHashAmoBindings.put(worker, phone);
             }
 
@@ -261,17 +236,11 @@ public class AmoController {
             location.setAmoUserIdAndInnerNumber(newHashAmoBindings);
             operatorLocations.add(location);
 
-//            currentBindings.clear();
-//            for (AmoPhoneBinding newAmoBinding : newAmoBindings) {
-//                amoAccount.getPhoneBindings().add(newAmoBinding);
-//            }
-
             HibernateDao.update(user);
-
-            return new Message(Message.Status.Success, "Bindings saved").toString();
+            return new Message(Message.Status.Success, "Bindings saved");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Message.Status.Error, "Internal error");
         }
     }
 }

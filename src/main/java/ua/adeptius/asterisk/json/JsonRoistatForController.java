@@ -21,4 +21,12 @@ public class JsonRoistatForController {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
+
+    @Override
+    public String toString() {
+        return "JsonRoistatForController{" +
+                "projectNumber='" + projectNumber + '\'' +
+                ", apiKey='" + apiKey + '\'' +
+                '}';
+    }
 }

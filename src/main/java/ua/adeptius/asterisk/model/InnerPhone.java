@@ -1,12 +1,23 @@
 package ua.adeptius.asterisk.model;
 
 
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "innerphones", schema = "calltrackdb")
+@com.fasterxml.jackson.annotation.JsonAutoDetect(
+        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
+)
 public class InnerPhone {
 
+    @JsonProperty
     @Id
     @Column(name = "number")
     private String number;
@@ -14,6 +25,7 @@ public class InnerPhone {
     @Column(name = "busy")
     private String busy;
 
+    @JsonProperty
     @Column(name = "pass")
     private String pass;
 

@@ -271,7 +271,7 @@ public class HibernateDao {
     }
 
     @Deprecated
-    public static void saveSipBySipConfig(SipConfig sipConfig, String user) throws Exception {
+    public static InnerPhone saveSipBySipConfig(SipConfig sipConfig, String user) throws Exception {
         LOGGER.debug("{}: Сохраняю SIP конфиг в БД: {}",user, sipConfig.getNumber());
 
         InnerPhone innerPhone = new InnerPhone();
@@ -286,6 +286,7 @@ public class HibernateDao {
 
         session.getTransaction().commit();
         session.close();
+        return innerPhone;
     }
 
     @Deprecated

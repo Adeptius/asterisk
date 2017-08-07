@@ -1,8 +1,9 @@
 package ua.adeptius.asterisk.utils;
 
 
+import ua.adeptius.asterisk.json.Message;
 
-public class StringUtils {
+public class MyStringUtils {
 
     public static String getStringedTime(long time){
         time = time /1000;
@@ -29,5 +30,16 @@ public class StringUtils {
         String s = String.valueOf(i);
         if (s.length() == 1) s = "0" + s;
         return s;
+    }
+
+    public static boolean validateThatContainsOnlyEngLettersAndNumbers(String stringToValidate){
+        String str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (int i = 0; i < stringToValidate.length(); i++) {
+            String s = stringToValidate.substring(i, i + 1);
+            if (!str.contains(s)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

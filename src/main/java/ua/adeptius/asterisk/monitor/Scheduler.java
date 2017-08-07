@@ -10,14 +10,15 @@ import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.model.TimePairCookie;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
-import ua.adeptius.asterisk.model.OldPhone;
-import ua.adeptius.asterisk.model.Tracking;
+import ua.adeptius.asterisk.model.OuterPhone;
+import ua.adeptius.asterisk.model.Site;
 
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -53,48 +54,52 @@ public class Scheduler{
     /**
      * Tracking phone Watcher
      */
-//    @Scheduled(initialDelay = 10000, fixedRate = 3000)
-//    private void checkAllPhones(){
-//        for (Tracking tracking : UserContainer.getAllSites()) {
-//            List<OldPhone> oldPhones = tracking.getOldPhones();
-//            for (OldPhone oldPhone : oldPhones) {
-//                if (!oldPhone.isFree()) { // если телефон не простаивает
-//                    processBusyPhone(tracking, oldPhone);
-//                }
-//            }
-//        }
-//    }
+    @Scheduled(initialDelay = 10000, fixedRate = 3000)
+    private void checkAllPhones(){
+        List<Site> sites = UserContainer.getUsers().stream()
+                .flatMap(user -> user.getSites().stream())
+                .collect(Collectors.toList());
 
-//    private void processBusyPhone(Tracking tracking, OldPhone oldPhone){
-//        long currentTime = new GregorianCalendar().getTimeInMillis();
-//        long phoneTime = oldPhone.getUpdatedTime();
-//
-//        // продливаем время аренды номера
-//        long past = currentTime - phoneTime;
-//        int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
-//        if (past > timeToDeleteOldPhones) {
-////            MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": номер " + oldPhone.getNumber() + " освободился. Был занят " + oldPhone.getBusyTimeText());
-//            oldPhone.markFree();
-//        }
-//
-//        if (oldPhone.getUpdatedTime() != 0) {
-//            // считаем сколько времени номер занят
-//            past = currentTime - oldPhone.getStartedBusy();
-//            oldPhone.setBusyTime(past);
-//        }
-//
-//        long timeToBlock = tracking.getTimeToBlock()*60*1000;
-//
-//        if (past > timeToBlock){
-//            try {
-////                MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": IP " + oldPhone.getIp() + " заблокирован по времени.");
-//                tracking.addIpToBlackList(oldPhone.getIp());
-//                oldPhone.markFree();
-//            } catch (Exception e) {
-////                MyLogger.log(DB_OPERATIONS, tracking.getLogin() + ": ошибка добавления " + oldPhone.getIp() + " в БД");
-//            }
-//        }
-//    }
+        for (Site site : sites) {
+            List<OuterPhone> outerPhones = site.getOuterPhones();
+            for (OuterPhone outerPhone : outerPhones) {
+                if (!outerPhone.isFree()){
+                    processBusyPhone(site, outerPhone);
+                }
+            }
+        }
+    }
+
+    private void processBusyPhone(Site site, OuterPhone phone){
+        long currentTime = new GregorianCalendar().getTimeInMillis();
+        long phoneTime = phone.getUpdatedTime();
+
+        // продливаем время аренды номера
+        long past = currentTime - phoneTime;
+        int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
+        if (past > timeToDeleteOldPhones) {
+//            MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": номер " + oldPhone.getNumber() + " освободился. Был занят " + oldPhone.getBusyTimeText());
+            phone.markFree();
+        }
+
+        if (phone.getUpdatedTime() != 0) {
+            // считаем сколько времени номер занят
+            past = currentTime - phone.getStartedBusy();
+            phone.setBusyTimeMillis(past);
+        }
+
+        long timeToBlock = site.getTimeToBlock()*60*1000;
+
+        if (past > timeToBlock){
+            try {
+//                MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": IP " + oldPhone.getIp() + " заблокирован по времени.");
+                site.addIpToBlackList(phone.getIp()); // todo оно блочит, но не сохраняет в бд
+                phone.markFree();
+            } catch (Exception e) {
+//                MyLogger.log(DB_OPERATIONS, tracking.getLogin() + ": ошибка добавления " + oldPhone.getIp() + " в БД");
+            }
+        }
+    }
 
 
     /**

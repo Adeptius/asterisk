@@ -1,6 +1,6 @@
 package ua.adeptius.asterisk.model;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -9,29 +9,35 @@ import java.util.Map;
 
 @Entity
 @Table(name = "amo_operator_location", schema = "calltrackdb")
+@com.fasterxml.jackson.annotation.JsonAutoDetect(
+        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
+)
 public class AmoOperatorLocation {
 
     public AmoOperatorLocation() {
     }
 
+    @JsonProperty
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
     @GenericGenerator(name = "increment", strategy = "increment")
     @Column(name = "id")
     private int id;
 
-    @JsonIgnore
     @Column(name = "login", insertable = false, updatable = false)
     private String login;
 
+    @JsonProperty
     @Column(name = "name")
     private String name;
 
-    @JsonIgnore
     @Column(name = "binding_string")
     private String bindingString;
 
-//    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "login", referencedColumnName = "login")
     private User user;

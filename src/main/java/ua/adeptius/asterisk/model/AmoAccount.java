@@ -1,18 +1,25 @@
 package ua.adeptius.asterisk.model;
 
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.hibernate.annotations.Cascade;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Set;
 
 @Entity
 @Table(name = "amo_accounts", schema = "calltrackdb")
+@JsonAutoDetect(
+        creatorVisibility = JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = JsonAutoDetect.Visibility.NONE,
+        getterVisibility = JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+        setterVisibility = JsonAutoDetect.Visibility.NONE
+)
 public class AmoAccount implements Serializable {
 
     public AmoAccount() {
@@ -32,30 +39,29 @@ public class AmoAccount implements Serializable {
 
 
     @Column(name = "nextelLogin", insertable = false, updatable = false)
-    @JsonIgnore
     private String nextelLogin;
 
+    @JsonProperty
     @Column(name = "amoLogin")
     private String amoLogin;
 
+    @JsonProperty
     @Column(name = "apiKey")
     private String apiKey;
 
+    @JsonProperty
     @Column(name = "domain")
     private String domain;
 
     @Column(name = "phoneId")
-    @JsonIgnore
     private String phoneId;
 
     @Column(name = "phoneEnumId")
-    @JsonIgnore
     private String phoneEnumId;
 
     @Column(name = "leadId")
     private int leadId; //TODO Реализовать возможность выбора
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;

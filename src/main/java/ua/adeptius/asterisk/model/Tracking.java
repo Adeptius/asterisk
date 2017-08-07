@@ -126,7 +126,7 @@ public class Tracking {
 //        this.siteNumbersCount = siteNumbers;
 //    }
 //
-//    public String getStandartNumber() {
+//    public String getStandardNumber() {
 //        return standartNumber;
 //    }
 //

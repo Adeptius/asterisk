@@ -6,10 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Entity
@@ -21,9 +19,9 @@ import java.util.*;
         isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
         setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
 )
-public class User {
+public class TestUser {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(User.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(TestUser.class.getSimpleName());
 
     @Id
     @Column(name = "login")
@@ -145,7 +143,7 @@ public class User {
     }
 
     public static void setLOGGER(Logger LOGGER) {
-        User.LOGGER = LOGGER;
+        TestUser.LOGGER = LOGGER;
     }
 
     public String getLogin() {

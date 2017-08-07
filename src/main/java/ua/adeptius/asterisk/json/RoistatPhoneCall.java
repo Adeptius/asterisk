@@ -1,11 +1,11 @@
 package ua.adeptius.asterisk.json;
 
 
-import ua.adeptius.asterisk.model.NewCall;
+import ua.adeptius.asterisk.model.Call;
 
 import java.text.SimpleDateFormat;
 
-import static ua.adeptius.asterisk.model.NewCall.CallState.ANSWER;
+import static ua.adeptius.asterisk.model.Call.CallState.ANSWER;
 
 public class RoistatPhoneCall {
 
@@ -32,7 +32,7 @@ public class RoistatPhoneCall {
     public RoistatPhoneCall() {
     }
 
-    public RoistatPhoneCall(NewCall call) {
+    public RoistatPhoneCall(Call call) {
 //        Набранный номер
         this.callee = call.getCalledTo();
 
@@ -66,16 +66,16 @@ public class RoistatPhoneCall {
 
 //        Мои типы
 //        ANSWER, BUSY, FAIL
-        NewCall.CallState state = call.getCallState();
+        Call.CallState state = call.getCallState();
         if (state == ANSWER) {
             this.status = "ANSWER";
-        } else if (state == NewCall.CallState.BUSY) {
+        } else if (state == Call.CallState.BUSY) {
             this.status = "BUSY";
-        } else if (state == NewCall.CallState.FAIL) {
+        } else if (state == Call.CallState.FAIL) {
             this.status = "CONGESTION";
-        }else if (state == NewCall.CallState.CHANUNAVAIL) {
+        }else if (state == Call.CallState.CHANUNAVAIL) {
             this.status = "CHANUNAVAIL"; // вызываемый номер был недоступен
-        }else if (state == NewCall.CallState.NOANSWER) {
+        }else if (state == Call.CallState.NOANSWER) {
             this.status = "NOANSWER"; // вызываемый номер был недоступен
         }
 

@@ -2,12 +2,14 @@ package ua.adeptius.asterisk.model;
 
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreType;
+import org.codehaus.jackson.annotate.JsonProperty;
 import ua.adeptius.asterisk.model.User;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class NewCall {
+public class Call {
 
 
     // Нужно для опеределения кому принадлежит тот номер на который позвонил посетитель
@@ -42,6 +44,9 @@ public class NewCall {
 
     @JsonIgnore
     private int lastOperationTime;
+
+    @JsonIgnore
+    private OuterPhone outerPhone;
 
     public int getCalculatedModifiedTime() { // AUTOINCREMENT
         int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference;
@@ -216,6 +221,14 @@ public class NewCall {
     public void setCallState(CallState callState) {
         this.callState = callState;
         stateIsSetted = true;
+    }
+
+    public OuterPhone getOuterPhone() {
+        return outerPhone;
+    }
+
+    public void setOuterPhone(OuterPhone outerPhone) {
+        this.outerPhone = outerPhone;
     }
 
     public Direction getDirection() {

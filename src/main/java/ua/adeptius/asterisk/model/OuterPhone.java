@@ -1,8 +1,8 @@
 package ua.adeptius.asterisk.model;
 
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import ua.adeptius.asterisk.utils.StringUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.persistence.*;
 import java.util.GregorianCalendar;
@@ -10,50 +10,60 @@ import java.util.GregorianCalendar;
 @SuppressWarnings("Duplicates")
 @Entity
 @Table(name = "outerphones", schema = "calltrackdb")
+@com.fasterxml.jackson.annotation.JsonAutoDetect(
+        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
+)
 public class OuterPhone {
 
     @Id
     @Column(name = "number")
+    @JsonProperty
     private String number;
 
     @Column(name = "busy")
     private String busy;
 
+    @JsonProperty
     @Column(name = "site_name")
-    private String sitename = "";
+    private String sitename;
 
 
+    @JsonProperty
     @Transient
     private String googleId = "";
 
+    @JsonProperty
     @Transient
-    private String ip;
+    private String ip = "";
 
-    @JsonIgnore
     @Transient
-    private String busyTime; // время которое телефон занят. Вычисляется наблюдателем относительно времени startedBusy
+    private long busyTimeMillis; // время которое телефон занят. Вычисляется наблюдателем относительно времени startedBusy
 
-    @JsonIgnore
     @Transient
     private long updatedTime;   // время аренды. Обновляется при вызове extendTime. Если это значение+12000 больше текущего времени - наблюдатель освобождает телефон
 
-    @JsonIgnore
     @Transient
     private long startedBusy; // время мс когда был занят телефон. устанавливается при установке айди
 
     @Transient
     private String utmRequest;
 
+    @JsonProperty
     public String getUtmRequest() {
         if (utmRequest == null){
             return "";
         }else {
-            return utmRequest;
+            return filterUtmMarks(utmRequest);
         }
     }
 
+
     public void setUtmRequest(String utmRequest) {
-        this.utmRequest = filterUtmMarks(utmRequest);
+        this.utmRequest = utmRequest;
     }
 
     private static String filterUtmMarks(String s) {
@@ -96,21 +106,34 @@ public class OuterPhone {
     }
 
     public void markFree() {
+        utmRequest = "";
         this.setGoogleId("");
         this.setIp("");
         this.updatedTime = 0;
         this.startedBusy = 0;
-        this.busyTime = "";
+        this.busyTimeMillis = 0;
     }
 
     public boolean isFree() {// так понятно что телефон ничей
         return googleId.equals("");
     }
 
-    public void setBusyTime(long busyTime) {
-        this.busyTime = StringUtils.getStringedTime(busyTime);
+    public void setBusyTimeMillis(long busyTimeMillis) {
+        this.busyTimeMillis = busyTimeMillis;
     }
 
+    @JsonProperty
+    public String getBusyTimeText() {
+        if (busyTimeMillis == 0){
+            return "";
+        }
+        return MyStringUtils.getStringedTime(busyTimeMillis);
+    }
+
+    @JsonProperty
+    public int getBusyTimeSeconds() {
+        return (int) (busyTimeMillis/1000);
+    }
 
     public String getNumber() {
         return number;
@@ -119,7 +142,8 @@ public class OuterPhone {
     public void setNumber(String number) {
         this.number = number;
     }
-//
+
+
     public String getBusy() {
         return busy;
     }
@@ -142,7 +166,7 @@ public class OuterPhone {
 
     public void setGoogleId(String googleId) {// если записывается айди - значит он теперь кем-то занят
         this.startedBusy = new GregorianCalendar().getTimeInMillis();
-        setBusyTime(0);
+        setBusyTimeMillis(0);
         this.googleId = googleId;
     }
 
@@ -159,13 +183,7 @@ public class OuterPhone {
         this.ip = ip;
     }
 
-    public String getBusyTime() {
-        return busyTime;
-    }
 
-    public void setBusyTime(String busyTime) {
-        this.busyTime = busyTime;
-    }
 
     public long getUpdatedTime() {
         return updatedTime;

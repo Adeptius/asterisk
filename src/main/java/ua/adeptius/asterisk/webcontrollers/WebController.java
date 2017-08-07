@@ -22,10 +22,9 @@ public class WebController {
 
     // todo кеширование юзеров в мапу
 
-    @RequestMapping(value = "/getnumber/{user}/{site}/{googleid}/{ip}/{pagerequest}", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
-    public
+    @GetMapping(value = "/getnumber/{user}/{site}/{googleid}/{ip}/{pagerequest}", produces = "text/html; charset=UTF-8")
     @ResponseBody
-    String plaintext(@PathVariable String user,
+    public String plaintext(@PathVariable String user,
                      @PathVariable String site,
                      @PathVariable String googleid,
                      @PathVariable String ip,
@@ -37,19 +36,19 @@ public class WebController {
     }
 
 
-    @RequestMapping(value = "/", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    @GetMapping(value = "/", produces = "text/html; charset=UTF-8")
     public String main() {
         return "main";
     }
 
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET, produces = {"text/html; charset=UTF-8"})
+    @GetMapping(value = "/login", produces = "text/html; charset=UTF-8")
     public String login() {
         return "login";
     }
 
 
-    @RequestMapping(value = "/getToken", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+    @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String checkLogin(@RequestParam String login, @RequestParam String password) {
         User user = UserContainer.getUserByName(login);

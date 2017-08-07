@@ -1,7 +1,6 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
-import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;

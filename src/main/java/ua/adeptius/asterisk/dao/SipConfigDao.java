@@ -9,6 +9,7 @@ import ua.adeptius.asterisk.telephony.SipConfig;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -18,7 +19,7 @@ public class SipConfigDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(SipConfigDao.class.getSimpleName());
 
-    private static String folder = Settings.getSetting("___sipConfigsFolder");
+    private static String folder = Settings.getSetting("sipConfigsFolder");
 
     public static void writeToFile(SipConfig sipConfig) throws Exception {
         LOGGER.trace("Запись SIP конфига в файл {}", sipConfig.getNumber());
@@ -74,14 +75,18 @@ public class SipConfigDao {
 
 
 
-    public static void removeFiles(List<String> numbers) throws Exception {
+    public static void removeFiles(List<String> numbers){
         LOGGER.trace("Удаление файлов SIP конфигов {}", numbers);
         for (String number : numbers) {
-            removeFile(number);
+            try {
+                removeFile(number);
+            }catch (IOException e){
+                LOGGER.error("Не удалось удалить конфиг "+number, e);
+            }
         }
     }
 
-    private static void removeFile(String number) throws Exception {
+    private static void removeFile(String number) throws IOException {
         Files.deleteIfExists(Paths.get(folder + number + ".conf"));
     }
 }

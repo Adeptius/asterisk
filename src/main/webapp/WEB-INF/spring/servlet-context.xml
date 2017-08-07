@@ -17,6 +17,9 @@
     </beans:bean>
 
 
+
+
+
     <resources mapping="/resources/**" location="/resources/"/>
     <resources mapping="/css/**" location="/resources/css/"/>
     <resources mapping="/js/**" location="/resources/js/"/>

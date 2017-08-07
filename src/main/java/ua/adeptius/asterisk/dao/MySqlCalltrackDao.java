@@ -15,7 +15,7 @@ public class MySqlCalltrackDao extends MySqlDao {
 
 
     public static List<String> getMelodies() throws Exception {
-        LOGGER.trace("Запрос списка мелодий");
+//        LOGGER.trace("Запрос списка мелодий");
         List<String> melodies = new ArrayList<>();
         String sql = "SELECT * FROM `melodies`";
         try (Connection connection = getTrackingConnection();

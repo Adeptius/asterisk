@@ -4,12 +4,10 @@ package ua.adeptius.asterisk.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
-import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.model.NewCall;
+import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.senders.AmoCallSender;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
-import ua.adeptius.asterisk.senders.Mail;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
 
 import java.util.*;
@@ -90,7 +88,7 @@ public class MainController {
 //        throw new RuntimeException("Телефон " + number + " не найден");
 //    }
 
-    public static void onNewSiteCall(NewCall call) {
+    public static void onNewSiteCall(Call call) {
         String numberFirstCall = call.getFirstCall(); // Находим телефон на который позвонили изначально и берём у него utm и googleid
         User user = call.getUser();
         Optional<OuterPhone> first = user.getOuterPhones().stream().filter(OP -> OP.getNumber().equals(numberFirstCall)).findFirst();
@@ -105,7 +103,7 @@ public class MainController {
         MySqlStatisticDao.saveCall(call);
     }
 
-    public static void onNewTelephonyCall(NewCall call) {
+    public static void onNewTelephonyCall(Call call) {
         googleAnalitycsCallSender.send(call);
         roistatCallSender.send(call);
         MySqlStatisticDao.saveCall(call);

@@ -6,8 +6,9 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.NewCall;
+import ua.adeptius.asterisk.model.Call;
 
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,9 +16,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GoogleAnalitycsCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(GoogleAnalitycsCallSender.class.getSimpleName());
-    private LinkedBlockingQueue<NewCall> blockingQueue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
 
-    public void send(NewCall call) {
+    public void send(Call call) {
         try {
             blockingQueue.put(call);
         } catch (InterruptedException ignored) {
@@ -36,7 +37,7 @@ public class GoogleAnalitycsCallSender extends Thread {
     public void run() {
         while (true) {
             try {
-                NewCall call = blockingQueue.take();
+                Call call = blockingQueue.take();
                 sendReport(call);
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
@@ -44,10 +45,8 @@ public class GoogleAnalitycsCallSender extends Thread {
         }
     }
 
-
-
-    private void sendReport(NewCall call) {
-        if (call.getDirection() != NewCall.Direction.IN){
+    private void sendReport(Call call) { //todo не работает
+        if (call.getDirection() != Call.Direction.IN){
             return;
         }
 
@@ -57,6 +56,11 @@ public class GoogleAnalitycsCallSender extends Thread {
             return;
         }
 
+        OuterPhone outerPhone = call.getOuterPhone();
+        String sitename = outerPhone.getSitename();
+        if (StringUtils.isBlank(sitename)){
+            return;
+        }
 
         String clientGoogleId = call.getGoogleId();
 
@@ -64,13 +68,13 @@ public class GoogleAnalitycsCallSender extends Thread {
         map.put("v", "1");
         map.put("tid", userGoogleAnalitycsId); // Tracking ID / Property ID.
         map.put("t", "event"); // Hit Type.
-        map.put("ea", "new call");// Event
+        map.put("ea", sitename+": new call");// Event
 //          map.put("el", call.getDirection()); // Label
 
-        NewCall.Service service = call.getService();
-        if (service == NewCall.Service.TRACKING) {
+        Call.Service service = call.getService();
+        if (service == Call.Service.TRACKING) {
             map.put("ec", "calltracking"); // Category
-        } else if (service == NewCall.Service.TELEPHONY) {
+        } else if (service == Call.Service.TELEPHONY) {
             map.put("ec", "ip_telephony"); // Category
         }
 

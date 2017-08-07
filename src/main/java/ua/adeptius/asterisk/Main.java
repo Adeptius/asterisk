@@ -44,15 +44,15 @@ public class Main {
 
         if (itsLinux){ // это линукс
             LOGGER.info("OS Linux");
-            Settings.setSetting("___forwardingRulesFolder","/var/www/html/admin/modules/core/etc/clients/");
-            Settings.setSetting("___sipConfigsFolder","/etc/asterisk/sip_clients/");
+            Settings.setSetting("forwardingRulesFolder","/var/www/html/admin/modules/core/etc/clients/");
+            Settings.setSetting("sipConfigsFolder","/etc/asterisk/sip_clients/");
             Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","cstat.nextel.com.ua:8443");
 
         }else { // Это винда
             LOGGER.info("OS Windows");
             startedOnWindows = true;
-            Settings.setSetting("___forwardingRulesFolder","D:\\home\\adeptius\\tomcat\\rules\\");
-            Settings.setSetting("___sipConfigsFolder","D:\\home\\adeptius\\tomcat\\sips\\");
+            Settings.setSetting("forwardingRulesFolder","D:\\home\\adeptius\\tomcat\\rules\\");
+            Settings.setSetting("sipConfigsFolder","D:\\home\\adeptius\\tomcat\\sips\\");
             Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","adeptius.pp.ua:8443");
         }
 

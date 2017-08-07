@@ -16,11 +16,11 @@ public class MySqlDao {
     private static ComboPooledDataSource trackingDataSource;
 
     public static void init() throws Exception {
-        String login = Settings.getSetting("___dbLogin");
-        String password = Settings.getSetting("___dbPassword");
+        String login = Settings.getSetting("dbLogin");
+        String password = Settings.getSetting("dbPassword");
         statisticDataSource = new ComboPooledDataSource();
         statisticDataSource.setDriverClass("com.mysql.jdbc.Driver");
-        statisticDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("___dbAdress") + "statisticdb");
+        statisticDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("dbAdress") + "statisticdb");
         statisticDataSource.setUser(login);
         statisticDataSource.setPassword(password);
         statisticDataSource.setMinPoolSize(1);
@@ -30,7 +30,7 @@ public class MySqlDao {
 
         trackingDataSource = new ComboPooledDataSource();
         trackingDataSource.setDriverClass("com.mysql.jdbc.Driver");
-        trackingDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("___dbAdress") + "calltrackdb");
+        trackingDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("dbAdress") + "calltrackdb");
         trackingDataSource.setUser(login);
         trackingDataSource.setPassword(password);
         trackingDataSource.setMinPoolSize(1);

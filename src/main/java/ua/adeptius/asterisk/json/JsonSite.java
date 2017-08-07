@@ -2,21 +2,21 @@ package ua.adeptius.asterisk.json;
 
 
 
-public class JsonTracking {
+public class JsonSite {
 
-    private Integer siteNumbersCount;
+    private String name;
     private String standartNumber;
     private Integer timeToBlock;
 
-    public Integer getSiteNumbersCount() {
-        return siteNumbersCount;
+    public String getName() {
+        return name;
     }
 
-    public void setSiteNumbersCount(Integer siteNumbersCount) {
-        this.siteNumbersCount = siteNumbersCount;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getStandartNumber() {
+    public String getStandardNumber() {
         return standartNumber;
     }
 
@@ -34,8 +34,8 @@ public class JsonTracking {
 
     @Override
     public String toString() {
-        return "JsonTracking{" +
-                "siteNumbersCount=" + siteNumbersCount +
+        return "JsonSite{" +
+                "name='" + name + '\'' +
                 ", standartNumber='" + standartNumber + '\'' +
                 ", timeToBlock=" + timeToBlock +
                 '}';

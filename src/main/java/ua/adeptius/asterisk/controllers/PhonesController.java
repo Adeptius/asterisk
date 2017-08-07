@@ -7,10 +7,7 @@ import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.exceptions.NotEnoughNumbers;
-import ua.adeptius.asterisk.model.OldPhone;
-import ua.adeptius.asterisk.model.Telephony;
-import ua.adeptius.asterisk.model.Tracking;
-import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
 import java.util.*;
@@ -22,19 +19,30 @@ public class PhonesController {
     private static Logger LOGGER = LoggerFactory.getLogger(PhonesController.class.getSimpleName());
 
 
-    public static List<String> createMoreSipNumbers(int number, String user) throws Exception {
+    public static List<InnerPhone> createMoreSipNumbers(int number, String user) throws Exception {
         LOGGER.debug("Создание дополнительно {} sip номеров", number);
         int max = PhonesDao.getMaxSipNumber();
-        List<String> createdNumbers = new ArrayList<>();
+        List<InnerPhone> createdNumbers = new ArrayList<>();
 
         for (int i = 0; i < number; i++) {
             String newSipNumber = ++max + "";
             SipConfig sipConfig = new SipConfig(newSipNumber);
-            HibernateDao.saveSipBySipConfig(sipConfig, user);
+            createdNumbers.add(HibernateDao.saveSipBySipConfig(sipConfig, user));
             SipConfigDao.writeToFile(sipConfig);
-            createdNumbers.add(newSipNumber);
         }
         return createdNumbers;
+    }
+
+    public static void removeAllInnerNumbersConfigFiles(User user) throws Exception {
+        SipConfigDao.removeFiles(
+                user.getInnerPhones().stream()
+                        .map(InnerPhone::getNumber)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public static void removeSipNumbersConfigs(List<InnerPhone> redutrantNumbers) {
+        SipConfigDao.removeFiles(redutrantNumbers.stream().map(InnerPhone::getNumber).collect(Collectors.toList()));
     }
 
 
@@ -94,6 +102,7 @@ public class PhonesController {
 
 //    public static void releaseAllCustomerNumbers(User user) throws Exception {
 //        LOGGER.debug("{}: Освобождаем все номера пользователя", user);
+//
 //        if (user.getTracking() != null) {
 //            releaseAllTrackingNumbers(user.getTracking());
 //        }
@@ -105,16 +114,6 @@ public class PhonesController {
 //    public static void releaseAllTrackingNumbers(Tracking tracking) throws Exception {
 //        HibernateDao.markOuterPhoneFree(tracking.getOldPhones().stream().map(OldPhone::getNumber).collect(Collectors.toList()));
 //    }
-
-//    public static void releaseAllTelephonyNumbers(Telephony telephony) throws Exception {
-//        HibernateDao.markOuterPhoneFree(telephony.getOuterPhonesList());
-//        HibernateDao.removeInnerPhone(telephony.getInnerPhonesList());
-//        SipConfigDao.removeFiles(telephony.getInnerPhonesList());
-//    }
-
-
-
-
 
     // Это не нужно так как теперь при удалении обьекта - номера освобождаются автоматически хибернейтом.
 //    public static void scanAndClean() throws Exception {

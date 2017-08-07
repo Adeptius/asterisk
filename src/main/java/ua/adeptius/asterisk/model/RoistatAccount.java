@@ -1,13 +1,24 @@
 package ua.adeptius.asterisk.model;
 
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "roistat_accounts", schema = "calltrackdb")
+@JsonIgnoreProperties("user")
+@JsonAutoDetect(
+        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
+)
 public class RoistatAccount {
 
     @Id
@@ -19,9 +30,11 @@ public class RoistatAccount {
     @Column(name = "nextelLogin",  insertable = false, updatable = false)
     private String nextelLogin;
 
+    @JsonProperty
     @Column(name = "projectNumber")
     private String projectNumber;
 
+    @JsonProperty
     @Column(name = "apiKey")
     private String apiKey;
 

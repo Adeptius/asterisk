@@ -22,11 +22,19 @@ public class UserContainer {
 
     public static void recalculateHashesForAllUsers(){
         LOGGER.debug("Пересчет хэша для всех пользователей");
-        hashes.clear();
+        HashMap<String, User> temp = new HashMap<>();
         for (User user : users) {
-            hashes.put(createMd5(user), user);
+            temp.put(createMd5(user), user);
         }
+        hashes = temp;
     }
+
+    public static void recalculateHashesForUser(String oldHash, User user){
+        LOGGER.debug("Пересчет хэша для пользователя {}", user.getLogin());
+        hashes.remove(oldHash);
+        hashes.put(createMd5(user), user);
+    }
+
 
     public static User getUserByHash(String hash){
         return hashes.get(hash);

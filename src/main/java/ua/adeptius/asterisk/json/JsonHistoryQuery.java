@@ -39,4 +39,13 @@ public class JsonHistoryQuery {
     public void setDirection(String direction) {
         this.direction = direction;
     }
+
+    @Override
+    public String toString() {
+        return "JsonHistoryQuery{" +
+                "dateFrom='" + dateFrom + '\'' +
+                ", dateTo='" + dateTo + '\'' +
+                ", direction='" + direction + '\'' +
+                '}';
+    }
 }

@@ -30,4 +30,13 @@ public class JsonAmoForController {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
+
+    @Override
+    public String toString() {
+        return "JsonAmoForController{" +
+                "domain='" + domain + '\'' +
+                ", amoLogin='" + amoLogin + '\'' +
+                ", apiKey='" + apiKey + '\'' +
+                '}';
+    }
 }

@@ -1,32 +1,31 @@
 package ua.adeptius.asterisk.model;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
 
-import javax.annotation.Nonnull;
-import javax.annotation.PreDestroy;
 import javax.persistence.*;
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
-import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
-import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
-
 
 @Entity
 @Table(name = "sites", schema = "calltrackdb")
+@JsonIgnoreProperties("user")
+@com.fasterxml.jackson.annotation.JsonAutoDetect(
+        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
+)
 public class Site {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Site.class.getSimpleName());
@@ -34,22 +33,25 @@ public class Site {
     public Site() {
     }
 
+    @JsonProperty
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
     @GenericGenerator(name = "increment", strategy = "increment")
     @Column(name = "id")
     private int id;
 
-    @JsonIgnore
     @Column(name = "login", insertable = false, updatable = false)
     private String login;
 
+    @JsonProperty
     @Column(name = "name")//todo только англ
     private String name;
 
-    @Column(name = "standard_number")
-    private String standardNumber;
+    @JsonProperty
+    @Column(name = "standard_number")//todo не null!!!
+    private String standardNumber = "";
 
+    @JsonProperty
     @Column(name = "time_to_block")
     private int timeToBlock;
 
@@ -61,11 +63,10 @@ public class Site {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private User user;
 
-
     @Transient
     LinkedList<String> blackLinkedList;
 
-    @JsonIgnore
+    @JsonProperty
     public LinkedList<String> getBlackList() {
         if (blackLinkedList == null) {
             blackLinkedList = new LinkedList<>();
@@ -109,15 +110,15 @@ public class Site {
         blackIps = sb.toString();
     }
 
+    @JsonProperty
     public List<OuterPhone> getOuterPhones(){
-//        List<OuterPhone> phones = new ArrayList<>();
-//        for (OuterPhone outerPhone : user.getOuterPhones()) {
-//            if ()
-//        }
-
         return user.getOuterPhones().stream()
                 .filter(outerPhone -> name.equals(outerPhone.getSitename()))
                 .collect(Collectors.toList());
+    }
+
+    public void releaseAllPhones(){
+        getOuterPhones().stream().forEach(phone -> phone.setSitename(null));
     }
 
     public int getId() {
