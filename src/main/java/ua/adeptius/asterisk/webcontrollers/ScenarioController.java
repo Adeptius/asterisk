@@ -1,35 +1,55 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
-import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
-import ua.adeptius.asterisk.exceptions.ScenarioConflictException;
-import ua.adeptius.asterisk.json.JsonScenario;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.model.Scenario;
-import ua.adeptius.asterisk.model.ScenarioStatus;
-import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 
-//@Controller
-//@RequestMapping("/scenario")
+@Deprecated
+@Controller
+@RequestMapping(value = "/scenario", produces = "application/json; charset=UTF-8")
+@ResponseBody
 public class ScenarioController {
 
 //    private static boolean safeMode = true;
-//    private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
 //
+
+    private static List<String> melodies;
+    private static long melodiesTimeCache;
+
+    private static void loadMelodies() throws Exception {
+        melodies = HibernateDao.getMelodies();
+        melodiesTimeCache = new Date().getTime();
+    }
+
+    @PostMapping("/getMelodies")
+    public Object getHistory() {
+        try {
+            if (melodies == null) {
+                loadMelodies();
+            }
+
+            long currentTime = new Date().getTime();
+            long past = currentTime - melodiesTimeCache;
+            long updateEvery = 3600000; // обновление каждый час
+
+            if (past > updateEvery) {
+                loadMelodies();
+            }
+
+            return melodies;
+        } catch (Exception e) {
+            LOGGER.error("Ошибка получения списка мелодий", e);
+            return new Message(Message.Status.Error, "Internal error").toString();
+        }
+    }
 //    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
 //    @ResponseBody
 //    public String getScenarios(HttpServletRequest request) {

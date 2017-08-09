@@ -1,13 +1,8 @@
 package ua.adeptius.asterisk.controllers;
 
 
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.dao.HibernateDao;
-import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.model.User;
 
 public class HibernateController {
 

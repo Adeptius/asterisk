@@ -15,6 +15,7 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Set;
 
 @Controller
 @ResponseBody
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 public class SiteController {
     //    private static boolean safeMode = true;
     private static Logger LOGGER =  LoggerFactory.getLogger(SiteController.class.getSimpleName());
+    private boolean safeMode = true;
 
     @PostMapping("/add")
     public Object add(@RequestBody JsonSite jsonSite, HttpServletRequest request) {
@@ -31,7 +33,7 @@ public class SiteController {
         }
 
         String newName = jsonSite.getName();
-        String newStandardNumber = jsonSite.getStandardNumber();
+        String newStandardNumber = jsonSite.getStandardNumber().replaceAll("\\D+", "");;
         Integer newtimeToBlock = jsonSite.getTimeToBlock();
 
         if (!MyStringUtils.validateThatContainsOnlyEngLettersAndNumbers(newName)){
@@ -43,16 +45,22 @@ public class SiteController {
             return new Message(Message.Status.Error, "Wrong standart number");
         }
 
+
         if (newtimeToBlock == null || newtimeToBlock == 0) {
             newtimeToBlock = 120;
+        }
+
+        if (user.getSiteByName(newName) != null){
+            return new Message(Message.Status.Error, "Site already exists");
         }
 
 
         Site site = new Site();
         site.setUser(user);
         site.setName(newName);
-        site.setStandardNumber(newStandardNumber);
+        site.setStandardNumber(convertPhone(newStandardNumber));
         site.setTimeToBlock(newtimeToBlock);
+
 
         try {
             user.getSites().add(site);
@@ -76,7 +84,7 @@ public class SiteController {
         }
 
         String jName = jsonSite.getName();
-        String jStandardNumber = jsonSite.getStandardNumber();
+        String jStandardNumber = jsonSite.getStandardNumber().replaceAll("\\D+", "");
         Integer jTimeToBlock = jsonSite.getTimeToBlock();
 
         Site site = user.getSiteByName(jName);
@@ -85,7 +93,7 @@ public class SiteController {
         }
 
         if (!StringUtils.isBlank(jStandardNumber)) {
-            site.setStandardNumber(jStandardNumber);
+            site.setStandardNumber(convertPhone(jStandardNumber));
         }
 
         if (jTimeToBlock != null && jTimeToBlock != 0) {
@@ -99,10 +107,11 @@ public class SiteController {
             LOGGER.error(user.getLogin()+": ошибка обновления сайта " + jsonSite, e);
             return new Message(Message.Status.Error, "Internal error");
         }
-//        finally {todo
-//            if (safeMode)
-//                user.reloadTrackingFromDb();
-//        }
+        finally {
+            if (safeMode){
+
+            }
+        }
     }
 
     @PostMapping("/remove")
@@ -125,28 +134,37 @@ public class SiteController {
             LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);
             return new Message(Message.Status.Error, "Internal error");
         }
-//        finally {todo
-//            if (safeMode)
-//                user.reloadTrackingFromDb();
-//        }
+        finally {
+            if (safeMode){
+
+            }
+        }
     }
-//
-//
-//    @PostMapping("/get")
-//    public String getBlackList(HttpServletRequest request) {
-//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-//        if (user == null) {
-//            return new Message(Message.Status.Error, "Authorization invalid").toString();
-//        }
-//        if (user.getTracking() == null) {
-//            return new Message(Message.Status.Error, "User have no tracking").toString();
-//        }
-//
-//        try {
-//            return new ObjectMapper().writeValueAsString(user.getTracking());
-//        } catch (Exception e) {
-//            LOGGER.error(user.getLogin()+": ошибка получения пользователя", e);
-//            return new Message(Message.Status.Error, "Internal error").toString();
-//        }
-//    }
+
+
+    @PostMapping("/get")
+    public Object getBlackList(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid");
+        }
+        Set<Site> sites = user.getSites();
+        if (sites == null || sites.size() == 0) {
+            return new Message(Message.Status.Error, "User have no sites");
+        }
+        return sites;
+    }
+
+
+    public static String convertPhone(String source) {
+        if (source.length() > 8) {
+            int len = source.length();
+            String s4 = source.substring(len - 2, len);
+            String s3 = source.substring(len - 4, len - 2);
+            String s2 = source.substring(len - 7, len - 4);
+            String s1 = source.substring(0, len - 7);
+            return String.format("(%s) %s-%s-%s", s1, s2, s3, s4);
+        }
+        return source;
+    }
 }

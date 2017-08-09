@@ -20,10 +20,10 @@ import java.util.regex.Pattern;
 @ResponseBody
 public class BlackListController {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(BlackListController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(BlackListController.class.getSimpleName());
 
     @PostMapping("/add")
-    public Object addToBlackList(@RequestParam String ip, String siteName, HttpServletRequest request) {
+    public Object addToBlackList(String ip, String siteName, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -37,7 +37,7 @@ public class BlackListController {
             Matcher regexMatcher = Pattern.compile("(\\d{1,3}[.]){3}\\d{1,3}").matcher(ip.trim());
             regexMatcher.find();
             regexMatcher.group();
-        }catch (Exception e){
+        } catch (Exception e) {
             return new Message(Message.Status.Error, "Wrong ip");
         }
         Site site = user.getSiteByName(siteName);
@@ -47,10 +47,10 @@ public class BlackListController {
 
         site.addIpToBlackList(ip);
         try {
-            LOGGER.debug("{}: сайт {} добавление IP {} в черный список",user.getLogin(), site, ip);
-            HibernateDao.update(user); // todo это затратно по ресурсам
+            LOGGER.debug("{}: сайт {} добавление IP {} в черный список", user.getLogin(), site, ip);
+            HibernateDao.update(user); // TODO Оптимизация: это затратно по ресурсам
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка добавления IP "+ip+" в черный список", e);
+            LOGGER.error(user.getLogin() + ": ошибка добавления IP " + ip + " в черный список", e);
             return new Message(Message.Status.Error, "Internal error");
         }
         return new Message(Message.Status.Success, "Added");
@@ -58,7 +58,7 @@ public class BlackListController {
 
 
     @PostMapping("/remove")
-    public Object removeFromBlackList(@RequestParam String ip, String siteName, HttpServletRequest request) {
+    public Object removeFromBlackList(String ip, String siteName, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -66,7 +66,7 @@ public class BlackListController {
 
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no tracking sites");
+            return new Message(Message.Status.Error, "User have no such site");
         }
         Site site = user.getSiteByName(siteName);
         if (site == null) {
@@ -76,10 +76,10 @@ public class BlackListController {
         site.removeIpFromBlackList(ip);
 
         try {
-            LOGGER.debug("{}: сайт {} удаление IP {} из черного списка",user.getLogin(), site, ip);
+            LOGGER.debug("{}: сайт {} удаление IP {} из черного списка", user.getLogin(), site, ip);
             HibernateDao.update(user);
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка удаления IP "+ip+" из черного списка", e);
+            LOGGER.error(user.getLogin() + ": ошибка удаления IP " + ip + " из черного списка", e);
             return new Message(Message.Status.Error, "Internal error");
         }
         return new Message(Message.Status.Success, "Removed");
@@ -94,18 +94,13 @@ public class BlackListController {
         }
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no tracking sites");
+            return new Message(Message.Status.Error, "User have no such site");
         }
         Site site = user.getSiteByName(siteName);
         if (site == null) {
             return new Message(Message.Status.Error, "User have no such site");
         }
 
-        try {
-            return site.getBlackList();
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка получения черного списка для сайта" + siteName, e);
-            return new Message(Message.Status.Error, "Internal error");
-        }
+        return site.getBlackList();
     }
 }

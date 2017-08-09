@@ -60,7 +60,7 @@ public class AmoAccount implements Serializable {
     private String phoneEnumId;
 
     @Column(name = "leadId")
-    private int leadId; //TODO Реализовать возможность выбора
+    private int leadId;
 
     @ManyToOne
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
@@ -73,8 +73,8 @@ public class AmoAccount implements Serializable {
 
 //    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
 //        AmoPhoneBinding binding = new AmoPhoneBinding();
-//        binding.setWorker(worker);//TODO проверки на то что такое уже есть
-//        binding.setPhone(phone);  //TODO проверка внутренний ли это номер пользователя
+//        binding.setWorker(worker);
+//        binding.setPhone(phone);
 //        phoneBindings.add(binding);
 //    }
 
@@ -121,16 +121,6 @@ public class AmoAccount implements Serializable {
             nextelLogin = user.getLogin();
         }
         this.user = user;
-    }
-
-    @Nonnull
-    public String getNextelLogin() {
-        return nextelLogin;
-    }
-
-
-    public void setNextelLogin(@Nonnull String nextelLogin) {
-        this.nextelLogin = nextelLogin;
     }
 
     @Nonnull

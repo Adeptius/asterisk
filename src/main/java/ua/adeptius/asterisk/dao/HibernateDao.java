@@ -11,6 +11,8 @@ import ua.adeptius.asterisk.telephony.SipConfig;
 
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 //@Component
 public class HibernateDao {
@@ -19,6 +21,7 @@ public class HibernateDao {
     private static Logger LOGGER = LoggerFactory.getLogger(HibernateDao.class.getSimpleName());
 
     public static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
+    private static Object allOuterPhones;
 
 //    public static SessionFactory sessionFactory;
 
@@ -70,8 +73,18 @@ public class HibernateDao {
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        session.delete(user);
+        Set<OuterPhone> outerPhones = user.getOuterPhones();
+        for (OuterPhone outerPhone : outerPhones) {
+            outerPhone.setBusy(null);
+            outerPhone.setSitename(null);
+            session.update(outerPhone);
+        }
 
+        session.getTransaction().commit();
+        session.beginTransaction();
+
+        user = session.get(User.class, user.getLogin());
+        session.delete(user);
         session.getTransaction().commit();
         session.close();
     }
@@ -104,14 +117,14 @@ public class HibernateDao {
 
     //    Ерунда какая-то. Если вставить в модель данные отсюда - хибернейт ломается при следующем сохранении user'a
     // Решено - надо было пересоздать таблицу. Заглючил mysql
-    @Deprecated
-    public static List<Scenario> getAllScenariosByUser(User user) {
-        Session session = sessionFactory.openSession();
-        List<Scenario> list = session.createQuery("FROM Scenario S where S.login = '" + user.getLogin() + "'").list();
-        list.forEach(scenario -> scenario.setUser(user));
-        session.close();
-        return list;
-    }
+//    @Deprecated
+//    public static List<Scenario> getAllScenariosByUser(User user) {
+//        Session session = sessionFactory.openSession();
+//        List<Scenario> list = session.createQuery("FROM Scenario S where S.login = '" + user.getLogin() + "'").list();
+//        list.forEach(scenario -> scenario.setUser(user));
+//        session.close();
+//        return list;
+//    }
 
 //    public static void remove(Scenario scenario) {
 //        LOGGER.info("Удаление сценария из БД: {}", scenario.toString());
@@ -155,6 +168,16 @@ public class HibernateDao {
 //        session.close();
 //    }
 
+    /**
+     * Melodies
+     */
+
+    public static List<String> getMelodies() {
+        Session session = sessionFactory.openSession();
+         List<Melody> melodies = session.createQuery("FROM Melody M").list();
+        session.close();
+        return melodies.stream().map(Melody::getName).collect(Collectors.toList());
+    }
 
     /**
      * Tracking
@@ -189,64 +212,58 @@ public class HibernateDao {
     /**
      * AmoCRM
      */
-    @Deprecated
-    public static AmoAccount getAmoAccountByUser(User user) {
+    // Для тестов
+    public static AmoAccount getAmoAccountByUser(String nextelLogin) {
         Session session = sessionFactory.openSession();
-        String hql = "FROM AmoAccount A WHERE A.nextelLogin = :login";
+        String hql = "FROM AmoAccount A WHERE A.nextelLogin = :nextelLogin";
         Query query = session.createQuery(hql);
-        query.setParameter("login", user.getLogin());
+        query.setParameter("nextelLogin", nextelLogin);
         AmoAccount amoAccount = (AmoAccount) query.uniqueResult();
-        if (amoAccount != null) {
-            amoAccount.setUser(user);
-        }
         session.close();
         return amoAccount;
     }
 
-    @Deprecated
-    public static void removeAmoAccount(User user) {
-        LOGGER.info("Удаление amo аккаунта у пользователя {}", user.getLogin());
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-
-        session.delete(user.getAmoAccount());
-        user.setAmoAccount(null);
-        session.update(user);
-
-        session.getTransaction().commit();
-        session.close();
-    }
+//    @Deprecated
+//    public static void removeAmoAccount(User user) {
+//        LOGGER.info("Удаление amo аккаунта у пользователя {}", user.getLogin());
+//        Session session = sessionFactory.openSession();
+//        session.beginTransaction();
+//
+//        session.delete(user.getAmoAccount());
+//        user.setAmoAccount(null);
+//        session.update(user);
+//
+//        session.getTransaction().commit();
+//        session.close();
+//    }
 
     /**
      * Roistat
      */
-    @Deprecated
-    public static RoistatAccount getRoistatAccountByUser(User user) {
+    // Для тестов
+    public static RoistatAccount getRoistatAccountByUser(String nextelLogin) {
         Session session = sessionFactory.openSession();
-        String hql = "FROM RoistatAccount R WHERE R.nextelLogin = :login";
+        String hql = "FROM RoistatAccount R WHERE R.nextelLogin = :nextelLogin";
         Query query = session.createQuery(hql);
-        query.setParameter("login", user.getLogin());
+        query.setParameter("nextelLogin", nextelLogin);
         RoistatAccount roistatAccount = (RoistatAccount) query.uniqueResult();
-        if (roistatAccount != null) {
-            roistatAccount.setUser(user);
-        }
         session.close();
         return roistatAccount;
     }
 
-    @Deprecated
-    public static void removeRoistatAccount(User user) {
-        LOGGER.info("Удаление roistat аккаунта у пользователя {}", user.getLogin());
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-
-        session.delete(user.getRoistatAccount());
-        user.setRoistatAccount(null);
-        session.update(user);
-
-        session.getTransaction().commit();
-        session.close();
-    }
+//    @Deprecated
+//    public static void removeRoistatAccount(User user) {
+//        LOGGER.info("Удаление roistat аккаунта у пользователя {}", user.getLogin());
+//        Session session = sessionFactory.openSession();
+//        session.beginTransaction();
+//
+//        session.delete(user.getRoistatAccount());
+//        user.setRoistatAccount(null);
+//        session.update(user);
+//
+//        session.getTransaction().commit();
+//        session.close();
+//    }
 
 
     /**
@@ -289,7 +306,7 @@ public class HibernateDao {
         return innerPhone;
     }
 
-    @Deprecated
+
     public static int getSipMaxNumber() throws Exception {
         LOGGER.trace("Поиск в базе максимального номера телефона");
         Session session = sessionFactory.openSession();
@@ -300,47 +317,46 @@ public class HibernateDao {
         return Integer.parseInt(number);
     }
 
-    @Deprecated
-    public static void markInnerPhonesBusy(String user, List<String> numbers) throws Exception {
-        LOGGER.trace("{}: помечаем {} номеров занятыми {}", user, numbers.size(), numbers);
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
+//    @Deprecated
+//    public static void markInnerPhonesBusy(String user, List<String> numbers) throws Exception {
+//        LOGGER.trace("{}: помечаем {} номеров занятыми {}", user, numbers.size(), numbers);
+//        Session session = sessionFactory.openSession();
+//        session.beginTransaction();
+//
+//        for (String number : numbers) {
+//            session.load(InnerPhone.class, number).setBusy(user);
+//        }
+//
+//        session.getTransaction().commit();
+//        session.close();
+//    }
 
-        for (String number : numbers) {
-            session.load(InnerPhone.class, number).setBusy(user);
-        }
-
-        session.getTransaction().commit();
-        session.close();
-    }
-
-    @Deprecated
-    public static void removeInnerPhone(List<String> numbersToRelease) throws Exception {
-        LOGGER.trace("Удаляем {} внутренних номеров {}", numbersToRelease.size(), numbersToRelease);
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-        for (String number : numbersToRelease) {
-            InnerPhone phone = session.load(InnerPhone.class, number);
-            session.delete(phone);
-            //TODO удалять здесь привязку сотрудника амо к этому номеру
-        }
-        session.getTransaction().commit();
-        session.close();
-    }
+//    @Deprecated
+//    public static void removeInnerPhone(List<String> numbersToRelease) throws Exception {
+//        LOGGER.trace("Удаляем {} внутренних номеров {}", numbersToRelease.size(), numbersToRelease);
+//        Session session = sessionFactory.openSession();
+//        session.beginTransaction();
+//        for (String number : numbersToRelease) {
+//            InnerPhone phone = session.load(InnerPhone.class, number);
+//            session.delete(phone);
+//        }
+//        session.getTransaction().commit();
+//        session.close();
+//    }
 
 
     /**
      * Outer Phones
      */
 
-    @Deprecated
-    public static List<OuterPhone> getAllOuterUsersPhones(String user) throws Exception {
-        LOGGER.info("{}: загрузка внешних номеров пользователя", user);
-        Session session = sessionFactory.openSession();
-        List<OuterPhone> list = session.createQuery("select o from OuterPhone o where o.busy = '" + user + "'").list();
-        session.close();
-        return list;
-    }
+//    @Deprecated
+//    public static List<OuterPhone> getAllOuterUsersPhones(String user) throws Exception {
+//        LOGGER.info("{}: загрузка внешних номеров пользователя", user);
+//        Session session = sessionFactory.openSession();
+//        List<OuterPhone> list = session.createQuery("select o from OuterPhone o where o.busy = '" + user + "'").list();
+//        session.close();
+//        return list;
+//    }
 
 
     public static List<OuterPhone> getAllFreeOuterPhones() throws Exception {
@@ -396,4 +412,61 @@ public class HibernateDao {
         session.getTransaction().commit();
         session.close();
     }
+
+
+    // Используется в тестах
+    public static List<OuterPhone> getAllTestPhones() throws Exception {
+        LOGGER.info("Загрузка внешних тестовых номеров");
+        Session session = sessionFactory.openSession();
+        List<OuterPhone> list = session.createQuery("select o from OuterPhone o where o.number like 'testNumber%'").list();
+        session.close();
+        return list;
+    }
+
+    public static void removeAllTestPhones() throws Exception {
+        LOGGER.info("Удаление внешних тестовых номеров");
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        List<OuterPhone> list = session.createQuery("select o from OuterPhone o where o.number like 'testNumber%'").list();
+        for (OuterPhone outerPhone : list) {
+            session.delete(outerPhone);
+        }
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void createTestPhonesForUser(String user, String siteName) throws Exception {
+        LOGGER.info("Создание внешних тестовых номеров");
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        for (int i = 1; i < 4; i++) {
+            OuterPhone outerPhone = new OuterPhone();
+            outerPhone.setNumber("testNumber"+i);
+            outerPhone.setBusy(user);
+            if (i != 3) {// создаём 2, привязываем 3
+                outerPhone.setSitename(siteName);
+            }
+            session.save(outerPhone);
+        }
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public static void delete(Object o) {
+        if (o instanceof User){
+            throw new RuntimeException("Нельзя удалять пользователя этим методом.");
+        }
+        LOGGER.info("Удаление обьекта {}", o);
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(o);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+
 }

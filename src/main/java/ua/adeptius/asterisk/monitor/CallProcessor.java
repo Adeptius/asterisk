@@ -60,8 +60,7 @@ public class CallProcessor {
 
             OuterPhone outerPhone = user.getOuterPhones().stream()
                     .filter(phone -> phone.getNumber().equals(from))
-                    .findFirst().get();//todo тут null вообще возможен?
-
+                    .findFirst().get();
 
             Call call = new Call();
             call.setOuterPhone(outerPhone);
@@ -218,39 +217,15 @@ public class CallProcessor {
         return log;
     }
 
-//    private static void detectService(NewCall call) {
-//        User user = call.getUser();
-//
-//        String from = call.getCalledFrom();
-//        String to = call.getCalledTo();
-//
-////        if (user.getTracking() != null) {
-////            List<String> list = user.getTracking().getPhones().stream().map(OldPhone::getNumber).collect(Collectors.toList());
-////            if (list.contains(to) || list.contains(from)) {
-////                call.setService(TRACKING);
-////                return;
-////            }
-////        }
-////
-////        if (user.getTelephony() != null) {
-////            List<String> inner = user.getTelephony().getInnerPhonesList();
-////            List<String> outer = user.getTelephony().getOuterPhonesList();
-////            if (inner.contains(to) || inner.contains(from) || outer.contains(to) || outer.contains(from)) {
-////                call.setService(TELEPHONY);
-////            }
-////        }
-//    }
-
-
     private static void processCall(Call call) {
 
+        MainController.onNewCall(call);
 
-
-        if (call.getService() == Call.Service.TRACKING) {
-            MainController.onNewSiteCall(call);
-        } else if (call.getService() == Call.Service.TELEPHONY) {
-            MainController.onNewTelephonyCall(call);
-        }
+//        if (call.getService() == Call.Service.TRACKING) {
+//            MainController.onNewSiteCall(call);
+//        } else if (call.getService() == Call.Service.TELEPHONY) {
+//            MainController.onNewTelephonyCall(call);
+//        }
     }
 
 
@@ -265,7 +240,7 @@ public class CallProcessor {
         return source;
     }
 
-    public static void updatePhonesHashMap() { // todo стоит сделать карту number <-> OuterPhone
+    public static void updatePhonesHashMap() { // TODO Оптимизация: стоит сделать карту number <-> OuterPhone
         LOGGER.trace("Обновление карты Number <-> User");
         phonesAndUsers.clear();
         for (User user : UserContainer.getUsers()) {

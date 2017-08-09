@@ -1,51 +1,62 @@
 package ua.adeptius.asterisk.model;
 
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonIgnoreType;
-import org.codehaus.jackson.annotate.JsonProperty;
-import ua.adeptius.asterisk.model.User;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@JsonAutoDetect(
+        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
+        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
+)
 public class Call {
-
 
     // Нужно для опеределения кому принадлежит тот номер на который позвонил посетитель
     // а не на кого он на самом деле попал. Для трекинга
-    @JsonIgnore
+
     private String firstCall;
+
+    @JsonProperty
     private String calledFrom;
+
+    @JsonProperty
     private String calledTo;
 
+    @JsonProperty
     private CallState callState;
+
+    @JsonProperty
     private Direction direction;
 
+    @JsonProperty
     private String asteriskId;
-    private String utm = "";
-    private String googleId = "";
 
-    @JsonIgnore
+    @JsonProperty
+    private String utm;
+
+    @JsonProperty
+    private String googleId;
     private Service service;
-
-    @JsonIgnore
     private User user;
 
+    @JsonProperty
     private String calledDate;
+
+    @JsonProperty
     private long calledMillis;
+
+    @JsonProperty
     private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
-    //    private int secondsTalk;
+
+    @JsonProperty
     private int secondsFullTime;
     boolean callIsEnded;
-
-    @JsonIgnore
     private int amoDealId;
-
-    @JsonIgnore
     private int lastOperationTime;
-
-    @JsonIgnore
     private OuterPhone outerPhone;
 
     public int getCalculatedModifiedTime() { // AUTOINCREMENT
@@ -58,7 +69,6 @@ public class Call {
         }
     }
 
-    @JsonIgnore
     private int timeDifference;
 
 
@@ -80,7 +90,7 @@ public class Call {
         return calledMillis;
     }
 
-    public String getCalledDate() { // что бы ускорить - создать стринговую переменную в которую будет ложится строка из БД для отдачи на сайт
+    public String getCalledDate() {
         return calledDate;
 //        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(getCalledMillis()));
     }
@@ -111,10 +121,12 @@ public class Call {
         this.secondsToAnswer = secondsToAnswer;
     }
 
+    @JsonProperty
     public int getSecondsToAnswer() {
         return secondsToAnswer == -1 ? secondsFullTime : secondsToAnswer;
     }
 
+    @JsonProperty
     public int getSecondsTalk() { // Тут высчитывается время разговора
         if (callState == CallState.ANSWER) {
             return getSecondsFullTime() - getSecondsToAnswer();

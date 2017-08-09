@@ -43,13 +43,13 @@ public class RoistatAccount {
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;
 
-    public String getNextelLogin() {
-        return nextelLogin;
-    }
+//    public String getNextelLogin() {
+//        return nextelLogin;
+//    }
 
-    public void setNextelLogin(String nextelLogin) {
-        this.nextelLogin = nextelLogin;
-    }
+//    public void setNextelLogin(String nextelLogin) {
+//        this.nextelLogin = nextelLogin;
+//    }
 
     public String getProjectNumber() {
         return projectNumber;
@@ -71,7 +71,7 @@ public class RoistatAccount {
         return user;
     }
 
-    public void setUser(User user) {
+    void setUser(User user) {
         if (user != null){
             nextelLogin = user.getLogin();
         }

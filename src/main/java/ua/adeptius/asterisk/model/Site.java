@@ -44,11 +44,11 @@ public class Site {
     private String login;
 
     @JsonProperty
-    @Column(name = "name")//todo только англ
+    @Column(name = "name")
     private String name;
 
     @JsonProperty
-    @Column(name = "standard_number")//todo не null!!!
+    @Column(name = "standard_number")
     private String standardNumber = "";
 
     @JsonProperty
@@ -111,7 +111,7 @@ public class Site {
     }
 
     @JsonProperty
-    public List<OuterPhone> getOuterPhones(){
+    public List<OuterPhone> getOuterPhones(){//Todo Оптимизация
         return user.getOuterPhones().stream()
                 .filter(outerPhone -> name.equals(outerPhone.getSitename()))
                 .collect(Collectors.toList());

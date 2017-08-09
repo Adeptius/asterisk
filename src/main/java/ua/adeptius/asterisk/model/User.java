@@ -27,6 +27,7 @@ public class User {
 
     @Id
     @Column(name = "login")
+    @JsonProperty
     private String login;
 
 
@@ -49,8 +50,9 @@ public class User {
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private Set<RoistatAccount> roistatAccountSet;
 
-    @JsonProperty
-    @OneToMany(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
+    // при ALL удаляется внешний телефон при удалении пользователя
+    @JsonProperty // при DETACH не становится null site_name при вызове site.releaseAllPhones
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "busy", referencedColumnName = "login")
     private Set<OuterPhone> outerPhones;
 
@@ -67,7 +69,7 @@ public class User {
     @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "login", referencedColumnName = "login")
-    private Set<AmoOperatorLocation> operatorLocations;
+    private Set<AmoOperatorLocation> amoOperatorLocations;
 
     @JsonProperty
     @Transient
@@ -79,9 +81,8 @@ public class User {
     }
 
     public void setAmoAccount(AmoAccount amoAccount) {
-        // add the item as the (only) item.
         if (this.amoAccountSet == null)
-            this.amoAccountSet = new HashSet<AmoAccount>();
+            this.amoAccountSet = new HashSet<>();
         else
             this.amoAccountSet.clear();
 
@@ -89,6 +90,7 @@ public class User {
             return;
         }
 
+        amoAccount.setUser(this);
         this.amoAccountSet.add(amoAccount);
     }
 
@@ -102,23 +104,24 @@ public class User {
     }
 
     public void setRoistatAccount(RoistatAccount roistatAccount) {
-        // add the item as the (only) item.
         if (this.roistatAccountSet == null)
-            this.roistatAccountSet = new HashSet<RoistatAccount>();
+            this.roistatAccountSet = new HashSet<>();
         else
             this.roistatAccountSet.clear();
 
-        if (roistatAccountSet == null) {
+        if (roistatAccount == null) {
             return;
         }
 
-        //todo может здесь сразу привязывать юзера к ройстату?
+        roistatAccount.setUser(this);
         this.roistatAccountSet.add(roistatAccount);
     }
 
-    public static Logger getLOGGER() {
-        return LOGGER;
+    public void removeSite(Site site){
+        site.releaseAllPhones();
+        getSites().remove(site);
     }
+
 
     public Set<OuterPhone> getOuterPhones() {
         return outerPhones;
@@ -137,6 +140,9 @@ public class User {
     }
 
     public Set<Site> getSites() {
+        if (sites == null) {
+            return new HashSet<>();
+        }
         return sites;
     }
 
@@ -180,46 +186,13 @@ public class User {
         this.trackingId = trackingId;
     }
 
-    public Set<AmoOperatorLocation> getOperatorLocations() {
-        return operatorLocations;
+    public Set<AmoOperatorLocation> getAmoOperatorLocations() {
+        return amoOperatorLocations;
     }
 
-    public void setOperatorLocations(Set<AmoOperatorLocation> operatorLocations) {
-        this.operatorLocations = operatorLocations;
+    public void setAmoOperatorLocations(Set<AmoOperatorLocation> amoOperatorLocations) {
+        this.amoOperatorLocations = amoOperatorLocations;
     }
-
-
-    //    public AmoAccount getAmoAccount() {
-//        return amoAccount;
-//    }
-//
-//    public void setAmoAccount(AmoAccount amoAccount) {
-//        this.amoAccount = amoAccount;
-//    }
-
-//    public RoistatAccount getRoistatAccount() {
-//        return roistatAccount;
-//    }
-
-//    public void setRoistatAccount(RoistatAccount roistatAccount) {
-//        this.roistatAccount = roistatAccount;
-//    }
-
-//    public List<OuterPhone> getOuterPhones() {
-//        return outerPhones;
-//    }
-//
-//    public void setOuterPhones(List<OuterPhone> outerPhones) {
-//        this.outerPhones = outerPhones;
-//    }
-//
-//    public List<InnerPhone> getInnerPhones() {
-//        return innerPhones;
-//    }
-//
-//    public void setInnerPhones(List<InnerPhone> innerPhones) {
-//        this.innerPhones = innerPhones;
-//    }
 
 
     @Override
@@ -233,7 +206,7 @@ public class User {
                 "\n roistatAccountSet=" + roistatAccountSet +
                 "\n outerPhones=" + outerPhones +
                 "\n innerPhones=" + innerPhones +
-                "\n operatorLocations=" + operatorLocations +
+                "\n operatorLocations=" + amoOperatorLocations +
                 "\n sites=" + sites +
                 "\n}";
     }
@@ -246,83 +219,6 @@ public class User {
         }
         return null;
     }
-
-
-    //    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-//    @PrimaryKeyJoinColumn
-//    private Tracking tracking;
-
-//    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-//    @PrimaryKeyJoinColumn
-//    private Telephony telephony;
-
-//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-//    @JoinColumn(name = "login", referencedColumnName = "login")
-//    private List<Scenario> scenarios;
-
-
-    /**
-     * Reloading. Synk with DB
-     */
-
-//    public void reloadScenariosFromDb() {
-//        try {
-//            List<Scenario> scenariosFromDB = HibernateDao.getAllScenariosByUser(this);
-//            setScenarios(scenariosFromDB);
-//            LOGGER.debug("{}: Синхронизация с БД - {} сценариев перезагружены", login, scenariosFromDB.size());
-//        } catch (Exception e) {
-//            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации сценариев", e);
-//        }
-//    }
-//
-//
-//    public void reloadAmoAccountFromDb() {
-//        try {
-//            AmoAccount amoAccount = HibernateDao.getAmoAccountByUser(this);
-//            setAmoAccount(amoAccount);
-//            LOGGER.debug("{}: Синхронизация с БД - AmoAccount перезагружен", login);
-//        } catch (Exception e) {
-//            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации AmoAccount", e);
-//        }
-//    }
-//
-//    public void reloadRoistatAccountFromDb() {
-//        try {
-//            RoistatAccount roistatAccount = HibernateDao.getRoistatAccountByUser(this);
-//            setRoistatAccount(roistatAccount);
-//            LOGGER.debug("{}: Синхронизация с БД - Roistat account перезагружен", login);
-//        } catch (Exception e) {
-//            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации Roistat", e);
-//        }
-//    }
-//
-//    public void reloadTrackingFromDb() {
-//        try {
-//            Tracking tracking = HibernateDao.getTrackingByUser(this);
-//            setTracking(tracking);
-//            if (tracking != null) {
-//                tracking.updateNumbers();
-//            }
-//            LOGGER.debug("{}: Синхронизация с БД - трекинг перезагружен", login);
-//        } catch (Exception e) {
-//            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации трекинга", e);
-//        }
-//    }
-//
-//    public void reloadTelephonyFromDb() {
-//        try {
-//            Telephony telephony = HibernateDao.getTelephonyByUser(this);
-//            setTelephony(telephony);
-//            if (telephony != null) {
-//                telephony.updateNumbers();
-//            }
-//            LOGGER.debug("{}: Синхронизация с БД - телефония перезагружена", login);
-//        } catch (Exception e) {
-//            LOGGER.error(login + ": Синхронизация с БД - ошибка синхронизации телефонии", e);
-//        }
-//    }
-
-
     /**
      * Scenario
      */
@@ -397,11 +293,6 @@ public class User {
 //        return foundedScenarios;
 //    }
 
-
-    /**
-     * Numbers
-     */
-
 //    @JsonIgnore
 //    public List<String> getAvailableNumbers() {
 //        List<String> numbers = new ArrayList<>();
@@ -452,86 +343,4 @@ public class User {
 //    }
 //
 //
-//    @Nullable
-//    public Telephony getTelephony() {
-//        return telephony;
-//    }
-//
-//    public void setTelephony(Telephony telephony) {
-//        this.telephony = telephony;
-//    }
-//
-//    @Nullable
-//    public Tracking getTracking() {
-//        return tracking;
-//    }
-//
-//    public void setTracking(Tracking tracking) {
-//        this.tracking = tracking;
-//    }
-//
-//    public String getLogin() {
-//        return login;
-//    }
-//
-//    public void setLogin(String login) {
-//        this.login = login;
-//    }
-//
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    public void setPassword(String password) {
-//        this.password = password;
-//    }
-//
-//    public String getEmail() {
-//        return email;
-//    }
-//
-//    public void setEmail(String email) {
-//        this.email = email;
-//    }
-//
-//    @Nullable
-//    public String getTrackingId() {
-//        return trackingId;
-//    }
-//
-//    public void setTrackingId(String trackingId) {
-//        this.trackingId = trackingId;
-//    }
-//
-//    public AmoAccount getAmoAccount() {
-//        return amoAccount;
-//    }
-//
-//    public void setAmoAccount(AmoAccount amoAccount) {
-//        this.amoAccount = amoAccount;
-//    }
-//
-//    public RoistatAccount getRoistatAccount() {
-//        return roistatAccount;
-//    }
-//
-//    public void setRoistatAccount(RoistatAccount roistatAccount) {
-//        this.roistatAccount = roistatAccount;
-//    }
-//
-//
-//    @Override
-//    public String toString() {
-//        return "User{" +
-//                "\n  login='" + login + '\'' +
-//                "\n  password='" + password + '\'' +
-//                "\n  email='" + email + '\'' +
-//                "\n  trackingId='" + trackingId + '\'' +
-//                "\n  tracking=" + tracking +
-//                "\n  telephony=" + telephony +
-//                "\n  amoAccount=" + amoAccount +
-//                "\n  roistatAccount=" + roistatAccount +
-//                "\n  scenarios=" + scenarios +
-//                "\n}";
-//    }
 }

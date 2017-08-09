@@ -16,6 +16,7 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.regex.Pattern;
 
 @Controller
 @ResponseBody
@@ -24,38 +25,47 @@ public class UserController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(UserController.class.getSimpleName());
 
-    @PostMapping("/add") //todo дата регистрации пользователя и дата последнего посещения или как-то так
+    private static Pattern emailRegex = Pattern.compile("(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|" +
+            "}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x" +
+            "0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5" +
+            "]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x" +
+            "01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])");
+
+
+    @PostMapping("/add") // дата регистрации пользователя и дата последнего посещения или как-то так
     public Object addUser(@RequestBody JsonUser jsonUser) {
-        User currentUser = UserContainer.getUserByName(jsonUser.getLogin());
+        String login = jsonUser.getLogin();
+
+        User currentUser = UserContainer.getUserByName(login);
         if (currentUser != null) {
             return new Message(Message.Status.Error, "Login is busy");
         }
 
-        if (jsonUser.getLogin() == null || jsonUser.getLogin().length() < 4) {
+        String name = login;
+        if (name == null || name.length() < 4 || !MyStringUtils.validateThatContainsOnlyEngLettersAndNumbers(name)) {
             return new Message(Message.Status.Error, "Invalid name, or too short");
         }
 
-        if (jsonUser.getLogin().contains("test")) {
+        if (login.contains("test")) {
             return new Message(Message.Status.Error, "Invalid name. Cant use 'test' in name");
         } // это ограничение связано с правилами переадресации, которые нельзя удалять если в них содержится слово test
-
-
-        String name = jsonUser.getLogin();
-        if (!MyStringUtils.validateThatContainsOnlyEngLettersAndNumbers(name)) {
-            return new Message(Message.Status.Error, "Invalid name, or too short");
-        }
-
 
         String password = jsonUser.getPassword();
         if (password == null || password.length() < 6) {
             return new Message(Message.Status.Error, "Password is too short. Must be minimum 6 characters");
         }
 
+        String email = jsonUser.getEmail();
+        if (email == null || !emailRegex.matcher(email).find()){
+            return new Message(Message.Status.Error, "Email is wrong.");
+        }
+
         try {
+            WebController.clearCache();
             User newUser = new User();
-            newUser.setLogin(jsonUser.getLogin());
+            newUser.setLogin(login);
             newUser.setPassword(jsonUser.getPassword());
-            newUser.setEmail(jsonUser.getEmail());
+            newUser.setEmail(email);
             newUser.setTrackingId(jsonUser.getTrackingId());
             HibernateDao.saveUser(newUser);
             UserContainer.putUser(newUser);
@@ -79,10 +89,16 @@ public class UserController {
         if (StringUtils.isBlank(password) || password.length() < 6) {
             return new Message(Message.Status.Error, "Password is too short. Must be minimum 6 characters");
         }
-
         user.setPassword(password);
+
+
+        String email = setUser.getEmail();
+        if (email == null || !emailRegex.matcher(email).find()){
+            return new Message(Message.Status.Error, "Email is wrong.");
+        }
+        user.setEmail(email);
+
         user.setTrackingId(setUser.getTrackingId());
-        user.setEmail(setUser.getEmail());
 
         try {
             HibernateDao.update(user);
@@ -101,12 +117,18 @@ public class UserController {
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
         }
-        try {
-            return user;
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": ошибка получения всех данных пользователя", e);
-            return new Message(Message.Status.Error, "Internal error");
+
+        return new JsonUser(user);
+    }
+
+    @PostMapping("/getFull")
+    public Object getFullUser(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
+
+        return user;
     }
 
     @PostMapping("/remove")
@@ -118,6 +140,7 @@ public class UserController {
         }
 
         try {
+            WebController.clearCache();
             HibernateDao.delete(user);
             UserContainer.removeUser(user);
             UserContainer.getHashes().remove(hash);

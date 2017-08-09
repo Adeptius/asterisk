@@ -18,6 +18,7 @@ import java.util.Set;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
 
+
 @Controller
 @RequestMapping("/script")
 @ResponseBody
@@ -25,24 +26,25 @@ public class ScriptController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ScriptController.class.getSimpleName());
 
-    @PostMapping(value = "/get/{sitename}", produces = "application/json; charset=UTF-8")
-    public Object getScript(HttpServletRequest request, @PathVariable String sitename) {
+    @PostMapping(value = "/get", produces = "application/json; charset=UTF-8")
+    public Object getScript(HttpServletRequest request, @RequestParam String siteName) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Message.Status.Error, "Authorization invalid");
         }
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no tracking sites").toString();
+            return new Message(Message.Status.Error, "User have no this site");
         }
-        Site site = user.getSiteByName(sitename);
-        String script = "<script src=\\\"https://"
-                + Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT")
-                + "/tracking/script/"
-                + user.getLogin()
-                + "/"
-                + site.getName()
-                + "\\\"></script>";
+        Site site = user.getSiteByName(siteName);
+        if (site == null){
+            return new Message(Message.Status.Error, "User have no this site");
+        }
+
+        String serverAddress = Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT");
+        String login = user.getLogin();
+
+        String script = "<script src=\"https://"+ serverAddress +"/tracking/script/"+login+"/"+siteName+"\"></script>";
         return new Message(Message.Status.Success, script);
     }
 

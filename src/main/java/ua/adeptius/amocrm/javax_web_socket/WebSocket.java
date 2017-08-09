@@ -44,8 +44,8 @@ public class WebSocket {
             usersAndSessions.get(userId).add(session);
         }
 
-        LOGGER.debug("{}: пользователь {} сессий: {}", amoDomain, userId, usersAndSessions.get(userId).size());
-        LOGGER.debug("{}: пользователь {} подключился. EndPoints({}), Users({})", amoDomain, userId, chatEndpoints.size(), usersAndSessions.size());
+        LOGGER.debug("{}: пользователь {} подключился. EndPoints({}), Users({}), Sessions ({})",
+                amoDomain, userId, chatEndpoints.size(), usersAndSessions.size(), usersAndSessions.get(userId).size());
     }
 
     @OnMessage

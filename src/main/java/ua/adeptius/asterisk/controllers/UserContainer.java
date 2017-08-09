@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 public class UserContainer {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(UserContainer.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(UserContainer.class.getSimpleName());
 
 
     private static List<User> users = new ArrayList<>();
     private static HashMap<String, User> hashes = new HashMap<>();
 
-    public static void recalculateHashesForAllUsers(){
+    public static void recalculateHashesForAllUsers() {
         LOGGER.debug("Пересчет хэша для всех пользователей");
         HashMap<String, User> temp = new HashMap<>();
         for (User user : users) {
@@ -29,14 +29,14 @@ public class UserContainer {
         hashes = temp;
     }
 
-    public static void recalculateHashesForUser(String oldHash, User user){
+    public static void recalculateHashesForUser(String oldHash, User user) {
         LOGGER.debug("Пересчет хэша для пользователя {}", user.getLogin());
         hashes.remove(oldHash);
         hashes.put(createMd5(user), user);
     }
 
 
-    public static User getUserByHash(String hash){
+    public static User getUserByHash(String hash) {
         return hashes.get(hash);
     }
 
@@ -45,9 +45,10 @@ public class UserContainer {
     }
 
     public static void removeUser(User user) {
-        LOGGER.debug("Удаление пользователя {}",user);
+        LOGGER.debug("Удаление пользователя {}", user);
         getUsers().remove(user);
         hashes.remove(getHashOfUser(user));
+        usersCache.remove(user.getLogin());
     }
 
     public static HashMap<String, User> getHashes() {
@@ -62,17 +63,26 @@ public class UserContainer {
         }
     }
 
-    public static void putUser(User user){
+    public static void putUser(User user) {
         LOGGER.debug("Добавление пользователя {}", user);
         users.add(user);
         hashes.put(createMd5(user), user);
     }
 
-    // todo сделать кеширование через мапу
-    public static User getUserByName(String name){
+
+    private static HashMap<String, User> usersCache = new HashMap<>();
+
+    public static User getUserByName(String name) {
         try {
-            return users.stream().filter(user -> user.getLogin().equals(name)).findFirst().get();
-        }catch (NoSuchElementException e){
+            User user = usersCache.get(name);
+            if (user == null) {
+                user = users.stream().filter(us -> us.getLogin().equals(name)).findFirst().get();
+                usersCache.put(name, user);
+                return user;
+            } else {
+                return user;
+            }
+        } catch (NoSuchElementException e) {
             return null;
         }
     }
@@ -85,9 +95,9 @@ public class UserContainer {
 //        return getUserByName(name).getTracking();
 //    }
 
-    public static String getHashOfUser(User user){
+    public static String getHashOfUser(User user) {
         for (Map.Entry<String, User> entry : hashes.entrySet()) {
-            if (entry.getValue().equals(user)){
+            if (entry.getValue().equals(user)) {
                 return entry.getKey();
             }
         }
@@ -95,12 +105,13 @@ public class UserContainer {
     }
 
 
-    public static String createMd5(User user){
-        return createMd5(user.getLogin()+user.getPassword());
+    public static String createMd5(User user) {
+        return createMd5(user.getLogin() + user.getPassword());
     }
 
     public static String createMd5(String st) {
-        try{MessageDigest md = MessageDigest.getInstance("MD5");
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(st.getBytes());
             byte[] digest = md.digest();
             StringBuffer sb = new StringBuffer();
@@ -108,7 +119,8 @@ public class UserContainer {
                 sb.append(String.format("%02x", b & 0xff));
             }
             return sb.toString();
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
         return null;
     }
 }

@@ -43,7 +43,7 @@ public class RoistatPhoneCall {
         this.visit_id = null;
 
 //        null or string Маркер рекламного канала
-        this.marker = call.getUtm();
+//        this.marker = call.getUtm();
 
 //        null or string     Номер заказа из CRM
         this.order_id = null;

@@ -1,8 +1,5 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +20,7 @@ import java.util.stream.Collectors;
 @ResponseBody
 public class AdminController {
 
-    public static final String ADMIN_PASS = "pthy0eds";
+    public static final String ADMIN_PASS = "csadmx84";
     private static Logger LOGGER = LoggerFactory.getLogger(AdminController.class.getSimpleName());
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -31,7 +28,7 @@ public class AdminController {
     @PostMapping(value = "/getAllUsers")
     public Object getAllNameOfCustomers(@RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {
-            return new Message(Message.Status.Error, "Wrong password").toString();
+            return new Message(Message.Status.Error, "Wrong password");
         }
         return UserContainer.getUsers().stream().map(User::getLogin).collect(Collectors.toList());
     }
@@ -50,13 +47,13 @@ public class AdminController {
     }
 
 
-    @PostMapping(value = "/getsetting", produces = "text/html; charset=UTF-8")
-    public String getSetting(@RequestParam String name, @RequestParam String adminPassword) {
-        if (isAdminPasswordWrong(adminPassword)) {
-            return "Wrong password";
-        }
-        return Settings.getSetting(name);
-    }
+//    @PostMapping(value = "/getsetting", produces = "text/html; charset=UTF-8")
+//    public String getSetting(@RequestParam String name, @RequestParam String adminPassword) {
+//        if (isAdminPasswordWrong(adminPassword)) {
+//            return "Wrong password";
+//        }
+//        return Settings.getSetting(name);
+//    }
 
     @PostMapping("/getAllSettings")
     public Object getSetting(@RequestParam String adminPassword) {
@@ -64,20 +61,15 @@ public class AdminController {
             return new Message(Message.Status.Error, "Wrong password");
         }
 
-        try {
-            Map<String, String> map = new HashMap<>();
-            map.put("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE", Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
-            map.put("SECONDS_TO_REMOVE_OLD_PHONES", Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"));
-            map.put("MAIL_ANTISPAM", Settings.getSetting("MAIL_ANTISPAM"));
-            return map;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Message(Message.Status.Error, "Internal error");
-        }
+        Map<String, String> map = new HashMap<>();
+        map.put("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE", Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
+        map.put("SECONDS_TO_REMOVE_OLD_PHONES", Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"));
+        map.put("MAIL_ANTISPAM", Settings.getSetting("MAIL_ANTISPAM"));
+        return map;
     }
 
 
-    @PostMapping("/setsetting")
+    @PostMapping("/setSetting")
     public Object setSetting(@RequestParam String name,
                              @RequestParam String value,
                              @RequestParam String adminPassword) {
@@ -85,12 +77,9 @@ public class AdminController {
             return new Message(Message.Status.Error, "Wrong password");
         }
         Settings.setSetting(name, value);
-        if (!name.equals("ACTIVE_SITE")) {
-            String result = "Success: saved value " + value + " for " + name;
-            return new Message(Message.Status.Success, "Saved");
-        } else {
-            return new Message(Message.Status.Error, "Internal error");
-        }
+
+        String result = "Success: saved value " + value + " for " + name;
+        return new Message(Message.Status.Success, "Saved");
     }
 
     @PostMapping("/getNumbersCount")

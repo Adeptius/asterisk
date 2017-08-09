@@ -36,7 +36,6 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
 
-
     public ManagerResponse sendAction(ManagerAction action, long timeout) throws IOException, TimeoutException {
         return managerConnection.sendAction(action, timeout);
     }

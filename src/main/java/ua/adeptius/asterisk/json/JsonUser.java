@@ -1,6 +1,8 @@
 package ua.adeptius.asterisk.json;
 
 
+import ua.adeptius.asterisk.model.User;
+
 public class JsonUser {
 
     private String login;
@@ -8,6 +10,15 @@ public class JsonUser {
     private String email;
     private String trackingId;
 
+    public JsonUser() {
+    }
+
+    public JsonUser(User user) {
+        login = user.getLogin();
+        password = user.getPassword();
+        email = user.getEmail();
+        trackingId = user.getTrackingId();
+    }
 
     public String getLogin() {
         return login;

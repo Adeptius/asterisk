@@ -14,13 +14,7 @@
     "installation": true
   },
   "locations": [
-    "ccard-0",
-    "lcard-0",
-    "clist-0",
-    "llist-0",
-    "culist-0",
-    "tlist-0",
-    "settings"
+    "everywhere"
   ],
   "settings": {
     "login": {

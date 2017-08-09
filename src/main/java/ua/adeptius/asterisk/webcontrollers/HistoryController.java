@@ -24,14 +24,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/history")
-public class HistoryController { // todo попробовать убрать лишние аннотации
+@RequestMapping(value = "/history", produces = "application/json; charset=UTF-8")
+@ResponseBody
+public class HistoryController {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(HistoryController.class.getSimpleName());
 
-
-    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
-    @ResponseBody
+    @PostMapping("/get")
     public Object getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
@@ -66,7 +65,7 @@ public class HistoryController { // todo попробовать убрать л�
     }
 
 
-    @RequestMapping(value = "/record/{id}/{date}", method = RequestMethod.GET)
+    @GetMapping("/record/{id}/{date}")
     public void getFile(@PathVariable String id, @PathVariable String date, HttpServletResponse response) {
         String year = date.substring(0, 4);
         String month = date.substring(5, 7);
@@ -93,8 +92,10 @@ public class HistoryController { // todo попробовать убрать л�
                 .map(Path::toFile)
                 .collect(Collectors.toList());
 
+        String lookingFile = id + ".wav";
+
         for (File file : list) {
-            if (file.getName().contains(id)) {
+            if (file.getName().endsWith(lookingFile)) {
                 return file;
             }
         }

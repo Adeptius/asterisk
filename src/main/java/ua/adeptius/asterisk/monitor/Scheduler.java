@@ -39,11 +39,6 @@ public class Scheduler{
             LOGGER.error("Не удалось получить тестового пользователя", e);
         }
         try {
-            MySqlCalltrackDao.getMelodies();
-        } catch (Exception e) {
-            LOGGER.error("Не удалось получить список мелодий для поддержания соединения", e);
-        }
-        try {
             MySqlStatisticDao.getListOfTables();
         } catch (Exception e) {
             LOGGER.error("Не удалось получить список таблиц статистик для поддержания соединения", e);
@@ -93,7 +88,7 @@ public class Scheduler{
         if (past > timeToBlock){
             try {
 //                MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": IP " + oldPhone.getIp() + " заблокирован по времени.");
-                site.addIpToBlackList(phone.getIp()); // todo оно блочит, но не сохраняет в бд
+                site.addIpToBlackList(phone.getIp());
                 phone.markFree();
             } catch (Exception e) {
 //                MyLogger.log(DB_OPERATIONS, tracking.getLogin() + ": ошибка добавления " + oldPhone.getIp() + " в БД");
@@ -127,7 +122,7 @@ public class Scheduler{
      *  Call processor cleaning
      */
     @Scheduled(cron = "0 0 1 * * ?")
-    private void startClean(){ // TODO точно срабатывает?
+    private void startClean(){
         LOGGER.trace("Очистка карты number <-> Call");
         CallProcessor.calls.clear();
     }

@@ -45,7 +45,7 @@ public class GoogleAnalitycsCallSender extends Thread {
         }
     }
 
-    private void sendReport(Call call) { //todo не работает
+    private void sendReport(Call call) { //todo TEST
         if (call.getDirection() != Call.Direction.IN){
             return;
         }
@@ -78,7 +78,7 @@ public class GoogleAnalitycsCallSender extends Thread {
             map.put("ec", "ip_telephony"); // Category
         }
 
-        if (clientGoogleId.equals("")) {
+        if (StringUtils.isBlank(clientGoogleId)) {
             map.put("cid", getGoogleId(call.getCalledFrom())); // Client ID.
         } else {
             map.put("cid", clientGoogleId); // Client ID.

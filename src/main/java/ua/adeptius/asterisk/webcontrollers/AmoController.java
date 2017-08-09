@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+
 @Controller
 @RequestMapping(value = "/amo", produces = "application/json; charset=UTF-8")
 @ResponseBody
@@ -65,18 +66,18 @@ public class AmoController {
             return new Message(Message.Status.Error, "Some params are blank!");
         }
 
-        if (user.getAmoAccount() == null) {
-            user.setAmoAccount(new AmoAccount());
-            user.getAmoAccount().setUser(user);
-            user.getAmoAccount().setNextelLogin(user.getLogin());
+        AmoAccount amoAccount = user.getAmoAccount();
+
+        if (amoAccount == null) {
+            amoAccount = new AmoAccount();
         }
 
-        AmoAccount amoAccount = user.getAmoAccount();
         amoAccount.setDomain(domain);
         amoAccount.setAmoLogin(amoLogin);
         amoAccount.setApiKey(apiKey);
         amoAccount.setPhoneId(null);
         amoAccount.setPhoneEnumId(null);
+        user.setAmoAccount(amoAccount);
 
         try {
             HibernateDao.update(user);
@@ -85,8 +86,9 @@ public class AmoController {
             LOGGER.error(user.getLogin() + ": ошибка изменения амо аккаунта: ", e);
             return new Message(Message.Status.Error, "Internal error");
         } finally {
-//            if (safeMode)
-//                user.reloadAmoAccountFromDb();todo
+            if (safeMode){
+
+            }
         }
     }
 
@@ -107,15 +109,15 @@ public class AmoController {
         } catch (AmoAccountNotFoundException e) {
             return new Message(Message.Status.Error, "Amo account not found");
         } catch (AmoWrongLoginOrApiKeyExeption e) {
-            return new Message(Message.Status.Error, "Wrong login or password");
+            return new Message(Message.Status.Error, "Wrong login or api key");
         } catch (AmoCantCreateDealException e) {
             return new Message(Message.Status.Error, "User have not enough rights for create contacts and deals");
         } catch (UnirestException e) {
             LOGGER.error("Ошибка соединения или парсинга для проверки аккаунта амо. Аккаунт Nextel " + user.getLogin(), e);
-            return new Message(Message.Status.Error, "Internal error. Please try again");
+            return new Message(Message.Status.Error, "Internal error.");
         } catch (AmoUnknownException e) {
             LOGGER.error("Неизвестный код ответа от АМО", e);
-            return new Message(Message.Status.Error, "Internal error. Please contact us.");
+            return new Message(Message.Status.Error, "Internal error.");
         } catch (Exception e) {
             LOGGER.error("Неизвестная ошибка при проверке аккаунта амо. Аккаунт nextel: " + user.getLogin(), e);
             return new Message(Message.Status.Error, "Internal error");
@@ -142,8 +144,9 @@ public class AmoController {
             LOGGER.error(user.getLogin() + ": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
             return new Message(Message.Status.Error, "Internal error");
         } finally {
-//            if (safeMode)
-//                user.reloadAmoAccountFromDb();//todo
+            if (safeMode){
+
+            }
         }
     }
 
@@ -163,7 +166,7 @@ public class AmoController {
         HashMap<String, String> workerIdAndPhones;
 
         // получаем текущий список привязок и конвертируем его в мапу id работника <-> номер телефона
-        Set<AmoOperatorLocation> operatorLocations = user.getOperatorLocations();
+        Set<AmoOperatorLocation> operatorLocations = user.getAmoOperatorLocations();
         if (operatorLocations.isEmpty()) {
             workerIdAndPhones = new HashMap<>();
         } else {
@@ -225,7 +228,7 @@ public class AmoController {
                 newHashAmoBindings.put(worker, phone);
             }
 
-            Set<AmoOperatorLocation> operatorLocations = user.getOperatorLocations();
+            Set<AmoOperatorLocation> operatorLocations = user.getAmoOperatorLocations();
             if (!operatorLocations.isEmpty()) {
                 operatorLocations.clear();
             }

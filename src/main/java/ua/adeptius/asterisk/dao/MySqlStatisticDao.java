@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.dao;
 
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.controllers.UserContainer;
@@ -15,10 +16,28 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-public class MySqlStatisticDao extends MySqlDao {
+public class MySqlStatisticDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(MySqlStatisticDao.class.getSimpleName());
 
+    private static ComboPooledDataSource statisticDataSource;
+
+    public static void init() throws Exception {
+        String login = Settings.getSetting("dbLogin");
+        String password = Settings.getSetting("dbPassword");
+        statisticDataSource = new ComboPooledDataSource();
+        statisticDataSource.setDriverClass("com.mysql.jdbc.Driver");
+        statisticDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("dbAdress") + "statisticdb");
+        statisticDataSource.setUser(login);
+        statisticDataSource.setPassword(password);
+        statisticDataSource.setMinPoolSize(1);
+        statisticDataSource.setMaxPoolSize(5);
+        statisticDataSource.setAcquireIncrement(0);
+    }
+
+    protected static Connection getStatisticConnection() throws Exception {
+        return statisticDataSource.getConnection();
+    }
 
     public static List<String> getListOfTables() throws Exception {
 //        LOGGER.trace("Загрузка списка таблиц");
@@ -42,7 +61,7 @@ public class MySqlStatisticDao extends MySqlDao {
         LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
         String sql = "SELECT * FROM " + user +
                 " WHERE direction = '" + direction +
-                "' AND date BETWEEN STR_TO_DATE('" + startDate +
+                "' AND calledDate BETWEEN STR_TO_DATE('" + startDate +
                 "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
                 "', '%Y-%m-%d %H:%i:%s')";
         try (Connection connection = getStatisticConnection();

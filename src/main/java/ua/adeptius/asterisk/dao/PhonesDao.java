@@ -19,47 +19,6 @@ public class PhonesDao {
         return HibernateDao.getSipMaxNumber();
     }
 
-    public static HashMap<String, String> getSipPasswords(String name) throws Exception {
-        LOGGER.trace("{}: запрос паролей к сип номерам", name);
-        List<InnerPhone> innerPhones = HibernateDao.getAllInnerUserPhones(name);
-        HashMap<String, String> map = new HashMap<>();
-        for (InnerPhone phone : innerPhones) {
-            map.put(phone.getNumber(), phone.getPass());
-        }
-        return map;
-    }
-
-    public static HashMap<String, String> getAllSipsAndPass() throws Exception {
-        LOGGER.trace("Запрос всех сип из базы.");
-        List<InnerPhone> allInnerPhones = HibernateDao.getAllInnerPhones();
-        HashMap<String, String> map = new HashMap<>();
-        for (InnerPhone phone : allInnerPhones) {
-            map.put(phone.getNumber(), phone.getPass());
-        }
-        return map;
-    }
-
-    public static ArrayList<String> getCustomersInnerNumbers(String name) throws Exception {
-        LOGGER.trace("{}: запрос всех номеров пользователя из внутренней таблицы", name);
-        List<InnerPhone> innerPhones = HibernateDao.getAllInnerUserPhones(name);
-        ArrayList<String> list = new ArrayList<>();
-        for (InnerPhone innerPhone : innerPhones) {
-            list.add(innerPhone.getNumber());
-        }
-        return list;
-    }
-
-    public static ArrayList<String> getCustomersOuterNumbers(String name) throws Exception {
-        LOGGER.trace("{}: запрос всех номеров пользователя из внешней таблицы", name);
-        List<OuterPhone> outerPhones = HibernateDao.getAllOuterUsersPhones(name);
-        ArrayList<String> list = new ArrayList<>();
-        for (OuterPhone outerPhone : outerPhones) {
-            list.add(outerPhone.getNumber());
-        }
-        return list;
-    }
-
-
     public static HashMap<String, String> getBusyOuterPhones() throws Exception {
         LOGGER.trace("Запрос занятых внешних номеров из БД");
         List<OuterPhone> allBusyOuterPhones = HibernateDao.getAllBusyOuterPhones();
@@ -88,4 +47,47 @@ public class PhonesDao {
         }
         return list;
     }
+
+//    public static HashMap<String, String> getSipPasswords(String name) throws Exception {
+//        LOGGER.trace("{}: запрос паролей к сип номерам", name);
+//        List<InnerPhone> innerPhones = HibernateDao.getAllInnerUserPhones(name);
+//        HashMap<String, String> map = new HashMap<>();
+//        for (InnerPhone phone : innerPhones) {
+//            map.put(phone.getNumber(), phone.getPass());
+//        }
+//        return map;
+//    }
+
+//    public static HashMap<String, String> getAllSipsAndPass() throws Exception {
+//        LOGGER.trace("Запрос всех сип из базы.");
+//        List<InnerPhone> allInnerPhones = HibernateDao.getAllInnerPhones();
+//        HashMap<String, String> map = new HashMap<>();
+//        for (InnerPhone phone : allInnerPhones) {
+//            map.put(phone.getNumber(), phone.getPass());
+//        }
+//        return map;
+//    }
+
+//    public static ArrayList<String> getCustomersInnerNumbers(String name) throws Exception {
+//        LOGGER.trace("{}: запрос всех номеров пользователя из внутренней таблицы", name);
+//        List<InnerPhone> innerPhones = HibernateDao.getAllInnerUserPhones(name);
+//        ArrayList<String> list = new ArrayList<>();
+//        for (InnerPhone innerPhone : innerPhones) {
+//            list.add(innerPhone.getNumber());
+//        }
+//        return list;
+//    }
+
+//    public static ArrayList<String> getCustomersOuterNumbers(String name) throws Exception {
+//        LOGGER.trace("{}: запрос всех номеров пользователя из внешней таблицы", name);
+//        List<OuterPhone> outerPhones = HibernateDao.getAllOuterUsersPhones(name);
+//        ArrayList<String> list = new ArrayList<>();
+//        for (OuterPhone outerPhone : outerPhones) {
+//            list.add(outerPhone.getNumber());
+//        }
+//        return list;
+//    }
+
+
+
 }

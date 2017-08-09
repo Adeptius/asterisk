@@ -15,6 +15,7 @@ import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -31,8 +32,8 @@ public class PhonesWebController {
     private boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(PhonesWebController.class.getSimpleName());
 
-    @PostMapping("/getOuter")
-    public Object getBlackList(HttpServletRequest request, @RequestParam String sitename) {
+    @PostMapping("/getSiteOuter")
+    public Object getBlackList(HttpServletRequest request, @RequestParam String siteName) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -40,19 +41,14 @@ public class PhonesWebController {
 
         Set<Site> sites = user.getSites();
         if (sites == null || sites.isEmpty()) {
-            return new Message(Error, "User have no tracking sites");
+            return new Message(Error, "User have no such site");
         }
-        Site site = user.getSiteByName(sitename);
+        Site site = user.getSiteByName(siteName);
         if (site == null) {
             return new Message(Error, "User have no such site");
         }
 
-        try {
-            return site.getOuterPhones();
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": ошибка получения состояния телефонов", e);
-            return new Message(Error, "Internal error");
-        }
+        return site.getOuterPhones();
     }
 
 
@@ -62,7 +58,7 @@ public class PhonesWebController {
         if (user == null) {
             return new Message(Error, "Authorization invalid");
         }
-        return new JsonInnerAndOuterPhones(user.getInnerPhones(),user.getOuterPhones());
+        return new JsonInnerAndOuterPhones(user.getInnerPhones(), user.getOuterPhones());
     }
 
     @PostMapping("/setNumberCount")
@@ -90,8 +86,8 @@ public class PhonesWebController {
 
         if (neededOuterNumberCount < 0) {
             return new Message(Error, "Outer count cant be lower than 0");
-        } else if (neededOuterNumberCount > 30) {
-            return new Message(Error, "Outer count cant be higher than 30. Contact us if you need more");
+        } else if (neededOuterNumberCount > 50) {
+            return new Message(Error, "Outer count cant be higher than 50. Contact us if you need more");
         }
 
 
@@ -165,6 +161,7 @@ public class PhonesWebController {
         } finally {
             if (safeMode)
                 try {
+                    CallProcessor.updatePhonesHashMap();
                     user = HibernateDao.getUserByLogin(user.getLogin());
                 } catch (Exception e) {
                     LOGGER.error(user.getLogin() + ": ошибка синхронизации после изменения количества номеров", e);

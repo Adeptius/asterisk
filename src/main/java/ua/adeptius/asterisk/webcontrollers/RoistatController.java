@@ -59,15 +59,15 @@ public class RoistatController {
             return new Message(Message.Status.Error, "Some params are blank!");
         }
 
-        if (user.getRoistatAccount() == null) {
-            user.setRoistatAccount(new RoistatAccount());
-            user.getRoistatAccount().setUser(user);
-            user.getRoistatAccount().setNextelLogin(user.getLogin());
+        RoistatAccount roistatAccount = user.getRoistatAccount();
+
+        if (roistatAccount == null) {
+            roistatAccount = new RoistatAccount();
         }
 
-        RoistatAccount roistatAccount = user.getRoistatAccount();
         roistatAccount.setProjectNumber(projectNumber);
         roistatAccount.setApiKey(apiKey);
+        user.setRoistatAccount(roistatAccount);
 
         try {
             HibernateDao.update(user);
@@ -77,7 +77,7 @@ public class RoistatController {
             return new Message(Message.Status.Error, "Internal error");
         } finally {
             if (safeMode) {
-//                user.reloadRoistatAccountFromDb(); // todo включить
+
             }
         }
     }
@@ -129,7 +129,7 @@ public class RoistatController {
             return new Message(Message.Status.Error, "Internal error");
         } finally {
             if (safeMode) {
-//                user.reloadRoistatAccountFromDb(); // todo включить
+
             }
         }
     }

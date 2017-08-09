@@ -48,6 +48,7 @@ public class AmoOperatorLocation {
     @Transient
     private HashMap<String, String> innerNumberAndAmoUserId = null;
 
+    @JsonProperty
     public HashMap<String, String> getAmoUserIdAndInnerNumber() {
         if (amoUserIdAndInnerNumber != null) {
             return amoUserIdAndInnerNumber;

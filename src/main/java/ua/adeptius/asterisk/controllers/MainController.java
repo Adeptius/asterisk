@@ -34,8 +34,8 @@ public class MainController {
             return standardNumber;
         }
 
-        //Todo кешировать
-        List<OuterPhone> phones = user.getOuterPhones().stream().filter(outerPhone -> siteName.equals(outerPhone.getSitename())).collect(Collectors.toList());
+
+        List<OuterPhone> phones = site.getOuterPhones();
 
         // проверка: выдан ли номер пользователю по googleID
         for (OuterPhone phone : phones) {
@@ -88,22 +88,34 @@ public class MainController {
 //        throw new RuntimeException("Телефон " + number + " не найден");
 //    }
 
-    public static void onNewSiteCall(Call call) {
-        String numberFirstCall = call.getFirstCall(); // Находим телефон на который позвонили изначально и берём у него utm и googleid
-        User user = call.getUser();
-        Optional<OuterPhone> first = user.getOuterPhones().stream().filter(OP -> OP.getNumber().equals(numberFirstCall)).findFirst();
-        if (first.isPresent()){
-            OuterPhone outerPhone = first.get();
+//    public static void onNewSiteCall(Call call) {
+//        String numberFirstCall = call.getFirstCall(); // Находим телефон на который позвонили изначально и берём у него utm и googleid
+//        User user = call.getUser();
+//        Optional<OuterPhone> first = user.getOuterPhones().stream().filter(OP -> OP.getNumber().equals(numberFirstCall)).findFirst();
+//        if (first.isPresent()){
+//            OuterPhone outerPhone = first.get();
+//            call.setUtm(outerPhone.getUtmRequest());
+//            call.setGoogleId(outerPhone.getGoogleId());
+//        }
+//
+//        googleAnalitycsCallSender.send(call);
+//        roistatCallSender.send(call);
+//        MySqlStatisticDao.saveCall(call);
+//    }
+//
+//    public static void onNewTelephonyCall(Call call) {
+//        googleAnalitycsCallSender.send(call);
+//        roistatCallSender.send(call);
+//        MySqlStatisticDao.saveCall(call);
+//    }
+
+    public static void onNewCall(Call call) { // todo TEST
+        OuterPhone outerPhone = call.getOuterPhone();
+        if (outerPhone != null){
             call.setUtm(outerPhone.getUtmRequest());
             call.setGoogleId(outerPhone.getGoogleId());
         }
 
-        googleAnalitycsCallSender.send(call);
-        roistatCallSender.send(call);
-        MySqlStatisticDao.saveCall(call);
-    }
-
-    public static void onNewTelephonyCall(Call call) {
         googleAnalitycsCallSender.send(call);
         roistatCallSender.send(call);
         MySqlStatisticDao.saveCall(call);
