@@ -6,7 +6,6 @@ define(['jquery'], function ($) {
         var userId = AMOCRM.constant("user").id;
         var wsUrl = 'wss://adeptius.pp.ua:8443/tracking/ws/' + domain + '/' + userId;
         // var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
-        var needToClose;
         var ws;
 
 
@@ -22,12 +21,12 @@ define(['jquery'], function ($) {
             },
             bind_actions: function () {
                 // console.log('bind_actions');
-                AMOCRM.ifvisible.on('blur', function(){
+                AMOCRM.ifvisible.on('blur', function () {
                     isActiveTab = false;
                     // console.log('not active')
                 });
                 /*ws.close();*/
-                AMOCRM.ifvisible.on('focus', function(){
+                AMOCRM.ifvisible.on('focus', function () {
                     isActiveTab = true;
                     // console.log('active')
                     /*ws.connect();*/
@@ -81,20 +80,18 @@ define(['jquery'], function ($) {
                     var eventType = incomingMessage.eventType;
                     if (eventType === 'incomingCall' && isActiveTab) {
                         incomingCall(incomingMessage)
-                    }else if (eventType === 'copySession'){
-                        needToClose = true;
-                        ws.close();
+                    } else if (eventType === 'wrongToNumber') {
+                        AMOCRM.notifications.show_message_error({
+                            header: 'Ошибка',
+                            text: 'К сожалению, звонок на номер '+incomingMessage.content+' нельзя осуществить'
+                        });
                     }
                 };
                 ws.onclose = function () {
-                    if (needToClose){
-                        console.log("Соединение закрывается - дубль.");
-                    }else {
-                        console.log("Соединение с Nextel прервалось. Повторная попытка через 5 секунд..");
-                        setTimeout(function () {
-                            startWs()
-                        }, 5000);
-                    }
+                    console.log("Соединение с Nextel прервалось. Повторная попытка через 5 секунд..");
+                    setTimeout(function () {
+                        startWs()
+                    }, 5000);
                 };
             }
 
@@ -135,21 +132,21 @@ define(['jquery'], function ($) {
                         dealName = deal.name;
                     }
 
-                    var notifierBody = '<p><a  href="/contacts/detail/'+contactId+'">'+contactName+'</a>';
-                    notifierBody += (contactCompany ? ', '+ contactCompany : '')+'</p>';
-                    notifierBody += '<p><a  href="/leads/detail/'+createdDealId+'">'+dealName+'</a></p>';
+                    var notifierBody = '<p><a  href="/contacts/detail/' + contactId + '">' + contactName + '</a>';
+                    notifierBody += (contactCompany ? ', ' + contactCompany : '') + '</p>';
+                    notifierBody += '<p><a  href="/leads/detail/' + createdDealId + '">' + dealName + '</a></p>';
 
                     var notification = $('.popup-inbox');
                     notification.find('.notification-call').remove(); // удаляем существующие уведомления о звонках
 
                     var header = '';
-                    if (callPhase === 'dial'){
+                    if (callPhase === 'dial') {
                         header = 'Входящий звонок'
-                    }else if (callPhase === 'answer'){
+                    } else if (callPhase === 'answer') {
                         header = 'Вы разговариваете с'
-                    }else if (callPhase === 'ended'){
+                    } else if (callPhase === 'ended') {
                         header = 'Закончен разговор с'
-                    }else if (callPhase === 'noanswer'){
+                    } else if (callPhase === 'noanswer') {
                         header = 'Пропущен звонок'
                     }
 

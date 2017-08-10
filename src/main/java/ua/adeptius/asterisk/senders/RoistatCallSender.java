@@ -1,11 +1,9 @@
 package ua.adeptius.asterisk.senders;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,21 +40,7 @@ public class RoistatCallSender extends Thread {
         while (true) {
             try {
                 Call call = blockingQueue.take();
-                User user = call.getUser();
-                RoistatAccount roistatAccount = user.getRoistatAccount();
-                if (roistatAccount == null) {
-                    return;
-                }
-
-                String roistatApi = roistatAccount.getApiKey();
-                String roistatProject = roistatAccount.getProjectNumber();
-
-                if (StringUtils.isAnyBlank(roistatApi, roistatProject)) {
-                    return;
-                }
-
-                sendReport(new RoistatPhoneCall(call));
-
+                sendReport(call);
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
             }
@@ -64,14 +48,37 @@ public class RoistatCallSender extends Thread {
     }
 
 
-    private void sendReport(RoistatPhoneCall roistatPhoneCall) {
+    private void sendReport(Call call) {
+        User user = call.getUser();
+        String login = user.getLogin();
+
+        RoistatAccount roistatAccount = user.getRoistatAccount();
+        if (roistatAccount == null) {
+            LOGGER.trace("{}: roistat аккаунт не подключен. Отмена отправки", login);
+            return;
+        }
+
+        String roistatApi = roistatAccount.getApiKey();
+        String roistatProject = roistatAccount.getProjectNumber();
+
+        if (StringUtils.isAnyBlank(roistatApi, roistatProject)) {
+            LOGGER.trace("{}: не указаны или пустые поля ключа и номера проекта. Отмена отправки", login);
+            return;
+        }
+
+        if (StringUtils.isBlank(call.getGoogleId())){
+            LOGGER.trace("{}: google ID в звонке пуст. Отмена отправки", login);
+            return;
+        }
+
+
+        RoistatPhoneCall roistatPhoneCall = new RoistatPhoneCall(call);
+
         try {
-//            String json = new Gson().toJson(roistatPhoneCall);
             String json = mapper.writeValueAsString(roistatPhoneCall);
-            String apiKey = roistatPhoneCall.getRoistatApiKey();
-            String project = roistatPhoneCall.getRoistatProjectNumber();
+            LOGGER.trace("{}: в Roistat отправляются данные: {}", login, json);
             HttpResponse<String> response = Unirest
-                    .post("https://cloud.roistat.com/api/v1/project/phone-call?project=" + project + "&key=" + apiKey)
+                    .post("https://cloud.roistat.com/api/v1/project/phone-call?project=" + roistatProject + "&key=" + roistatApi)
                     .header("content-type", "application/json")
                     .body(json)
                     .asString();
@@ -81,12 +88,12 @@ public class RoistatCallSender extends Thread {
             String result = new JSONObject(body).getString("status");
 
             if ("success".equals(result)) {
-                LOGGER.trace("Звонок отправлен в Roistat");
+                LOGGER.trace("{}: Звонок отправлен в Roistat", login);
             } else {
-                LOGGER.error("Ошибка отправки звонка в Roistat: " + new JSONObject(body).getString("error"));
+                LOGGER.error("{}: Ошибка отправки звонка в Roistat: {}", login, new JSONObject(body).getString("error"));
             }
         } catch (Exception e) {
-            LOGGER.error("Ошибка отправки звонка в Roistat", e);
+            LOGGER.error(login+": Ошибка отправки звонка в Roistat", e);
         }
     }
 }

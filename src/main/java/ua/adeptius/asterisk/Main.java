@@ -12,7 +12,12 @@ import org.springframework.stereotype.Component;
 import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
+import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.monitor.*;
+import ua.adeptius.asterisk.telephony.DestinationType;
+import ua.adeptius.asterisk.telephony.ForwardType;
+
+import java.util.Arrays;
 
 
 @Component
@@ -52,7 +57,7 @@ public class Main {
             Settings.setSetting("firstStart", "false");
             LOGGER.info("------------------- TOMCAT RESTARTING NOW!!! -------------------");
             try {
-                String[] cmd = { "/bin/sh", "-c", "pkill java; sleep 5; sh /home/adeptius/tomcat/apache-tomcat-9.0.0.M17/bin/startup.sh" };
+                String[] cmd = { "/bin/sh", "-c", "pkill -9 java; sleep 1; sh /home/adeptius/tomcat/apache-tomcat-9.0.0.M17/bin/startup.sh" };
                 Runtime.getRuntime().exec(cmd);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -60,6 +65,21 @@ public class Main {
         }else {
             LOGGER.info("------------------- TOMCAT READY!!! -------------------");
             afterTomcatRebootInit();
+
+//            try {
+//                Scenario scenario = new Scenario();
+//                scenario.setFromList(Arrays.asList("0443211129"));
+//                scenario.setToList(Arrays.asList("0994803031"));
+//                scenario.setDays(new boolean[]{true, true, true, true, true, true, true});
+//                scenario.setDestinationType(DestinationType.GSM);
+//                scenario.setForwardType(ForwardType.TO_ALL);
+//                scenario.setAwaitingTime(60);
+//                scenario.setEndHour(24);
+//                scenario.setMelody("none");
+//                RulesConfigDAO.writeToFile(scenario);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
         }
     }
 
@@ -111,7 +131,7 @@ public class Main {
         if (startedOnWindows){
             try{
                 HttpResponse<String> response = Unirest
-                        .post("http://cstat.nextel.com.ua/tracking/rules/getMelodies")
+                        .post("http://cstat.nextel.com.ua/tracking/scenario/getMelodies")
                         .header("content-type", "application/json")
                         .asString();
                 if (response.getStatus()==200){

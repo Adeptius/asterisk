@@ -6,13 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@JsonAutoDetect(
-        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
-)
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class Call {
 
     // Нужно для опеределения кому принадлежит тот номер на который позвонил посетитель
@@ -280,26 +276,26 @@ public class Call {
 
     @Override
     public String toString() {
-        return "NewCall{" +
-                "firstCall='" + firstCall + '\'' +
-                ", calledFrom='" + calledFrom + '\'' +
-                ", calledTo='" + calledTo + '\'' +
-                ", callState=" + callState +
-                ", direction=" + direction +
-                ", asteriskId='" + asteriskId + '\'' +
-                ", utm='" + utm + '\'' +
-                ", googleId='" + googleId + '\'' +
-                ", service=" + service +
-                ", user=" + user.getLogin() +
-                ", calledDate='" + calledDate + '\'' +
-                ", calledMillis=" + calledMillis +
-                ", secondsToAnswer=" + secondsToAnswer +
-                ", secondsFullTime=" + secondsFullTime +
-                ", callIsEnded=" + callIsEnded +
-                ", amoDealId=" + amoDealId +
-                ", lastOperationTime=" + lastOperationTime +
-                ", timeDifference=" + timeDifference +
-                ", stateIsSetted=" + stateIsSetted +
-                '}';
+        return "Call{" +
+                "\n  firstCall='" + firstCall + '\'' +
+                "\n  calledFrom='" + calledFrom + '\'' +
+                "\n  calledTo='" + calledTo + '\'' +
+                "\n  callState=" + callState +
+                "\n  direction=" + direction +
+                "\n  asteriskId='" + asteriskId + '\'' +
+                "\n  utm='" + utm + '\'' +
+                "\n  googleId='" + googleId + '\'' +
+                "\n  service=" + service +
+                "\n  user=" + user.getLogin() +
+                "\n  calledDate='" + calledDate + '\'' +
+                "\n  calledMillis=" + calledMillis +
+                "\n  secondsToAnswer=" + secondsToAnswer +
+                "\n  secondsFullTime=" + secondsFullTime +
+                "\n  callIsEnded=" + callIsEnded +
+                "\n  amoDealId=" + amoDealId +
+                "\n  lastOperationTime=" + lastOperationTime +
+                "\n  timeDifference=" + timeDifference +
+                "\n  stateIsSetted=" + stateIsSetted +
+                "\n}";
     }
 }

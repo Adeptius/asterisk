@@ -109,7 +109,8 @@ public class PhonesWebController {
                 }
                 // чтож, их достаточно. берём новое количество
                 List<OuterPhone> newPhone = freeOuterPhones.stream().limit(needMoreCount).collect(Collectors.toList());
-                outerPhones.addAll(newPhone);
+                user.addOuterPhones(newPhone);
+//                outerPhones.addAll(newPhone);
                 LOGGER.debug("{}: Добавлено {} внешних номеров. Теперь их {}", login, newPhone.size(), outerPhones.size());
 
             } else if (neededOuterNumberCount < currentOuterNumberCount) {
@@ -120,7 +121,8 @@ public class PhonesWebController {
                         .limit(redutrantCount)
                         .collect(Collectors.toList());
                 redutrantNumbers.forEach(phone -> phone.setSitename(null)); // освобождаем номер на случай, если он был привязан к сайту
-                outerPhones.removeAll(redutrantNumbers);// и наконец удаляем их у пользователя
+                user.removeOuterPhones(redutrantNumbers);// и наконец удаляем их у пользователя
+//                outerPhones.removeAll(redutrantNumbers);
                 LOGGER.debug("{}: Удалено {} внешних номеров. Теперь их {}", login, redutrantNumbers.size(), outerPhones.size());
 
             } else {
@@ -134,7 +136,8 @@ public class PhonesWebController {
                 LOGGER.debug("{}: Нужно дополнительно {} внутренних номеров.", login, needMoreCount);
 
                 List<InnerPhone> moreSipNumbers = PhonesController.createMoreSipNumbers(needMoreCount, login);
-                innerPhones.addAll(moreSipNumbers);
+                user.addInnerPhones(moreSipNumbers);
+//                innerPhones.addAll(moreSipNumbers);
                 LOGGER.debug("{}: Добавлено {} внутренних номеров. Теперь их {}", login, moreSipNumbers.size(), innerPhones.size());
 
             } else if (neededInnerNumberCount < currentInnerNumberCount) {
@@ -146,7 +149,8 @@ public class PhonesWebController {
                         .limit(redutrantCount)
                         .collect(Collectors.toList());
                 innerPhones.removeAll(redutrantNumbers);
-                PhonesController.removeSipNumbersConfigs(redutrantNumbers);
+                user.removeInnerPhones(redutrantNumbers);
+//                PhonesController.removeSipNumbersConfigs(redutrantNumbers);
                 LOGGER.debug("{}: Удалено {} внутренних номеров. Теперь их {}", login, redutrantNumbers.size(), innerPhones.size());
 
             } else {
@@ -161,7 +165,7 @@ public class PhonesWebController {
         } finally {
             if (safeMode)
                 try {
-                    CallProcessor.updatePhonesHashMap();
+//                    CallProcessor.updatePhonesHashMap();
                     user = HibernateDao.getUserByLogin(user.getLogin());
                 } catch (Exception e) {
                     LOGGER.error(user.getLogin() + ": ошибка синхронизации после изменения количества номеров", e);

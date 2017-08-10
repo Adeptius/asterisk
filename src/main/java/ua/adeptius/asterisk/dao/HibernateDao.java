@@ -6,6 +6,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-//@Component
+@Component
 public class HibernateDao {
 
 

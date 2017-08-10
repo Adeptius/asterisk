@@ -1,5 +1,6 @@
 package ua.adeptius.asterisk.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -7,21 +8,16 @@ import javax.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 @Entity
 @Table(name = "amo_operator_location", schema = "calltrackdb")
-@com.fasterxml.jackson.annotation.JsonAutoDetect(
-        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class AmoOperatorLocation {
 
     public AmoOperatorLocation() {
     }
 
-    @JsonProperty
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
     @GenericGenerator(name = "increment", strategy = "increment")
@@ -48,13 +44,13 @@ public class AmoOperatorLocation {
     @Transient
     private HashMap<String, String> innerNumberAndAmoUserId = null;
 
-    @JsonProperty
     public HashMap<String, String> getAmoUserIdAndInnerNumber() {
         if (amoUserIdAndInnerNumber != null) {
             return amoUserIdAndInnerNumber;
         }
         if (bindingString == null){
-            return new HashMap<>();
+            amoUserIdAndInnerNumber = new HashMap<>();
+            return amoUserIdAndInnerNumber;
         }
         amoUserIdAndInnerNumber = new HashMap<>();
         String[] idAndPhone = bindingString.split(" ");
@@ -70,7 +66,8 @@ public class AmoOperatorLocation {
             return innerNumberAndAmoUserId;
         }
         if (bindingString == null){
-            return new HashMap<>();
+            innerNumberAndAmoUserId = new HashMap<>();
+            return innerNumberAndAmoUserId;
         }
         innerNumberAndAmoUserId = new HashMap<>();
         String[] idAndPhone = bindingString.split(" ");
@@ -81,11 +78,11 @@ public class AmoOperatorLocation {
         return innerNumberAndAmoUserId;
     }
 
-    public void setAmoUserIdAndInnerNumber(HashMap<String, String> amoUserIdAndInnerNumber) {
+    public void setAmoUserIdAndInnerNumber(HashMap<String, String> usersAndPhones) {
         amoUserIdAndInnerNumber = null;
         innerNumberAndAmoUserId = null;
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : amoUserIdAndInnerNumber.entrySet()) {
+        for (Map.Entry<String, String> entry : usersAndPhones.entrySet()) {
             sb.append(" ").append(entry.getKey()).append("=").append(entry.getValue());
         }
         String result = sb.toString();

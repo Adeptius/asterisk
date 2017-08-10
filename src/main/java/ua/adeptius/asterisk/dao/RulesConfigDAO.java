@@ -112,6 +112,10 @@ public class RulesConfigDAO {
         writer.close();
     }
 
+    public static void removeFile(String name) throws Exception {
+        LOGGER.trace("{}: удаление файла правил", name);
+        Files.deleteIfExists(Paths.get(folder + name + ".conf"));
+    }
 
 //    public static void writeToFile(String filename, List<OldRule> oldRuleList) throws Exception {
 //        LOGGER.trace("{}: запись правил в файл", filename);
@@ -158,10 +162,7 @@ public class RulesConfigDAO {
 //        return filteredEntry;
 //    }
 
-    public static void removeFile(String name) throws Exception {
-        LOGGER.trace("{}: удаление файла правил", name);
-        Files.deleteIfExists(Paths.get(folder + name + ".conf"));
-    }
+
 
 //    public static void removeFileIfNeeded(User user) throws Exception {
 //        List<String> customerNumbers = new ArrayList<>();

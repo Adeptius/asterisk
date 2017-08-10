@@ -17,6 +17,10 @@ public class WsMessage {
     public WsMessage() {
     }
 
+    public WsMessage(MessageEventType eventType, String content) {
+        this.eventType = eventType;
+        this.content = content;
+    }
 
     public MessageCallPhase getCallPhase() {
         return callPhase;

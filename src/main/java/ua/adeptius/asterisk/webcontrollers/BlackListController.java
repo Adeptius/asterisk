@@ -48,7 +48,14 @@ public class BlackListController {
         site.addIpToBlackList(ip);
         try {
             LOGGER.debug("{}: сайт {} добавление IP {} в черный список", user.getLogin(), site, ip);
-            HibernateDao.update(user); // TODO Оптимизация: это затратно по ресурсам
+
+
+
+            HibernateDao.update(user); //  Оптимизация: это затратно по ресурсам ---------------------------------------
+
+
+
+
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка добавления IP " + ip + " в черный список", e);
             return new Message(Message.Status.Error, "Internal error");

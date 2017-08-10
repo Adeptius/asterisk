@@ -24,8 +24,8 @@
     <resources mapping="/fonts/**" location="/resources/fonts/"/>
     <resources mapping="/img/**" location="/resources/img/"/>
 
-    <interceptors>
-        <beans:bean class="ua.adeptius.asterisk.interceptors.AccessControlOriginInterceptor"/>
-    </interceptors>
+    <!--<interceptors>-->
+        <!--<beans:bean class="ua.adeptius.asterisk.interceptors.AccessControlOriginInterceptor"/>-->
+    <!--</interceptors>-->
 
 </beans:beans>

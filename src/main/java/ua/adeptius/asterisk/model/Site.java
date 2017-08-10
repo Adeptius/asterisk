@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.model;
 
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,17 +16,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 
 @Entity
 @Table(name = "sites", schema = "calltrackdb")
-@JsonIgnoreProperties("user")
-@com.fasterxml.jackson.annotation.JsonAutoDetect(
-        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class Site {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Site.class.getSimpleName());
@@ -33,7 +29,6 @@ public class Site {
     public Site() {
     }
 
-    @JsonProperty
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
     @GenericGenerator(name = "increment", strategy = "increment")
@@ -58,7 +53,6 @@ public class Site {
     @Column(name = "black_ips")
     private String blackIps = "";
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "login", referencedColumnName = "login")
     private User user;
@@ -111,7 +105,7 @@ public class Site {
     }
 
     @JsonProperty
-    public List<OuterPhone> getOuterPhones(){//Todo Оптимизация
+    public List<OuterPhone> getOuterPhones(){
         return user.getOuterPhones().stream()
                 .filter(outerPhone -> name.equals(outerPhone.getSitename()))
                 .collect(Collectors.toList());

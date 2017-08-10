@@ -7,19 +7,19 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
+import ua.adeptius.amocrm.javax_web_socket.WebSocket;
+import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.dao.HibernateDao;
-import ua.adeptius.asterisk.model.AmoAccount;
-import ua.adeptius.asterisk.model.IdPairTime;
-import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.*;
 
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
+import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
 
 @SuppressWarnings("Duplicates")
 public class AmoCallSender extends Thread {
@@ -110,7 +110,7 @@ public class AmoCallSender extends Thread {
             try {
                 createOrFindDeal(amoAccount, startedLeadId, user, call);
                 // Сделка создана или была и найдена. Теперь оповещаем пользователя о том, что ему звонят
-                sendWsMessage(amoAccount, call,dial);
+                sendWsMessage(amoAccount, call, dial);
 
             } catch (Exception e) {
                 LOGGER.error(login + ": Не удалось создать сделку и контакт", e);
@@ -152,23 +152,23 @@ public class AmoCallSender extends Thread {
     }
 
     private void sendWsMessage(AmoAccount amoAccount, Call call, MessageCallPhase callPhase){
-//        String workersId = amoAccount.getWorkersId(call.getCalledTo());
-//        if (workersId != null) {// мы знаем id работника.
-//            String login = amoAccount.getUser().getLogin();
-//            WsMessage message = new WsMessage(incomingCall);
-//            message.setFrom(call.getCalledFrom());
-//            message.setDealId("" + call.getAmoDealId());
-//            message.setCallId(call.getAsteriskId());
-//            message.setCallPhase(callPhase);
-//            WebSocket.sendMessage(workersId, message);// отправляем
-//            if (callPhase == noanswer){
-//                LOGGER.trace("{}: Отправлено WS сообщение, что звонок был пропущен.", login);
-//            }else if (callPhase == answer || callPhase == ended){
-//                LOGGER.trace("{}: Отправлено WS сообщение, что ответ на звонок был.", login);
-//            }else if (callPhase == dial){
-//                LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
-//            }
-//        }
+        String workersId = amoAccount.getWorkersId(call.getCalledTo());
+        if (workersId != null) {// мы знаем id работника.
+            String login = amoAccount.getUser().getLogin();
+            WsMessage message = new WsMessage(incomingCall);
+            message.setFrom(call.getCalledFrom());
+            message.setDealId("" + call.getAmoDealId());
+            message.setCallId(call.getAsteriskId());
+            message.setCallPhase(callPhase);
+            WebSocket.sendMessage(workersId, message);// отправляем
+            if (callPhase == noanswer){
+                LOGGER.trace("{}: Отправлено WS сообщение, что звонок был пропущен.", login);
+            }else if (callPhase == answer || callPhase == ended){
+                LOGGER.trace("{}: Отправлено WS сообщение, что ответ на звонок был.", login);
+            }else if (callPhase == dial){
+                LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
+            }
+        }
     }
 
 

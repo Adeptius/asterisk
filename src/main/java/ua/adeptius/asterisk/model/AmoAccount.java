@@ -11,15 +11,11 @@ import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.io.Serializable;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 @Entity
 @Table(name = "amo_accounts", schema = "calltrackdb")
-@JsonAutoDetect(
-        creatorVisibility = JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = JsonAutoDetect.Visibility.NONE,
-        getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE,
-        setterVisibility = JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class AmoAccount implements Serializable {
 
     public AmoAccount() {
@@ -66,10 +62,6 @@ public class AmoAccount implements Serializable {
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;
 
-//    @Transient
-
-
-
 
 //    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
 //        AmoPhoneBinding binding = new AmoPhoneBinding();
@@ -83,25 +75,37 @@ public class AmoAccount implements Serializable {
 //        this.phoneBindings = phoneBindings;
 //    }
 
-//    @Nullable
-//    public String getWorkersPhone(String workerId){
+    @Nullable
+    public String getWorkersPhone(String workerId){
+        AmoOperatorLocation operatorLocation = user.getOperatorLocation();
+        if (operatorLocation == null) {
+            return null;
+        }
+        return operatorLocation.getAmoUserIdAndInnerNumber().get(workerId);
+
+
 //        for (AmoPhoneBinding phoneBinding : phoneBindings) {
 //            if (phoneBinding.getWorker().equals(workerId)){
 //                return phoneBinding.getPhone();
 //            }
 //        }
 //        return null;
-//    }
+    }
 
-//    @Nullable
-//    public String getWorkersId(String phone){
+    @Nullable
+    public String getWorkersId(String phone){
+        AmoOperatorLocation operatorLocation = user.getOperatorLocation();
+        if (operatorLocation == null) {
+            return null;
+        }
+        return operatorLocation.getInnerNumberAndAmoUserId().get(phone);
 //        for (AmoPhoneBinding phoneBinding : phoneBindings) {
 //            if (phoneBinding.getPhone().equals(phone)){
 //                return phoneBinding.getWorker();
 //            }
 //        }
 //        return null;
-//    }
+    }
 
 //    public Set<AmoPhoneBinding> getPhoneBindings() {
 //        return phoneBindings;

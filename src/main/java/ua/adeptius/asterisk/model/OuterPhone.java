@@ -1,22 +1,18 @@
 package ua.adeptius.asterisk.model;
 
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.persistence.*;
 import java.util.GregorianCalendar;
 
-@SuppressWarnings("Duplicates")
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 @Entity
 @Table(name = "outerphones", schema = "calltrackdb")
-@com.fasterxml.jackson.annotation.JsonAutoDetect(
-        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class OuterPhone {
 
     @Id
@@ -34,7 +30,7 @@ public class OuterPhone {
 
     @JsonProperty
     @Transient
-    private String googleId = "";
+    private String googleId;
 
     @JsonProperty
     @Transient
@@ -54,11 +50,10 @@ public class OuterPhone {
 
     @JsonProperty
     public String getUtmRequest() {
-        if (utmRequest == null){
-            return "";
-        }else {
+        if (utmRequest != null) {
             return filterUtmMarks(utmRequest);
         }
+        return utmRequest;
     }
 
 
@@ -106,16 +101,16 @@ public class OuterPhone {
     }
 
     public void markFree() {
-        utmRequest = "";
-        this.setGoogleId("");
-        this.setIp("");
+        utmRequest = null;
+        this.setGoogleId(null);
+        this.setIp(null);
         this.updatedTime = 0;
         this.startedBusy = 0;
         this.busyTimeMillis = 0;
     }
 
     public boolean isFree() {// так понятно что телефон ничей
-        return googleId.equals("");
+        return googleId == null;
     }
 
     public void setBusyTimeMillis(long busyTimeMillis) {

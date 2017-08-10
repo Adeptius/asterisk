@@ -1,33 +1,57 @@
 package ua.adeptius.asterisk.json;
 
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.adeptius.asterisk.model.Call;
 
 import java.text.SimpleDateFormat;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static ua.adeptius.asterisk.model.Call.CallState.ANSWER;
 
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
 public class RoistatPhoneCall {
 
-
-    //    private String id;
+    @JsonProperty
     private String callee;
+
+    @JsonProperty
     private String caller;
-    private String visit_id;
+
+    @JsonProperty
     private String marker;
-    private String order_id;
+
+    @JsonProperty
+    private int order_id;
+
+    @JsonProperty
     private int duration;
+
+    @JsonProperty
     private String file_url;
+
+    @JsonProperty
     private String status;
+
+    @JsonProperty
     private String google_client_id;
-    private String yandex_client_id;
+
+    @JsonProperty
     private String date;
+
+    @JsonProperty
     private String comment;
-    private String save_to_crm;
+
+    @JsonProperty
     private int answer_duration;
+
+
+    private String save_to_crm;
+    private String visit_id;
+    private String yandex_client_id;
     private transient String roistatApiKey;
     private transient String roistatProjectNumber;
-
 
     public RoistatPhoneCall() {
     }
@@ -43,16 +67,21 @@ public class RoistatPhoneCall {
         this.visit_id = null;
 
 //        null or string Маркер рекламного канала
-//        this.marker = call.getUtm();
+        this.marker = call.getUtm();
 
 //        null or string     Номер заказа из CRM
-        this.order_id = null;
+        int amoDealId = call.getAmoDealId();
+        if (amoDealId != 0) {
+            this.order_id = amoDealId;
+        }
 
 //        Продолжительность звонка (в секундах)
         this.duration = call.getSecondsFullTime(); // полное время звонка
 
+
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(call.getCalledMillis());
 //        Ссылка на файл записи. В api отсутствует
-//        this.file_url = "http://78.159.55.63/1.mp3";
+        this.file_url = "https://cstat.nextel.com.ua:8443/tracking/history/record/" + call.getAsteriskId() + "/" + date;
 
 //        Типы ROISTAT
 //        ANSWER – звонок был принят и обработан сотрудником;
@@ -73,9 +102,9 @@ public class RoistatPhoneCall {
             this.status = "BUSY";
         } else if (state == Call.CallState.FAIL) {
             this.status = "CONGESTION";
-        }else if (state == Call.CallState.CHANUNAVAIL) {
+        } else if (state == Call.CallState.CHANUNAVAIL) {
             this.status = "CHANUNAVAIL"; // вызываемый номер был недоступен
-        }else if (state == Call.CallState.NOANSWER) {
+        } else if (state == Call.CallState.NOANSWER) {
             this.status = "NOANSWER"; // вызываемый номер был недоступен
         }
 
@@ -92,7 +121,7 @@ public class RoistatPhoneCall {
         this.save_to_crm = "0";
 
 //      Текст комментария
-        this.comment = null;
+        this.comment = "Nextel";
 
 //      Время разговора
         this.answer_duration = call.getSecondsTalk();
@@ -107,5 +136,125 @@ public class RoistatPhoneCall {
 
     public String getRoistatProjectNumber() {
         return roistatProjectNumber;
+    }
+
+    public String getCallee() {
+        return callee;
+    }
+
+    public void setCallee(String callee) {
+        this.callee = callee;
+    }
+
+    public String getCaller() {
+        return caller;
+    }
+
+    public void setCaller(String caller) {
+        this.caller = caller;
+    }
+
+    public String getVisit_id() {
+        return visit_id;
+    }
+
+    public void setVisit_id(String visit_id) {
+        this.visit_id = visit_id;
+    }
+
+    public String getMarker() {
+        return marker;
+    }
+
+    public void setMarker(String marker) {
+        this.marker = marker;
+    }
+
+    public int getOrder_id() {
+        return order_id;
+    }
+
+    public void setOrder_id(int order_id) {
+        this.order_id = order_id;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public String getFile_url() {
+        return file_url;
+    }
+
+    public void setFile_url(String file_url) {
+        this.file_url = file_url;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getGoogle_client_id() {
+        return google_client_id;
+    }
+
+    public void setGoogle_client_id(String google_client_id) {
+        this.google_client_id = google_client_id;
+    }
+
+    public String getYandex_client_id() {
+        return yandex_client_id;
+    }
+
+    public void setYandex_client_id(String yandex_client_id) {
+        this.yandex_client_id = yandex_client_id;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getSave_to_crm() {
+        return save_to_crm;
+    }
+
+    public void setSave_to_crm(String save_to_crm) {
+        this.save_to_crm = save_to_crm;
+    }
+
+    public int getAnswer_duration() {
+        return answer_duration;
+    }
+
+    public void setAnswer_duration(int answer_duration) {
+        this.answer_duration = answer_duration;
+    }
+
+    public void setRoistatApiKey(String roistatApiKey) {
+        this.roistatApiKey = roistatApiKey;
+    }
+
+    public void setRoistatProjectNumber(String roistatProjectNumber) {
+        this.roistatProjectNumber = roistatProjectNumber;
     }
 }

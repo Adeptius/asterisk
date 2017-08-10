@@ -129,23 +129,48 @@ public class MySqlStatisticDao {
     }
 
     public static void saveCall(Call call) {
-        LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", call.getUser().getLogin(), call.getCalledFrom(), call.getCalledTo());
-        String sql = "INSERT INTO `" + call.getUser().getLogin() + "` VALUES ('"
-                + call.getCalledDate() + "', '"
-                + call.getDirection() + "', '"
-                + call.getCalledFrom() + "', '"
-                + call.getCalledTo() + "', '"
-                + call.getCallState() + "', '"
-                + call.getSecondsToAnswer() + "', '"
-                + call.getSecondsFullTime() + "', '"
-                + call.getAsteriskId() + "', '"
-                + call.getGoogleId() + "', '"
-                + call.getUtm() + "');";
+        String calledTo = call.getCalledTo();
+        String login = call.getUser().getLogin();
+        String calledDate = call.getCalledDate();
+        Call.Direction direction = call.getDirection();
+        String calledFrom = call.getCalledFrom();
+        Call.CallState callState = call.getCallState();
+        int secondsToAnswer = call.getSecondsToAnswer();
+        int secondsFullTime = call.getSecondsFullTime();
+        String asteriskId = call.getAsteriskId();
+        String googleId = call.getGoogleId();
+        String utm = call.getUtm();
+
+        LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", login, calledFrom, calledTo);
+        StringBuilder sb = new StringBuilder(28);
+        sb.append("INSERT INTO `").append(login).append("` VALUES ('")
+                .append(calledDate).append("', '")
+                .append(direction).append("', '")
+                .append(calledFrom).append("', '")
+                .append(calledTo).append("', '")
+                .append(callState).append("', '")
+                .append(secondsToAnswer)
+                .append("', '")
+                .append(secondsFullTime)
+                .append("', '")
+                .append(asteriskId).append("',");
+
+        if (googleId != null){
+                    sb.append(" '").append(googleId).append("',");
+        }else {
+            sb.append(" null,");
+        }
+
+        if (utm != null){
+            sb.append(" '").append(utm).append("');");
+        }else {
+            sb.append(" null);");
+        }
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
-            statement.execute(sql);
+            statement.execute(sb.toString());
         } catch (Exception e) {
-            LOGGER.error(call.getUser().getLogin()+": ошибка сохранения звонка "+call.getCalledFrom()+" -> "+call.getCalledTo(), e);
+            LOGGER.error(login +": ошибка сохранения звонка "+calledFrom+" -> "+ calledTo, e);
         }
     }
 

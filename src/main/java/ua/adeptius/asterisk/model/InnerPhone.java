@@ -2,19 +2,16 @@ package ua.adeptius.asterisk.model;
 
 
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 @Entity
 @Table(name = "innerphones", schema = "calltrackdb")
-@com.fasterxml.jackson.annotation.JsonAutoDetect(
-        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class InnerPhone {
 
     @JsonProperty

@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
@@ -39,7 +40,7 @@ public class MainController {
 
         // проверка: выдан ли номер пользователю по googleID
         for (OuterPhone phone : phones) {
-            if (phone.getGoogleId().equals(googleId)) {
+            if (googleId.equals(phone.getGoogleId())) {
                 String currentCustomerNumber = phone.getNumber();
                 LOGGER.trace("{}: пользователю c ID {} уже выдан номер {}", login, googleId, currentCustomerNumber);
                 phone.extendTime();
@@ -49,7 +50,7 @@ public class MainController {
 
 //         проверка: выдан ли номер пользователю по ip
         for (OuterPhone phone : phones) {
-            if (phone.getIp().equals(ip)) {
+            if (ip.equals(phone.getIp())) {
                 String currentCustomerNumber = phone.getNumber();
                 LOGGER.trace("{}: пользователю c IP {} уже выдан номер {}", login, ip, currentCustomerNumber);
                 phone.extendTime();
@@ -64,7 +65,11 @@ public class MainController {
                 String newNumber = phone.getNumber();
                 phone.extendTime();
                 phone.setIp(ip);
-                phone.setUtmRequest(pageRequest);
+                if (StringUtils.isBlank(pageRequest)){
+                    phone.setUtmRequest(null);
+                }else {
+                    phone.setUtmRequest(pageRequest);
+                }
                 LOGGER.debug("{}: новому пользователю выдаётся номер: {}", login, newNumber);
                 return newNumber;
             }
@@ -73,6 +78,20 @@ public class MainController {
         LOGGER.debug("{}: нет свободных номеров. Возвращаю стандартный {}", login, standardNumber);
 //        new Mail().checkTimeAndSendEmail(tracking, "Закончились свободные номера");todo email
         return standardNumber;
+    }
+
+    public static void onNewCall(Call call) {
+        LOGGER.debug("{}: отправляем звонок во все системы {}", call.getUser().getLogin(), call);
+
+        OuterPhone outerPhone = call.getOuterPhone();
+        if (outerPhone != null){
+            call.setUtm(outerPhone.getUtmRequest());
+            call.setGoogleId(outerPhone.getGoogleId());
+        }
+
+        googleAnalitycsCallSender.send(call);
+        roistatCallSender.send(call);
+        MySqlStatisticDao.saveCall(call);
     }
 
 //    public static OldPhone getPhoneByNumber(String number) {
@@ -109,15 +128,7 @@ public class MainController {
 //        MySqlStatisticDao.saveCall(call);
 //    }
 
-    public static void onNewCall(Call call) { // todo TEST
-        OuterPhone outerPhone = call.getOuterPhone();
-        if (outerPhone != null){
-            call.setUtm(outerPhone.getUtmRequest());
-            call.setGoogleId(outerPhone.getGoogleId());
-        }
 
-        googleAnalitycsCallSender.send(call);
-        roistatCallSender.send(call);
-        MySqlStatisticDao.saveCall(call);
-    }
+
+
 }

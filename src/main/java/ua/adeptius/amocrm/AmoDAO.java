@@ -201,7 +201,7 @@ public class AmoDAO {
 
     @Nullable
     public static JsonAmoDeal getContactsLatestActiveDial(AmoAccount amoAccount, @Nonnull JsonAmoContact contact) throws Exception {
-        List<JsonAmoDeal> allDeals = getAllContactDeals(amoAccount, contact);
+        List<JsonAmoDeal> allDeals = getDealById(amoAccount, contact.getLinked_leads_id());
         List<JsonAmoDeal> activeDials = new ArrayList<>();
         for (JsonAmoDeal deal : allDeals) {
             if (deal.isOpen()) {
@@ -228,11 +228,6 @@ public class AmoDAO {
             }
         }
         return latestDeal;
-    }
-
-    //TODO что это такое?
-    public static List<JsonAmoDeal> getAllContactDeals(AmoAccount amoAccount, JsonAmoContact contact) throws Exception {
-        return getDealById(amoAccount, contact.getLinked_leads_id());
     }
 
     /**

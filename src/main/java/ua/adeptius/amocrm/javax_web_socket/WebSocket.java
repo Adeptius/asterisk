@@ -1,5 +1,6 @@
 package ua.adeptius.amocrm.javax_web_socket;
 
+import org.asteriskjava.manager.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
@@ -17,9 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.click2call;
-import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.copySession;
-import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.wrongMessage;
+import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.*;
 
 @ServerEndpoint(value = "/ws/{amoDomain}/{userId}", decoders = MessageDecoder.class, encoders = MessageEncoder.class)
 public class WebSocket {
@@ -44,8 +43,8 @@ public class WebSocket {
             usersAndSessions.get(userId).add(session);
         }
 
-        LOGGER.debug("{}: пользователь {} подключился. EndPoints({}), Users({}), Sessions ({})",
-                amoDomain, userId, chatEndpoints.size(), usersAndSessions.size(), usersAndSessions.get(userId).size());
+        LOGGER.debug("{}: пользователь {} подключился. Сейчас у него {} сессии. Всего пользователей {}. EndPoints {}",
+                amoDomain, userId, usersAndSessions.get(userId).size(), usersAndSessions.size(), chatEndpoints.size());
     }
 
     @OnMessage
@@ -87,8 +86,6 @@ public class WebSocket {
     }
 
 
-    //TODO где-то здесь кешировать id сотрудников и их номера
-
     private void processMessage(Session session, WsMessage wsMessage, String amoDomain, String userId) {
         MessageEventType type = wsMessage.getEventType();
         if (type == null) {
@@ -110,23 +107,24 @@ public class WebSocket {
             try {
                 callTo = cleanAndValidatePhoneNumber(callTo);
             } catch (IllegalArgumentException e) {
-                //TODO вернуть ошибку пользователю
+                sendMessage(userId, new WsMessage(wrongToNumber, callTo));
+                return;
             }
 
-//            List<User> users = UserContainer.getUsers();
-//            for (User user : users) {
-//                AmoAccount amoAccount = user.getAmoAccount();
-//                if (amoAccount != null) {
-//                    String workersNumber = amoAccount.getWorkersPhone(userId);
-//                    if (workersNumber != null) {
-//                        try {
-//                            Main.monitor.sendCallToOutsideAction(workersNumber, callTo);
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            }
+            List<User> users = UserContainer.getUsers();
+            for (User user : users) {
+                AmoAccount amoAccount = user.getAmoAccount();
+                if (amoAccount != null) {
+                    String workersNumber = amoAccount.getWorkersPhone(userId);
+                    if (workersNumber != null) {
+                        try {
+                            Main.monitor.sendCallToOutsideAction(workersNumber, callTo);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -148,6 +146,4 @@ public class WebSocket {
         }
         throw new IllegalArgumentException();
     }
-
-
 }

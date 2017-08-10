@@ -47,31 +47,34 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
     public void onManagerEvent(ManagerEvent event) {
+        try{
+            if (event instanceof NewChannelEvent) {
+                CallProcessor.processEvent(event, ((NewChannelEvent) event).getUniqueId());
 
-        if (event instanceof NewChannelEvent) {
-            CallProcessor.processEvent(event, ((NewChannelEvent) event).getUniqueId());
+            } else if (event instanceof HangupEvent) {
+                CallProcessor.processEvent(event, ((HangupEvent) event).getUniqueId());
 
-        } else if (event instanceof HangupEvent) {
-            CallProcessor.processEvent(event, ((HangupEvent) event).getUniqueId());
+            } else if (event instanceof NewExtenEvent) {
+                NewExtenEvent extenEvent = (NewExtenEvent) event;
+                if (!(extenEvent.getApplication().equals("Dial"))) {
+                    return;
+                }
+                CallProcessor.processEvent(event, extenEvent.getUniqueId());
 
-        } else if (event instanceof NewExtenEvent) {
-            NewExtenEvent extenEvent = (NewExtenEvent) event;
-            if (!(extenEvent.getApplication().equals("Dial"))) {
-                return;
+            } else if (event instanceof VarSetEvent) {
+                VarSetEvent varSetEvent = (VarSetEvent) event;
+                String key = varSetEvent.getVariable();
+                String value = varSetEvent.getValue();
+                if (!key.equals("DIALSTATUS")) {
+                    return;
+                }
+                if (value == null) {
+                    return;
+                }
+                CallProcessor.processEvent(event, varSetEvent.getUniqueId());
             }
-            CallProcessor.processEvent(event, extenEvent.getUniqueId());
-
-        } else if (event instanceof VarSetEvent) {
-            VarSetEvent varSetEvent = (VarSetEvent) event;
-            String key = varSetEvent.getVariable();
-            String value = varSetEvent.getValue();
-            if (!key.equals("DIALSTATUS")) {
-                return;
-            }
-            if (value == null) {
-                return;
-            }
-            CallProcessor.processEvent(event, varSetEvent.getUniqueId());
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 }

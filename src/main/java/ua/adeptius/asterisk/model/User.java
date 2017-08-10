@@ -11,16 +11,12 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.*;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 
 @Entity
 @Table(name = "users", schema = "calltrackdb")
-@JsonAutoDetect(
-        creatorVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        getterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE,
-        setterVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class User {
 
     private static Logger LOGGER = LoggerFactory.getLogger(User.class.getSimpleName());
@@ -50,8 +46,7 @@ public class User {
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private Set<RoistatAccount> roistatAccountSet;
 
-    // при ALL удаляется внешний телефон при удалении пользователя
-    @JsonProperty // при DETACH не становится null site_name при вызове site.releaseAllPhones
+    @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "busy", referencedColumnName = "login")
     private Set<OuterPhone> outerPhones;
@@ -117,26 +112,21 @@ public class User {
         this.roistatAccountSet.add(roistatAccount);
     }
 
+    /**
+     * Sites
+     */
     public void removeSite(Site site){
         site.releaseAllPhones();
         getSites().remove(site);
     }
 
-
-    public Set<OuterPhone> getOuterPhones() {
-        return outerPhones;
-    }
-
-    public void setOuterPhones(Set<OuterPhone> outerPhones) {
-        this.outerPhones = outerPhones;
-    }
-
-    public Set<InnerPhone> getInnerPhones() {
-        return innerPhones;
-    }
-
-    public void setInnerPhones(Set<InnerPhone> innerPhones) {
-        this.innerPhones = innerPhones;
+    public Site getSiteByName(String sitename) {
+        for (Site site : sites) {
+            if (site.getName().equals(sitename)) {
+                return site;
+            }
+        }
+        return null;
     }
 
     public Set<Site> getSites() {
@@ -149,6 +139,109 @@ public class User {
     public void setSites(Set<Site> sites) {
         this.sites = sites;
     }
+
+    /**
+     * Outer phones
+     */
+
+    @Transient
+    private HashMap<String, OuterPhone> outerPhonesCache;
+
+    public OuterPhone getOuterPhoneByNumber(String number){
+        if (outerPhonesCache == null){ // если кэш пуст - наполняем его
+            outerPhonesCache = new HashMap<>();
+            outerPhones.forEach(phone -> outerPhonesCache.put(phone.getNumber(), phone));
+        }
+        return outerPhonesCache.get(number);
+    }
+
+    public Set<OuterPhone> getOuterPhones() {
+        return Collections.unmodifiableSet(outerPhones);
+    }
+
+    public void setOuterPhones(Set<OuterPhone> outerPhones) {
+        this.outerPhones = outerPhones;
+        outerPhonesCache = null;
+    }
+
+    public void addOuterPhones(Collection<OuterPhone> outerPhones) {
+        this.outerPhones.addAll(outerPhones);
+        outerPhonesCache = null;
+    }
+
+
+    public void removeOuterPhones(Collection<OuterPhone> outerPhonesToRemove) {
+        this.outerPhones.removeAll(outerPhonesToRemove);
+        outerPhonesCache = null;
+    }
+
+
+    /**
+     * Inner Phones
+     */
+
+
+    @Transient
+    private HashMap<String, InnerPhone> innerPhonesCache;
+
+    public InnerPhone getInnerPhoneByNumber(String number){
+        if (innerPhonesCache == null){ // если кэш пуст - наполняем его
+            innerPhonesCache = new HashMap<>();
+            innerPhones.forEach(phone -> innerPhonesCache.put(phone.getNumber(), phone));
+        }
+        return innerPhonesCache.get(number);
+    }
+
+    public Set<InnerPhone> getInnerPhones() {
+        return Collections.unmodifiableSet(innerPhones);
+    }
+
+    public void setInnerPhones(Set<InnerPhone> innerPhones) {
+        this.innerPhones = innerPhones;
+        innerPhonesCache = null;
+    }
+
+
+    public void addInnerPhones(Collection<InnerPhone> innerPhones) {
+        this.innerPhones.addAll(innerPhones);
+        innerPhonesCache = null;
+    }
+
+
+    public void removeInnerPhones(Collection<InnerPhone> innerPhonesToRemove) {
+        this.innerPhones.removeAll(innerPhonesToRemove);
+        innerPhonesCache = null;
+    }
+
+
+    /**
+     * Operator locations
+     */
+
+
+    @JsonProperty
+    @Transient
+    public AmoOperatorLocation getOperatorLocation() {
+        if (amoOperatorLocations == null || amoOperatorLocations.isEmpty())
+            return null;
+        else
+            return this.amoOperatorLocations.iterator().next();
+    }
+
+    public void setAmoOperatorLocations(AmoOperatorLocation amoOperatorLocation) {
+        if (this.amoOperatorLocations == null)
+            this.amoOperatorLocations = new HashSet<>();
+        else
+            this.amoOperatorLocations.clear();
+
+        if (amoOperatorLocation == null) {
+            return;
+        }
+
+        amoOperatorLocation.setLogin(login);
+        this.amoOperatorLocations.add(amoOperatorLocation);
+    }
+
 
     public static void setLOGGER(Logger LOGGER) {
         User.LOGGER = LOGGER;
@@ -186,14 +279,6 @@ public class User {
         this.trackingId = trackingId;
     }
 
-    public Set<AmoOperatorLocation> getAmoOperatorLocations() {
-        return amoOperatorLocations;
-    }
-
-    public void setAmoOperatorLocations(Set<AmoOperatorLocation> amoOperatorLocations) {
-        this.amoOperatorLocations = amoOperatorLocations;
-    }
-
 
     @Override
     public String toString() {
@@ -211,14 +296,7 @@ public class User {
                 "\n}";
     }
 
-    public Site getSiteByName(String sitename) {
-        for (Site site : sites) {
-            if (site.getName().equals(sitename)) {
-                return site;
-            }
-        }
-        return null;
-    }
+
     /**
      * Scenario
      */

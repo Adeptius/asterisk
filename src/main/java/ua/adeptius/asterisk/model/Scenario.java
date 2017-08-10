@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
 import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
@@ -23,13 +24,7 @@ import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 
 @Entity
 @Table(name = "scenarios", schema = "calltrackdb")
-@JsonAutoDetect(
-        creatorVisibility = JsonAutoDetect.Visibility.NONE,
-        fieldVisibility = JsonAutoDetect.Visibility.NONE,
-        getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE,
-        setterVisibility = JsonAutoDetect.Visibility.NONE
-)
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class Scenario {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Scenario.class.getSimpleName());

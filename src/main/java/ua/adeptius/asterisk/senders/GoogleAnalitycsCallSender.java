@@ -13,6 +13,8 @@ import ua.adeptius.asterisk.model.Call;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static ua.adeptius.asterisk.model.Call.Direction.IN;
+
 public class GoogleAnalitycsCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(GoogleAnalitycsCallSender.class.getSimpleName());
@@ -45,65 +47,50 @@ public class GoogleAnalitycsCallSender extends Thread {
         }
     }
 
-    private void sendReport(Call call) { //todo TEST
-        if (call.getDirection() != Call.Direction.IN){
+    private void sendReport(Call call) {
+        String login = call.getUser().getLogin();
+        if (call.getDirection() != IN){ // если исходящий звонок - отбой
+            LOGGER.debug("{}: Звонок исходящий. Отмена отправки", login);
             return;
         }
 
-        User user = call.getUser();
-        String userGoogleAnalitycsId = user.getTrackingId();
+        String userGoogleAnalitycsId = call.getUser().getTrackingId();// если не указан трекинг айди - отбой
         if (StringUtils.isBlank(userGoogleAnalitycsId)){
-            return;
-        }
-
-        OuterPhone outerPhone = call.getOuterPhone();
-        String sitename = outerPhone.getSitename();
-        if (StringUtils.isBlank(sitename)){
+            LOGGER.debug("{}: Не указан google analytics id у юзера. Отмена отправки", login);
             return;
         }
 
         String clientGoogleId = call.getGoogleId();
+        if (clientGoogleId == null) {
+            LOGGER.debug("{}: google ID в звонке пуст. Вероятно клиент давно закрыл страницу со скриптом. Отмена отправки", login);
+            return;
+        }
 
-        HashMap<String, Object> map = new HashMap<>();
+        OuterPhone outerPhone = call.getOuterPhone();
+        if (outerPhone == null) {
+            LOGGER.debug("{}: Вероятно в колл процессоре кэш не обновился еще, а у пользователя телефон уже нет.. Отмена отправки", login);
+            return;
+        }
+
+        String siteName = outerPhone.getSitename();
+        if (siteName == null){
+            LOGGER.error(login+": SiteName is null");
+            return;
+        }
+
+        HashMap<String, Object> map = new HashMap<>(); // формируем запрос
         map.put("v", "1");
-        map.put("tid", userGoogleAnalitycsId); // Tracking ID / Property ID.
         map.put("t", "event"); // Hit Type.
-        map.put("ea", sitename+": new call");// Event
-//          map.put("el", call.getDirection()); // Label
-
-        Call.Service service = call.getService();
-        if (service == Call.Service.TRACKING) {
-            map.put("ec", "calltracking"); // Category
-        } else if (service == Call.Service.TELEPHONY) {
-            map.put("ec", "ip_telephony"); // Category
-        }
-
-        if (StringUtils.isBlank(clientGoogleId)) {
-            map.put("cid", getGoogleId(call.getCalledFrom())); // Client ID.
-        } else {
-            map.put("cid", clientGoogleId); // Client ID.
-        }
+        map.put("tid", userGoogleAnalitycsId); // Tracking ID
+        map.put("cid", clientGoogleId); // Client ID.
+        map.put("ec", "calltracking"); // Категория
+        map.put("ea", siteName+": new call");// Событие
 
         try {
-            Unirest.post("http://www.google-analytics.com/collect").fields(map).asString();
-            LOGGER.trace("Звонок отправлен в Google Analitycs");
+            String response = Unirest.post("http://www.google-analytics.com/collect").fields(map).asString().getBody();
+            LOGGER.trace("{}: Звонок отправлен в Google Analitycs. Ответ: {}", login, response);
         } catch (UnirestException e) {
-            LOGGER.error("Ошибка отправки звонка в Google Analitycs", e);
+            LOGGER.error(login+": Ошибка отправки звонка в Google Analitycs", e);
         }
-    }
-
-    private static String getGoogleId(String number) {
-        int numberLength = number.length();
-        int moreLetters = 10 - numberLength;
-        String googleId = number;
-        for (int i = 0; i < moreLetters; i++) {
-            googleId += "0";
-        }
-        if (googleId.length() > 10) {
-            googleId = googleId.substring(0, 10);
-        }
-        googleId = googleId + ".0000000000";
-        return googleId;
-
     }
 }

@@ -31,7 +31,7 @@ public class Scheduler{
     /**
      * ConnectionKeeper
      */
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelay = 60000) // Каждую минуту
     public void keepConnectHibernate(){
         try {
             HibernateDao.getUserByLogin("e404");
@@ -49,7 +49,7 @@ public class Scheduler{
     /**
      * Tracking phone Watcher
      */
-    @Scheduled(initialDelay = 10000, fixedRate = 3000)
+    @Scheduled(initialDelay = 10000, fixedRate = 3000) // каждые 3 секунды
     private void checkAllPhones(){
         List<Site> sites = UserContainer.getUsers().stream()
                 .flatMap(user -> user.getSites().stream())
@@ -100,7 +100,7 @@ public class Scheduler{
     /**
      * Amo cookie cleaner
      */
-    @Scheduled(initialDelay = 10000, fixedRate = 50000)
+    @Scheduled(initialDelay = 10000, fixedRate = 50000) // каждые 50 секунд
     private void cleanCookie() {
         List<String> cookieToRemove = new ArrayList<>();
         long currentTime = new GregorianCalendar().getTimeInMillis();
@@ -121,7 +121,7 @@ public class Scheduler{
     /**
      *  Call processor cleaning
      */
-    @Scheduled(cron = "0 0 1 * * ?")
+    @Scheduled(cron = "0 0 1 * * ?") // ежедневно в час ночи
     private void startClean(){
         LOGGER.trace("Очистка карты number <-> Call");
         CallProcessor.calls.clear();
@@ -131,9 +131,14 @@ public class Scheduler{
     /**
      * Scenario writer
      */
-    @Scheduled(cron = "0 55 * * * ?")
+//    @Scheduled(cron = "0 55 * * * ?") // в 55 минут каждого часа
     private void generateConfig(){
         LOGGER.trace("Начинается запись всех конфигов астериска в файлы.");
         RulesConfigDAO.writeAllNeededScenarios();
+    }
+
+    @Scheduled(cron = "0 00 * * * ?") // в 0 минут каждого часа
+    private void updatePhonesMapForCallProcessor(){
+        CallProcessor.updatePhonesHashMap();
     }
 }
