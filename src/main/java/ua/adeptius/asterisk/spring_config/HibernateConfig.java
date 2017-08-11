@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
-@EnableTransactionManagement
+//@EnableTransactionManagement
 @PropertySource({ "classpath:newhibernate.properties" })
 public class HibernateConfig {
 
@@ -42,6 +42,7 @@ public class HibernateConfig {
         dataSource.setJdbcUrl(url);
         dataSource.setUser(username);
         dataSource.setPassword(password);
+        dataSource.setInitialPoolSize(10);
         dataSource.setMinPoolSize(5);
         dataSource.setMaxPoolSize(20);
         dataSource.setAcquireIncrement(1);
@@ -66,10 +67,10 @@ public class HibernateConfig {
         return properties;
     }
 
-    @Bean
-    public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
-        HibernateTransactionManager txManager = new HibernateTransactionManager();
-        txManager.setSessionFactory(sessionFactory);
-        return txManager;
-    }
+//    @Bean
+//    public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
+//        HibernateTransactionManager txManager = new HibernateTransactionManager();
+//        txManager.setSessionFactory(sessionFactory);
+//        return txManager;
+//    }
 }

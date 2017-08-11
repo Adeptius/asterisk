@@ -11,6 +11,7 @@ import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class HibernateController {
@@ -25,28 +26,31 @@ public class HibernateController {
      * User
      */
 
-    @Transactional
+//    @Transactional
     public List<User> getAllUsers() throws Exception {
         return hibernateDao.getAllUsers();
     }
 
-    @Transactional
+//    @Transactional
     public void saveUser(User user) throws Exception {
         hibernateDao.saveUser(user);
     }
 
-    @Transactional
+//    @Transactional
     public void update(User user) {
         hibernateDao.update(user);
     }
 
-    @Transactional
+//    @Transactional
     public User getUserByLogin(String login) throws Exception {
-        return hibernateDao.getUserByLogin(login);
+        long t0 = System.nanoTime();
+        User userByLogin = hibernateDao.getUserByLogin(login);
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-t0));
+        return userByLogin;
     }
 
 
-    @Transactional
+//    @Transactional
     public void delete(User user) {
         hibernateDao.delete(user);
     }
@@ -55,7 +59,7 @@ public class HibernateController {
      * Melodies
      */
 
-    @Transactional
+//    @Transactional
     public List<String> getMelodies() {
         return hibernateDao.getMelodies();
     }
@@ -64,7 +68,7 @@ public class HibernateController {
      * AmoCRM
      */
     // Для тестов
-    @Transactional
+//    @Transactional
     public AmoAccount getAmoAccountByUser(String nextelLogin) {
         return hibernateDao.getAmoAccountByUser(nextelLogin);
     }
@@ -73,7 +77,7 @@ public class HibernateController {
      * Roistat
      */
     // Для тестов
-    @Transactional
+//    @Transactional
     public RoistatAccount getRoistatAccountByUser(String nextelLogin) {
         return hibernateDao.getRoistatAccountByUser(nextelLogin);
     }
@@ -82,25 +86,25 @@ public class HibernateController {
      * Inner phones
      */
 
-    @Transactional
+//    @Transactional
     public List<InnerPhone> getAllInnerPhones() throws Exception {
         return hibernateDao.getAllInnerPhones();
     }
 
     @Deprecated
-    @Transactional
+//    @Transactional
     public List<InnerPhone> getAllInnerUserPhones(String user) throws Exception {
         return hibernateDao.getAllInnerUserPhones(user);
     }
 
     @Deprecated
-    @Transactional
+//    @Transactional
     public InnerPhone saveSipBySipConfig(SipConfig sipConfig, String user) throws Exception {
         return hibernateDao.saveSipBySipConfig(sipConfig, user);
     }
 
 
-    @Transactional
+//    @Transactional
     public int getSipMaxNumber() throws Exception {
         return hibernateDao.getSipMaxNumber();
     }
@@ -110,46 +114,46 @@ public class HibernateController {
      * Outer Phones
      */
 
-    @Transactional
+//    @Transactional
     public List<OuterPhone> getAllFreeOuterPhones() throws Exception {
         return getAllFreeOuterPhones();
     }
 
     @Deprecated
-    @Transactional
+//    @Transactional
     public List<OuterPhone> getAllBusyOuterPhones() throws Exception {
         return hibernateDao.getAllBusyOuterPhones();
     }
 
 
-    @Transactional
+//    @Transactional
     public void markOuterPhoneBusy(String user, List<String> numbers) throws Exception {
         hibernateDao.markOuterPhoneBusy(user, numbers);
     }
 
-    @Transactional
+//    @Transactional
     public void markOuterPhoneFree(List<String> numbersToRelease) throws Exception {
         hibernateDao.markOuterPhoneFree(numbersToRelease);
     }
 
 
     // Используется в тестах
-    @Transactional
+//    @Transactional
     public List<OuterPhone> getAllTestPhones() throws Exception {
         return hibernateDao.getAllTestPhones();
     }
 
-    @Transactional
+//    @Transactional
     public void removeAllTestPhones() throws Exception {
         hibernateDao.removeAllTestPhones();
     }
 
-    @Transactional
+//    @Transactional
     public void createTestPhonesForUser(String user, String siteName) throws Exception {
         hibernateDao.createTestPhonesForUser(user, siteName);
     }
 
-    @Transactional
+//    @Transactional
     public void delete(Object o) {
         hibernateDao.delete(o);
     }

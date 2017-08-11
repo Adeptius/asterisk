@@ -28,7 +28,7 @@ public class HibernateDaoTest {
     public static void preparingDb() throws Exception {
         ApplicationContext context = new AnnotationConfigApplicationContext("ua.adeptius");
         hibernateController = context.getBean(HibernateController.class);
-
+        User user = hibernateController.getUserByLogin("hibernate");
     }
 
     private static void createTestUser() throws Exception {
