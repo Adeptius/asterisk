@@ -214,33 +214,39 @@ public class HibernateDaoTest {
     @Test
     public void rulesAndScenariosTest() throws Exception {
         User user = HibernateController.getUserByLogin("hibernate");
-//        List<Rule> allRules = HibernateController.getAllRules();
-//        allRules.forEach(System.out::println);
 
-        addNewRule(user, "hiberScenario", "hiberRule");
+        Scenario scenario = addNewScenario(user, "hiberScenario");
+
+        addNewRule(scenario, "hiberRule");
+        addNewRule(scenario, "hiberRule2");
 
         HibernateController.update(user);
+        user = HibernateController.getUserByLogin("hibernate");
 
 
-        Set<Rule> rules = user.getRules();
-        rules.forEach(System.out::println);
 
         Set<Scenario> scenarios = user.getScenarios();
-        scenarios.forEach(System.out::println);
-
+        Scenario next = scenarios.iterator().next();
+        List<Rule> rules = next.getRules();
+        assertEquals(2,rules.size());
     }
 
 
-    private void addNewRule(User user, String scenario, String name){
+    private Scenario addNewScenario(User user, String name){
+       Scenario scenario = new Scenario();
+       scenario.setName(name);
+       user.addScenario(scenario);
+       return scenario;
+    }
+
+    private void addNewRule(Scenario scenario, String name){
         Rule rule = new Rule();
         rule.setName(name);
         rule.setDays(new boolean[]{true,true,true,true,true,true,true});
         rule.setDestinationType(SIP);
         rule.setStartHour(0);
         rule.setEndHour(24);
-        rule.setScenario(scenario);
-        rule.setUser(user);
-        user.getRules().add(rule);
+        scenario.addRule(rule);
     }
 
 

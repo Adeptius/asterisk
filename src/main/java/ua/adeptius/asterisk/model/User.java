@@ -75,21 +75,7 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Scenario> scenarios;
 
-    public Set<Scenario> getScenarios() {
-        return scenarios;
-    }
 
-    public void setScenarios(Set<Scenario> scenarios) {
-        this.scenarios = scenarios;
-    }
-
-    public Set<Rule> getRules() {
-        return rules;
-    }
-
-    public void setRules(Set<Rule> rules) {
-        this.rules = rules;
-    }
 
     @JsonProperty
     @Transient
@@ -265,6 +251,44 @@ public class User {
 
         amoOperatorLocation.setLogin(login);
         this.amoOperatorLocations.add(amoOperatorLocation);
+    }
+
+
+    /**
+     * Scenarios
+     */
+
+    public Set<Scenario> getScenarios() {
+        return Collections.unmodifiableSet(scenarios);
+    }
+
+    public void addScenario(Scenario scenario){
+        scenario.setUser(this);
+        scenarios.add(scenario);
+    }
+
+    public void removeScenario(Scenario scenario){
+        List<Rule> rulesInScenario = scenario.getRules();
+        rulesInScenario.forEach(this::removeRule);
+        scenarios.remove(scenario);
+    }
+
+
+
+    /**
+     * Rules
+     */
+
+    public Set<Rule> getAllRules() {
+        return Collections.unmodifiableSet(rules);
+    }
+
+    void saveInUsersRules(Rule rule){ // это должго быть в scenario
+        rules.add(rule);
+    }
+
+    void removeRule(Rule rule){
+        rules.remove(rule);
     }
 
 

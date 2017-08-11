@@ -39,7 +39,7 @@ public class HibernateConfig {
     public DataSource dataSource() throws Exception{
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
         dataSource.setDriverClass(driverClassName);
-        dataSource.setJdbcUrl(url);
+        dataSource.setJdbcUrl(url+"?useUnicode=true&characterEncoding=utf8&characterSetResults=UTF-8");
         dataSource.setUser(username);
         dataSource.setPassword(password);
         dataSource.setInitialPoolSize(10);
@@ -64,6 +64,14 @@ public class HibernateConfig {
         properties.put(AvailableSettings.DIALECT, hibernateDialect);
         properties.put(AvailableSettings.SHOW_SQL, hibernateShowSql);
         properties.put(AvailableSettings.CURRENT_SESSION_CONTEXT_CLASS, "org.springframework.orm.hibernate5.SpringSessionContext");
+        properties.put("hibernate.connection.CharSet", "UTF-8");
+        properties.put("hibernate.connection.useUnicode", true);
+        properties.put("hibernate.connection.characterEncoding", "UTF-8");
+
+
+//    <property name="hibernate.connection.useUnicode">true</property>
+//    <property name="hibernate.connection.characterEncoding">UTF-8</property>
+//    <property name="hibernate.connection.charSet">UTF-8</property>
         return properties;
     }
 

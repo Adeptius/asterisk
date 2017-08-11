@@ -7,9 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.Message;
+import ua.adeptius.asterisk.model.User;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 
@@ -51,6 +54,20 @@ public class ScenarioController {
             return new Message(Message.Status.Error, "Internal error").toString();
         }
     }
+
+
+    @PostMapping("/getAll")
+    public Object getAllScenarios(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid").toString();
+        }
+        return user.getScenarios();
+    }
+
+
+
+
 //    @RequestMapping(value = "/get", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
 //    @ResponseBody
 //    public String getScenarios(HttpServletRequest request) {

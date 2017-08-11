@@ -3,9 +3,13 @@ package ua.adeptius.asterisk.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -20,13 +24,33 @@ public class Scenario {
     @Column(name = "id")
     private int id;
 
-
-    @JsonIgnore
     @Column(name = "login")
     private String login;
 
+    @JsonProperty
     @Column(name = "name")
     private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
+    private User user;
+
+    @JsonProperty
+    public List<Rule> getRules(){
+        return user.getAllRules().stream()
+                .filter(rule -> name.equals(rule.getScenario()))
+                .collect(Collectors.toList());
+    }
+
+    public void addRule(Rule rule){
+        rule.setUser(user);
+        rule.setScenario(name);
+        user.saveInUsersRules(rule);
+    }
+
+    public void removeRule(Rule rule){
+        user.removeRule(rule);
+    }
 
 
     public int getId() {
@@ -41,16 +65,24 @@ public class Scenario {
         return login;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        if (user != null){
+            login = user.getLogin();
+        }
+        this.user = user;
     }
 
     @Override

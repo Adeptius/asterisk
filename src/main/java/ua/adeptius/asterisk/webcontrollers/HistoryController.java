@@ -1,6 +1,5 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 @ResponseBody
 public class HistoryController {
 
+    //TODO offset, count
     private static Logger LOGGER =  LoggerFactory.getLogger(HistoryController.class.getSimpleName());
 
     @PostMapping("/get")

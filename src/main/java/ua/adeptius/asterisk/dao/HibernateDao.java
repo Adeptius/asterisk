@@ -83,6 +83,7 @@ public class HibernateDao {
         for (OuterPhone outerPhone : outerPhones) {
             outerPhone.setBusy(null);
             outerPhone.setSitename(null);
+            outerPhone.setScenario(null);
             session.update(outerPhone);
         }
 

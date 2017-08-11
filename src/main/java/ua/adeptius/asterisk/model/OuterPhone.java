@@ -27,6 +27,9 @@ public class OuterPhone {
     @Column(name = "site_name")
     private String sitename;
 
+    @JsonProperty
+    @Column(name = "scenario")
+    private String scenario;
 
     @JsonProperty
     @Transient
@@ -138,6 +141,13 @@ public class OuterPhone {
         this.number = number;
     }
 
+    public String getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(String scenario) {
+        this.scenario = scenario;
+    }
 
     public String getBusy() {
         return busy;

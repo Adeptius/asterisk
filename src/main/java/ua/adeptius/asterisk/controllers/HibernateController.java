@@ -49,11 +49,10 @@ public class HibernateController {
     }
 
     public static User getUserByLogin(String login) throws Exception {
-        operationsCount++;
-        long t0 = System.nanoTime();
+//        operationsCount++;
+//        long t0 = System.nanoTime();
         User userByLogin = hibernateDao.getUserByLogin(login);
-        time.add(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-t0));
-
+//        time.add(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-t0));
         return userByLogin;
     }
 

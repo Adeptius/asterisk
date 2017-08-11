@@ -3,7 +3,7 @@ package ua.adeptius.asterisk.model;
 import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +34,10 @@ public class Rule {
     @Column(name = "id")
     private int id;
 
-    @JsonIgnore
     @Column(name = "login")
     private String login;
 
+    @JsonProperty
     @Column(name = "name")
     private String name;
 
@@ -47,34 +47,41 @@ public class Rule {
     @Column(name = "toNumbers")
     private String toNumbers;
 
+    @JsonProperty
     @Column(name = "forwardType")
     @Enumerated(EnumType.STRING)
     private ForwardType forwardType;
 
+    @JsonProperty
     @Column(name = "destinationType")
     @Enumerated(EnumType.STRING)
     private DestinationType destinationType;
 
+    @JsonProperty
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private ScenarioStatus status;
 
+    @JsonProperty
     @Column(name = "awaitingTime")
     private int awaitingTime;
 
+    @JsonProperty
     @Column(name = "melody")
     private String melody;
 
+    @JsonProperty
     @Column(name = "startTime")
     private Integer startHour;
 
+    @JsonProperty
     @Column(name = "endTime")
     private Integer endHour;
 
+    @JsonProperty
     @Column(name = "days")
     private String days;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
     private User user;
@@ -88,7 +95,6 @@ public class Rule {
     }
 
     @SuppressWarnings("Duplicates")
-    @JsonIgnore
     public String getConfig() {
 //        if (destinationType == SIP) {
 //            if (forwardType == TO_ALL) {
@@ -152,6 +158,7 @@ public class Rule {
         if (newDays[6]) days += "вс ";
     }
 
+    @JsonProperty
     public boolean[] getDays() {
         return new boolean[]{
                 days.contains("пн"),
@@ -244,6 +251,7 @@ public class Rule {
         toNumbers += number;
     }
 
+    @JsonProperty
     public List<String> getToList() {
         if (toNumbers.equals("")) {
             return new ArrayList<>();
