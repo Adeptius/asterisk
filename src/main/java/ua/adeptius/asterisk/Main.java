@@ -26,7 +26,7 @@ import java.util.Arrays;
 
 
 @Component
-//@EnableScheduling
+@EnableScheduling
 public class Main {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
@@ -40,7 +40,7 @@ public class Main {
         hibernateController = controller;
     }
 
-//    @AfterSpringLoadComplete
+    @AfterSpringLoadComplete
     public void init() {
         System.out.println("----------------------------------------"+hibernateController);
 

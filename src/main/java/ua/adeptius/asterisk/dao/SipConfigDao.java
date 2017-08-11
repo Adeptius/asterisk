@@ -4,6 +4,7 @@ package ua.adeptius.asterisk.dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.telephony.SipConfig;
@@ -16,7 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-
+@Component
 public class SipConfigDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(SipConfigDao.class.getSimpleName());

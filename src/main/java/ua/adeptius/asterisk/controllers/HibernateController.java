@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;

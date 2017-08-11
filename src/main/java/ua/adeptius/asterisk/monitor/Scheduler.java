@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 
 @Component
-//@EnableScheduling
+@EnableScheduling
 public class Scheduler{
 
     private static Logger LOGGER = LoggerFactory.getLogger(Scheduler.class.getSimpleName());
