@@ -4,8 +4,10 @@ package ua.adeptius.asterisk.webcontrollers;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonSite;
@@ -24,6 +26,12 @@ public class SiteController {
     //    private static boolean safeMode = true;
     private static Logger LOGGER =  LoggerFactory.getLogger(SiteController.class.getSimpleName());
     private boolean safeMode = true;
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     @PostMapping("/add")
     public Object add(@RequestBody JsonSite jsonSite, HttpServletRequest request) {
@@ -64,7 +72,7 @@ public class SiteController {
 
         try {
             user.getSites().add(site);
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Site added");
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка добавление сайта: "+jsonSite, e);
@@ -101,7 +109,7 @@ public class SiteController {
         }
 
         try {
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Site updated");
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка обновления сайта " + jsonSite, e);
@@ -128,7 +136,7 @@ public class SiteController {
         try {
             site.releaseAllPhones();
             user.getSites().remove(site);
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Site removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);

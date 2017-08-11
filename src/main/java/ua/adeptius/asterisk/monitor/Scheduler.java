@@ -3,11 +3,13 @@ package ua.adeptius.asterisk.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.model.TimePairCookie;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.model.OuterPhone;
@@ -27,6 +29,12 @@ public class Scheduler{
 
     private static Logger LOGGER = LoggerFactory.getLogger(Scheduler.class.getSimpleName());
 
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     /**
      * ConnectionKeeper
@@ -34,7 +42,7 @@ public class Scheduler{
     @Scheduled(fixedDelay = 60000) // Каждую минуту
     public void keepConnectHibernate(){
         try {
-            HibernateDao.getUserByLogin("e404");
+            hibernateController.getUserByLogin("e404");
         } catch (Exception e) {
             LOGGER.error("Не удалось получить тестового пользователя", e);
         }

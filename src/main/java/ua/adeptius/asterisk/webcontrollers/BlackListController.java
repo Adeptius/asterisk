@@ -2,8 +2,10 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.Message;
@@ -21,6 +23,13 @@ import java.util.regex.Pattern;
 public class BlackListController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(BlackListController.class.getSimpleName());
+
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     @PostMapping("/add")
     public Object addToBlackList(String ip, String siteName, HttpServletRequest request) {
@@ -51,7 +60,7 @@ public class BlackListController {
 
 
 
-            HibernateDao.update(user); //  Оптимизация: это затратно по ресурсам ---------------------------------------
+            hibernateController.update(user); //  Оптимизация: это затратно по ресурсам ---------------------------------------
 
 
 
@@ -84,7 +93,7 @@ public class BlackListController {
 
         try {
             LOGGER.debug("{}: сайт {} удаление IP {} из черного списка", user.getLogin(), site, ip);
-            HibernateDao.update(user);
+            hibernateController.update(user);
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления IP " + ip + " из черного списка", e);
             return new Message(Message.Status.Error, "Internal error");

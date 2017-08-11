@@ -7,8 +7,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonRoistatForController;
@@ -25,6 +27,12 @@ public class RoistatController {
 
     private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(RoistatController.class.getSimpleName());
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     @PostMapping("/get")
     public Object get(HttpServletRequest request) {
@@ -70,7 +78,7 @@ public class RoistatController {
         user.setRoistatAccount(roistatAccount);
 
         try {
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Roistat account setted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка изменения Roistat аккаунта: ", e);
@@ -122,7 +130,7 @@ public class RoistatController {
 
         try {
             user.setRoistatAccount(null);
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Roistat account removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления Roistat аккаунта.", e);

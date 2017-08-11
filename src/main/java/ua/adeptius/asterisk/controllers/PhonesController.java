@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.dao.PhonesDao;
 import ua.adeptius.asterisk.dao.SipConfigDao;
@@ -17,7 +18,12 @@ import java.util.stream.Collectors;
 public class PhonesController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PhonesController.class.getSimpleName());
+    private static HibernateController hibernateController;
 
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     public static List<InnerPhone> createMoreSipNumbers(int number, String user) throws Exception {
         LOGGER.debug("Создание дополнительно {} sip номеров", number);
@@ -27,7 +33,7 @@ public class PhonesController {
         for (int i = 0; i < number; i++) {
             String newSipNumber = ++max + "";
             SipConfig sipConfig = new SipConfig(newSipNumber);
-            createdNumbers.add(HibernateDao.saveSipBySipConfig(sipConfig, user));
+            createdNumbers.add(hibernateController.saveSipBySipConfig(sipConfig, user));
             SipConfigDao.writeToFile(sipConfig);
         }
         return createdNumbers;

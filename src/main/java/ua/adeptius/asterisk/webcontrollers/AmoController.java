@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.amocrm.AmoDAO;
@@ -14,6 +15,7 @@ import ua.adeptius.amocrm.exceptions.AmoCantCreateDealException;
 import ua.adeptius.amocrm.exceptions.AmoUnknownException;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonAmoForController;
@@ -37,6 +39,12 @@ public class AmoController {
     private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(AmoController.class.getSimpleName());
     private static ObjectMapper mapper = new ObjectMapper();
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
 
     @PostMapping("/get")
@@ -83,7 +91,7 @@ public class AmoController {
         user.setAmoAccount(amoAccount);
 
         try {
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Amo account setted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка изменения амо аккаунта: ", e);
@@ -141,7 +149,7 @@ public class AmoController {
         user.setAmoAccount(null);
 
         try {
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Amo account removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
@@ -250,7 +258,7 @@ public class AmoController {
             user.setAmoOperatorLocations(location);
 
 
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Bindings saved");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок " + newBindings, e);

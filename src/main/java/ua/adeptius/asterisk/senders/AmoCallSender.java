@@ -4,6 +4,7 @@ package ua.adeptius.asterisk.senders;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
@@ -12,6 +13,7 @@ import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.*;
 
@@ -26,6 +28,12 @@ public class AmoCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoCallSender.class.getSimpleName());
     private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     public void send(Call call) {
         try {
@@ -92,7 +100,7 @@ public class AmoCallSender extends Thread {
                 //получили айдишники телефонов. Теперь сохраняем в бд
                 amoAccount.setPhoneId(phoneId);
                 amoAccount.setPhoneEnumId(phoneEnumId);
-                HibernateDao.update(user);
+                hibernateController.update(user);
             } catch (AmoWrongLoginOrApiKeyExeption e) {
                 LOGGER.debug("{}: Не правильный логин или пароль к AMO аккаунту {}", login, amoAccount);
             } catch (Exception e) {

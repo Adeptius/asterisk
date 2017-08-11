@@ -3,8 +3,10 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.Message;
 
@@ -20,12 +22,18 @@ public class ScenarioController {
 //    private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
 //
+private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     private static List<String> melodies;
     private static long melodiesTimeCache;
 
     private static void loadMelodies() throws Exception {
-        melodies = HibernateDao.getMelodies();
+        melodies = hibernateController.getMelodies();
         melodiesTimeCache = new Date().getTime();
     }
 

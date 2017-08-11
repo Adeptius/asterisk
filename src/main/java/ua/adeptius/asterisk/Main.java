@@ -4,15 +4,20 @@ package ua.adeptius.asterisk;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.model.Scenario;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.telephony.DestinationType;
 import ua.adeptius.asterisk.telephony.ForwardType;
@@ -28,8 +33,17 @@ public class Main {
     private static boolean startedOnWindows;
 
 
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
+
     @AfterSpringLoadComplete
     public void init() {
+        System.out.println("----------------------------------------"+hibernateController);
+
         Settings.load(this.getClass());
         checkIfNeedRestartAndSetVariables();
     }
@@ -98,7 +112,7 @@ public class Main {
 //        Загрузка обьектов
         try {
             LOGGER.info("Hibernate: Загрузка всех пользователей");
-            UserContainer.setUsers(HibernateDao.getAllUsers());
+            UserContainer.setUsers(hibernateController.getAllUsers());
             LOGGER.info("Hibernate: Загружено {} пользователей", UserContainer.getUsers().size());
         }catch (Exception e){
             LOGGER.error("Hibernate: Ошибка загрузки пользователей", e);

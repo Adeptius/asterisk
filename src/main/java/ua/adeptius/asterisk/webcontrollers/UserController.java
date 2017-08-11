@@ -5,8 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
@@ -31,6 +33,12 @@ public class UserController {
             "]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x" +
             "01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])");
 
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     @PostMapping("/add") // дата регистрации пользователя и дата последнего посещения или как-то так
     public Object addUser(@RequestBody JsonUser jsonUser) {
@@ -67,7 +75,7 @@ public class UserController {
             newUser.setPassword(jsonUser.getPassword());
             newUser.setEmail(email);
             newUser.setTrackingId(jsonUser.getTrackingId());
-            HibernateDao.saveUser(newUser);
+            hibernateController.saveUser(newUser);
             UserContainer.putUser(newUser);
             return new Message(Message.Status.Success, "User created");
         } catch (Exception e) {
@@ -101,7 +109,7 @@ public class UserController {
         user.setTrackingId(setUser.getTrackingId());
 
         try {
-            HibernateDao.update(user);
+            hibernateController.update(user);
             UserContainer.recalculateHashesForUser(oldHash, user);
             return new Message(Message.Status.Success, "User changed");
         } catch (Exception e) {
@@ -141,7 +149,7 @@ public class UserController {
 
         try {
             WebController.clearCache();
-            HibernateDao.delete(user);
+            hibernateController.delete(user);
             UserContainer.removeUser(user);
             UserContainer.getHashes().remove(hash);
             PhonesController.removeAllInnerNumbersConfigFiles(user);

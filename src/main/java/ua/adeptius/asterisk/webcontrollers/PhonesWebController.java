@@ -3,8 +3,10 @@ package ua.adeptius.asterisk.webcontrollers;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.HibernateDao;
@@ -31,6 +33,12 @@ public class PhonesWebController {
 
     private boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(PhonesWebController.class.getSimpleName());
+    private static HibernateController hibernateController;
+
+    @Autowired
+    public void setHibernateController(HibernateController controller) {
+        hibernateController = controller;
+    }
 
     @PostMapping("/getSiteOuter")
     public Object getBlackList(HttpServletRequest request, @RequestParam String siteName) {
@@ -99,7 +107,7 @@ public class PhonesWebController {
                 int needMoreCount = neededOuterNumberCount - currentOuterNumberCount;
                 LOGGER.debug("{}: Нужно дополнительно {} внешних номеров.", login, needMoreCount);
 
-                List<OuterPhone> freeOuterPhones = HibernateDao.getAllFreeOuterPhones(); // вот список свободных
+                List<OuterPhone> freeOuterPhones = hibernateController.getAllFreeOuterPhones(); // вот список свободных
                 int weHaveNumbers = freeOuterPhones.size();//вот сколько их есть
                 LOGGER.debug("{}: В наличии есть {} внешних номеров.", login, weHaveNumbers);
 
@@ -157,7 +165,7 @@ public class PhonesWebController {
                 LOGGER.debug("{}: Количество внутренних номеров не меняется", login);
             }
 
-            HibernateDao.update(user);
+            hibernateController.update(user);
             return new Message(Message.Status.Success, "Number count set");
         } catch (Exception e) {
             LOGGER.error(login + ": ошибка изменения количества номеров телефонии: " + jsonPhoneCount, e);
@@ -166,7 +174,7 @@ public class PhonesWebController {
             if (safeMode)
                 try {
 //                    CallProcessor.updatePhonesHashMap();
-                    user = HibernateDao.getUserByLogin(user.getLogin());
+                    user = hibernateController.getUserByLogin(user.getLogin());
                 } catch (Exception e) {
                     LOGGER.error(user.getLogin() + ": ошибка синхронизации после изменения количества номеров", e);
                 }
