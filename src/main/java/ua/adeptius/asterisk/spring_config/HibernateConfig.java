@@ -17,8 +17,8 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
-@EnableTransactionManagement
-@PropertySource({ "classpath:newhibernate.properties" })
+//@EnableTransactionManagement
+@PropertySource({ "classpath:config.properties" })
 public class HibernateConfig {
 
     @Value("${jdbc.driverClassName}")
@@ -67,10 +67,10 @@ public class HibernateConfig {
         return properties;
     }
 
-    @Bean
-    public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
-        HibernateTransactionManager txManager = new HibernateTransactionManager();
-        txManager.setSessionFactory(sessionFactory);
-        return txManager;
-    }
+//    @Bean
+//    public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
+//        HibernateTransactionManager txManager = new HibernateTransactionManager();
+//        txManager.setSessionFactory(sessionFactory);
+//        return txManager;
+//    }
 }

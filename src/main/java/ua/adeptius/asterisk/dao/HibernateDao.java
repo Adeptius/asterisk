@@ -24,16 +24,13 @@ public class HibernateDao {
 
     private static Logger LOGGER = LoggerFactory.getLogger(HibernateDao.class.getSimpleName());
 
-//    public static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
-    private static Object allOuterPhones;
+//    private static SessionFactory sessionFactory = HibernateSessionFactory.getSessionFactory();
 
-    public static SessionFactory sessionFactory;
-
-//    private SessionFactory sessionFactory;
+    private static SessionFactory sessionFactory;
 
     @Autowired
     public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
+        HibernateDao.sessionFactory = sessionFactory;
     }
 
     /**
@@ -475,5 +472,13 @@ public class HibernateDao {
 
         session.getTransaction().commit();
         session.close();
+    }
+
+    public List<Rule> getAllRules(){
+        LOGGER.info("Запрос всех правил");
+        Session session = sessionFactory.openSession();
+        List<Rule> rules = session.createQuery("FROM Rule ").list();
+        session.close();
+        return rules;
     }
 }

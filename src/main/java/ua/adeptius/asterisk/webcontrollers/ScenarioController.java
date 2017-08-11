@@ -21,19 +21,12 @@ public class ScenarioController {
 
 //    private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
-//
-private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     private static List<String> melodies;
     private static long melodiesTimeCache;
 
     private static void loadMelodies() throws Exception {
-        melodies = hibernateController.getMelodies();
+        melodies = HibernateController.getMelodies();
         melodiesTimeCache = new Date().getTime();
     }
 

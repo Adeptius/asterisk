@@ -66,6 +66,31 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<AmoOperatorLocation> amoOperatorLocations;
 
+//    @JsonProperty
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "login", referencedColumnName = "login")
+    private Set<Rule> rules;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "login", referencedColumnName = "login")
+    private Set<Scenario> scenarios;
+
+    public Set<Scenario> getScenarios() {
+        return scenarios;
+    }
+
+    public void setScenarios(Set<Scenario> scenarios) {
+        this.scenarios = scenarios;
+    }
+
+    public Set<Rule> getRules() {
+        return rules;
+    }
+
+    public void setRules(Set<Rule> rules) {
+        this.rules = rules;
+    }
+
     @JsonProperty
     @Transient
     public AmoAccount getAmoAccount() {

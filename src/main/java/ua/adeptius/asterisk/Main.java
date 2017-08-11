@@ -4,11 +4,8 @@ package ua.adeptius.asterisk;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,34 +13,19 @@ import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
-import ua.adeptius.asterisk.model.Scenario;
-import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.*;
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
-
-import java.util.Arrays;
 
 
-@Component
-@EnableScheduling
+//@Component
+//@EnableScheduling
 public class Main {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
     private static boolean startedOnWindows;
-
-
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
+    public static AsteriskMonitor monitor;
 
     @AfterSpringLoadComplete
     public void init() {
-        System.out.println("----------------------------------------"+hibernateController);
-
         Settings.load(this.getClass());
         checkIfNeedRestartAndSetVariables();
     }
@@ -55,15 +37,15 @@ public class Main {
 
         if (itsLinux){ // это линукс
             LOGGER.info("OS Linux");
-            Settings.setSetting("forwardingRulesFolder","/var/www/html/admin/modules/core/etc/clients/");
-            Settings.setSetting("sipConfigsFolder","/etc/asterisk/sip_clients/");
+            Settings.setSetting("folder.rules","/var/www/html/admin/modules/core/etc/clients/");
+            Settings.setSetting("folder.sips","/etc/asterisk/sip_clients/");
             Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","cstat.nextel.com.ua:8443");
 
         }else { // Это винда
             LOGGER.info("OS Windows");
             startedOnWindows = true;
-            Settings.setSetting("forwardingRulesFolder","D:\\home\\adeptius\\tomcat\\rules\\");
-            Settings.setSetting("sipConfigsFolder","D:\\home\\adeptius\\tomcat\\sips\\");
+            Settings.setSetting("folder.rules","D:\\home\\adeptius\\tomcat\\rules\\");
+            Settings.setSetting("folder.sips","D:\\home\\adeptius\\tomcat\\sips\\");
             Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","adeptius.pp.ua:8443");
         }
 
@@ -112,7 +94,7 @@ public class Main {
 //        Загрузка обьектов
         try {
             LOGGER.info("Hibernate: Загрузка всех пользователей");
-            UserContainer.setUsers(hibernateController.getAllUsers());
+            UserContainer.setUsers(HibernateController.getAllUsers());
             LOGGER.info("Hibernate: Загружено {} пользователей", UserContainer.getUsers().size());
         }catch (Exception e){
             LOGGER.error("Hibernate: Ошибка загрузки пользователей", e);
@@ -156,19 +138,7 @@ public class Main {
         }
     }
 
-    public static AsteriskMonitor monitor;
 
-    @Scheduled(fixedDelay = 20000)
-    private void initMonitor() {
-        if (monitor == null) {
-            try {
-                monitor = new AsteriskMonitor();
-                monitor.run();
-                LOGGER.info("Монитор астериска запущен");
-            } catch (Exception e) {
-                LOGGER.error("Ошибка запуска мониторинга телефонии: ", e);
-                monitor = null;
-            }
-        }
-    }
+
+
 }

@@ -27,12 +27,7 @@ public class RoistatController {
 
     private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(RoistatController.class.getSimpleName());
-    private static HibernateController hibernateController;
 
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     @PostMapping("/get")
     public Object get(HttpServletRequest request) {
@@ -78,7 +73,7 @@ public class RoistatController {
         user.setRoistatAccount(roistatAccount);
 
         try {
-            hibernateController.update(user);
+            HibernateController.update(user);
             return new Message(Message.Status.Success, "Roistat account setted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка изменения Roistat аккаунта: ", e);
@@ -130,7 +125,7 @@ public class RoistatController {
 
         try {
             user.setRoistatAccount(null);
-            hibernateController.update(user);
+            HibernateController.update(user);
             return new Message(Message.Status.Success, "Roistat account removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления Roistat аккаунта.", e);

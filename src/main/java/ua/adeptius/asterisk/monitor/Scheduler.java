@@ -22,19 +22,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static ua.adeptius.asterisk.Main.monitor;
+
 
 @Component
-@EnableScheduling
+//@EnableScheduling
 public class Scheduler{
 
     private static Logger LOGGER = LoggerFactory.getLogger(Scheduler.class.getSimpleName());
-
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     /**
      * ConnectionKeeper
@@ -42,7 +37,7 @@ public class Scheduler{
     @Scheduled(fixedDelay = 60000) // Каждую минуту
     public void keepConnectHibernate(){
         try {
-            hibernateController.getUserByLogin("e404");
+            HibernateController.getUserByLogin("e404");
         } catch (Exception e) {
             LOGGER.error("Не удалось получить тестового пользователя", e);
         }
@@ -148,5 +143,19 @@ public class Scheduler{
     @Scheduled(cron = "0 00 * * * ?") // в 0 минут каждого часа
     private void updatePhonesMapForCallProcessor(){
         CallProcessor.updatePhonesHashMap();
+    }
+
+    @Scheduled(fixedDelay = 20000)
+    private void initMonitor() {
+        if (monitor == null) {
+            try {
+                monitor = new AsteriskMonitor();
+                monitor.run();
+                LOGGER.info("Монитор астериска запущен");
+            } catch (Exception e) {
+                LOGGER.error("Ошибка запуска мониторинга телефонии: ", e);
+                monitor = null;
+            }
+        }
     }
 }

@@ -16,20 +16,13 @@ public class PhonesDao {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PhonesDao.class.getSimpleName());
 
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
-
     public static int getMaxSipNumber() throws Exception {
-        return hibernateController.getSipMaxNumber();
+        return HibernateController.getSipMaxNumber();
     }
 
     public static HashMap<String, String> getBusyOuterPhones() throws Exception {
         LOGGER.trace("Запрос занятых внешних номеров из БД");
-        List<OuterPhone> allBusyOuterPhones = hibernateController.getAllBusyOuterPhones();
+        List<OuterPhone> allBusyOuterPhones = HibernateController.getAllBusyOuterPhones();
         HashMap<String, String> phones = new HashMap<>();
         for (OuterPhone outerPhone : allBusyOuterPhones) {
             phones.put(outerPhone.getNumber(), outerPhone.getBusy());
@@ -39,7 +32,7 @@ public class PhonesDao {
 
     @Deprecated // внутренние номера всегда заняты. И Не работает
     public static HashMap<String, String> getBusyInnerPhones() throws Exception {
-        List<InnerPhone> allInnerPhones = hibernateController.getAllInnerPhones();
+        List<InnerPhone> allInnerPhones = HibernateController.getAllInnerPhones();
         HashMap<String, String> map = new HashMap<>();
         for (InnerPhone phone : allInnerPhones) {
             map.put(phone.getNumber(), phone.getBusy());
@@ -48,7 +41,7 @@ public class PhonesDao {
     }
 
     public static ArrayList<String> getFreeOuterPhones() throws Exception {
-        List<OuterPhone> allFreeOuterPhones = hibernateController.getAllFreeOuterPhones();
+        List<OuterPhone> allFreeOuterPhones = HibernateController.getAllFreeOuterPhones();
         ArrayList<String> list = new ArrayList<>();
         for (OuterPhone phone : allFreeOuterPhones) {
             list.add(phone.getNumber());

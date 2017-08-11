@@ -33,12 +33,6 @@ public class UserController {
             "]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x" +
             "01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])");
 
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     @PostMapping("/add") // дата регистрации пользователя и дата последнего посещения или как-то так
     public Object addUser(@RequestBody JsonUser jsonUser) {
@@ -75,7 +69,7 @@ public class UserController {
             newUser.setPassword(jsonUser.getPassword());
             newUser.setEmail(email);
             newUser.setTrackingId(jsonUser.getTrackingId());
-            hibernateController.saveUser(newUser);
+            HibernateController.saveUser(newUser);
             UserContainer.putUser(newUser);
             return new Message(Message.Status.Success, "User created");
         } catch (Exception e) {
@@ -109,7 +103,7 @@ public class UserController {
         user.setTrackingId(setUser.getTrackingId());
 
         try {
-            hibernateController.update(user);
+            HibernateController.update(user);
             UserContainer.recalculateHashesForUser(oldHash, user);
             return new Message(Message.Status.Success, "User changed");
         } catch (Exception e) {
@@ -149,7 +143,7 @@ public class UserController {
 
         try {
             WebController.clearCache();
-            hibernateController.delete(user);
+            HibernateController.delete(user);
             UserContainer.removeUser(user);
             UserContainer.getHashes().remove(hash);
             PhonesController.removeAllInnerNumbersConfigFiles(user);

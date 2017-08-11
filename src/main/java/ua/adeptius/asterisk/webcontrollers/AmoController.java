@@ -39,12 +39,6 @@ public class AmoController {
     private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(AmoController.class.getSimpleName());
     private static ObjectMapper mapper = new ObjectMapper();
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
 
     @PostMapping("/get")
@@ -91,7 +85,7 @@ public class AmoController {
         user.setAmoAccount(amoAccount);
 
         try {
-            hibernateController.update(user);
+            HibernateController.update(user);
             return new Message(Message.Status.Success, "Amo account setted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка изменения амо аккаунта: ", e);
@@ -149,7 +143,7 @@ public class AmoController {
         user.setAmoAccount(null);
 
         try {
-            hibernateController.update(user);
+            HibernateController.update(user);
             return new Message(Message.Status.Success, "Amo account removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
@@ -258,7 +252,7 @@ public class AmoController {
             user.setAmoOperatorLocations(location);
 
 
-            hibernateController.update(user);
+            HibernateController.update(user);
             return new Message(Message.Status.Success, "Bindings saved");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок " + newBindings, e);

@@ -4,7 +4,7 @@ package ua.adeptius.asterisk.dao;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.model.Scenario;
+import ua.adeptius.asterisk.model.Rule;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,7 +18,7 @@ public class RulesConfigDAO {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RulesConfigDAO.class.getSimpleName());
 
-    private static String folder = Settings.getSetting("forwardingRulesFolder");
+    private static String folder = Settings.getSetting("folder.rules");
 
 
     public static void writeAllNeededScenarios() {
@@ -104,11 +104,11 @@ public class RulesConfigDAO {
     }
 
 
-    public static void writeToFile(Scenario scenario) throws IOException {
-        LOGGER.trace("{}: запись сценария в файл", scenario.getLogin());
-        String filename = scenario.getLogin() + "-" + scenario.getId() + ".conf";
+    public static void writeToFile(Rule rule) throws IOException {
+        LOGGER.trace("{}: запись сценария в файл", rule.getLogin());
+        String filename = rule.getLogin() + "-" + rule.getId() + ".conf";
         BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename));
-        writer.write(scenario.getConfig());
+        writer.write(rule.getConfig());
         writer.close();
     }
 

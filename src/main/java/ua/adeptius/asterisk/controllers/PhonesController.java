@@ -14,16 +14,10 @@ import ua.adeptius.asterisk.telephony.SipConfig;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("Duplicates")
+
 public class PhonesController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(PhonesController.class.getSimpleName());
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     public static List<InnerPhone> createMoreSipNumbers(int number, String user) throws Exception {
         LOGGER.debug("Создание дополнительно {} sip номеров", number);
@@ -33,7 +27,7 @@ public class PhonesController {
         for (int i = 0; i < number; i++) {
             String newSipNumber = ++max + "";
             SipConfig sipConfig = new SipConfig(newSipNumber);
-            createdNumbers.add(hibernateController.saveSipBySipConfig(sipConfig, user));
+            createdNumbers.add(HibernateController.saveSipBySipConfig(sipConfig, user));
             SipConfigDao.writeToFile(sipConfig);
         }
         return createdNumbers;

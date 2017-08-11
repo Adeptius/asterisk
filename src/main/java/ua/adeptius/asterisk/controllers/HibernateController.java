@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.controllers;
 
 
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -17,40 +19,46 @@ public class HibernateController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(HibernateController.class.getSimpleName());
 
-    @Autowired
-    private HibernateDao hibernateDao;
+    private static HibernateDao hibernateDao;
 
+    @Autowired
+    public void setHibernateDao(HibernateDao hibernateDao) {
+        HibernateController.hibernateDao = hibernateDao;
+    }
+
+
+    public static int operationsCount;
+    public static List<Long> time = new ArrayList<>();
 
     /**
      * User
      */
 
-//    @Transactional
-    public List<User> getAllUsers() throws Exception {
+    public static List<User> getAllUsers() throws Exception {
         return hibernateDao.getAllUsers();
     }
 
-//    @Transactional
-    public void saveUser(User user) throws Exception {
+    public static void saveUser(User user) throws Exception {
         hibernateDao.saveUser(user);
     }
 
-//    @Transactional
-    public void update(User user) {
+
+    public static void update(User user) {
+
         hibernateDao.update(user);
     }
 
-//    @Transactional
-    public User getUserByLogin(String login) throws Exception {
+    public static User getUserByLogin(String login) throws Exception {
+        operationsCount++;
         long t0 = System.nanoTime();
         User userByLogin = hibernateDao.getUserByLogin(login);
-        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-t0));
+        time.add(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-t0));
+
         return userByLogin;
     }
 
 
-//    @Transactional
-    public void delete(User user) {
+    public static void delete(User user) {
         hibernateDao.delete(user);
     }
 
@@ -58,8 +66,7 @@ public class HibernateController {
      * Melodies
      */
 
-//    @Transactional
-    public List<String> getMelodies() {
+    public static List<String> getMelodies() {
         return hibernateDao.getMelodies();
     }
 
@@ -67,8 +74,7 @@ public class HibernateController {
      * AmoCRM
      */
     // Для тестов
-//    @Transactional
-    public AmoAccount getAmoAccountByUser(String nextelLogin) {
+    public static AmoAccount getAmoAccountByUser(String nextelLogin) {
         return hibernateDao.getAmoAccountByUser(nextelLogin);
     }
 
@@ -76,8 +82,7 @@ public class HibernateController {
      * Roistat
      */
     // Для тестов
-//    @Transactional
-    public RoistatAccount getRoistatAccountByUser(String nextelLogin) {
+    public static RoistatAccount getRoistatAccountByUser(String nextelLogin) {
         return hibernateDao.getRoistatAccountByUser(nextelLogin);
     }
 
@@ -85,26 +90,22 @@ public class HibernateController {
      * Inner phones
      */
 
-//    @Transactional
-    public List<InnerPhone> getAllInnerPhones() throws Exception {
+    public static List<InnerPhone> getAllInnerPhones() throws Exception {
         return hibernateDao.getAllInnerPhones();
     }
 
     @Deprecated
-//    @Transactional
-    public List<InnerPhone> getAllInnerUserPhones(String user) throws Exception {
+    public static List<InnerPhone> getAllInnerUserPhones(String user) throws Exception {
         return hibernateDao.getAllInnerUserPhones(user);
     }
 
     @Deprecated
-//    @Transactional
-    public InnerPhone saveSipBySipConfig(SipConfig sipConfig, String user) throws Exception {
+    public static InnerPhone saveSipBySipConfig(SipConfig sipConfig, String user) throws Exception {
         return hibernateDao.saveSipBySipConfig(sipConfig, user);
     }
 
 
-//    @Transactional
-    public int getSipMaxNumber() throws Exception {
+    public static int getSipMaxNumber() throws Exception {
         return hibernateDao.getSipMaxNumber();
     }
 
@@ -113,49 +114,43 @@ public class HibernateController {
      * Outer Phones
      */
 
-//    @Transactional
-    public List<OuterPhone> getAllFreeOuterPhones() throws Exception {
+    public static List<OuterPhone> getAllFreeOuterPhones() throws Exception {
         return getAllFreeOuterPhones();
     }
 
     @Deprecated
-//    @Transactional
-    public List<OuterPhone> getAllBusyOuterPhones() throws Exception {
+    public static List<OuterPhone> getAllBusyOuterPhones() throws Exception {
         return hibernateDao.getAllBusyOuterPhones();
     }
 
 
-//    @Transactional
-    public void markOuterPhoneBusy(String user, List<String> numbers) throws Exception {
+    public static void markOuterPhoneBusy(String user, List<String> numbers) throws Exception {
         hibernateDao.markOuterPhoneBusy(user, numbers);
     }
 
-//    @Transactional
-    public void markOuterPhoneFree(List<String> numbersToRelease) throws Exception {
+    public static void markOuterPhoneFree(List<String> numbersToRelease) throws Exception {
         hibernateDao.markOuterPhoneFree(numbersToRelease);
     }
 
 
     // Используется в тестах
-//    @Transactional
-    public List<OuterPhone> getAllTestPhones() throws Exception {
+    public static List<OuterPhone> getAllTestPhones() throws Exception {
         return hibernateDao.getAllTestPhones();
     }
 
-//    @Transactional
-    public void removeAllTestPhones() throws Exception {
+    public static void removeAllTestPhones() throws Exception {
         hibernateDao.removeAllTestPhones();
     }
 
-//    @Transactional
-    public void createTestPhonesForUser(String user, String siteName) throws Exception {
+    public static void createTestPhonesForUser(String user, String siteName) throws Exception {
         hibernateDao.createTestPhonesForUser(user, siteName);
     }
 
-//    @Transactional
-    public void delete(Object o) {
+    public static void delete(Object o) {
         hibernateDao.delete(o);
     }
 
-
+    public static List<Rule> getAllRules(){
+       return hibernateDao.getAllRules();
+    }
 }

@@ -22,9 +22,9 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                Settings.getSetting("asteriskAdress"),
-                Settings.getSetting("asteriskLogin"),
-                Settings.getSetting("asteriskPassword"));
+                Settings.getSetting("asterisk.url"),
+                Settings.getSetting("asterisk.login"),
+                Settings.getSetting("asterisk.password"));
         this.managerConnection = factory.createManagerConnection();
     }
 

@@ -17,18 +17,19 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
 
 public class HibernateDaoTest {
 
     private static Logger LOGGER = LoggerFactory.getLogger("-=TESTING=-");
 
-    private static HibernateController hibernateController;
+//    private static HibernateController HibernateController;
 
     @BeforeClass
     public static void preparingDb() throws Exception {
         ApplicationContext context = new AnnotationConfigApplicationContext("ua.adeptius");
-        hibernateController = context.getBean(HibernateController.class);
-        User user = hibernateController.getUserByLogin("hibernate");
+//        HibernateController = context.getBean(HibernateController.class);
+        User user = HibernateController.getUserByLogin("hibernate");
     }
 
     private static void createTestUser() throws Exception {
@@ -37,7 +38,7 @@ public class HibernateDaoTest {
         user.setEmail("hibernate@mail.com");
         user.setPassword("password");
         user.setTrackingId("hibernateId");
-        hibernateController.saveUser(user);
+        HibernateController.saveUser(user);
     }
 
     private static void addSiteToUser(User user) {
@@ -47,31 +48,31 @@ public class HibernateDaoTest {
         site.setStandardNumber("5551112");
         site.setUser(user);
         user.getSites().add(site);
-        hibernateController.update(user);
+        HibernateController.update(user);
     }
 
     @Before
     public void prepareUser() throws Exception {
         LOGGER.info("Подготавливаем тестового пользователя для нового теста");
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         if (user == null) {
             createTestUser();
-            user = hibernateController.getUserByLogin("hibernate");
+            user = HibernateController.getUserByLogin("hibernate");
         }
         assertNotNull("User is null!", user);
 
         if (user.getSiteByName("hiber") == null) {
             addSiteToUser(user);
         }
-        user = hibernateController.getUserByLogin("hibernate");
+        user = HibernateController.getUserByLogin("hibernate");
         assertTrue(user.getSiteByName("hiber") != null);
 
-        hibernateController.removeAllTestPhones();
-        List<OuterPhone> allTestPhones = hibernateController.getAllTestPhones();
+        HibernateController.removeAllTestPhones();
+        List<OuterPhone> allTestPhones = HibernateController.getAllTestPhones();
         assertEquals(0, allTestPhones.size());
 
-        hibernateController.createTestPhonesForUser("hibernate", "hiber");
-        user = hibernateController.getUserByLogin("hibernate");
+        HibernateController.createTestPhonesForUser("hibernate", "hiber");
+        user = HibernateController.getUserByLogin("hibernate");
         Site hiberSite = user.getSiteByName("hiber");
         assertEquals(3, user.getOuterPhones().size());
         assertEquals(2, hiberSite.getOuterPhones().size());
@@ -80,7 +81,7 @@ public class HibernateDaoTest {
 
         user.setRoistatAccount(null);
         user.setAmoAccount(null);
-        hibernateController.update(user);
+        HibernateController.update(user);
 
 
 
@@ -92,12 +93,12 @@ public class HibernateDaoTest {
      */
     @Test
     public void testDeleteSite() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         Site site = user.getSiteByName("hiber");
         user.removeSite(site);
-        hibernateController.update(user);
+        HibernateController.update(user);
 
-        user = hibernateController.getUserByLogin("hibernate");
+        user = HibernateController.getUserByLogin("hibernate");
         Set<OuterPhone> outerPhones = user.getOuterPhones();
         assertEquals("Внешние номера не должны удалятся", 3, outerPhones.size());
         for (OuterPhone outerPhone : outerPhones) {
@@ -110,11 +111,11 @@ public class HibernateDaoTest {
      */
     @Test
     public void testRemoveUser() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
-        hibernateController.delete(user);
-        user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
+        HibernateController.delete(user);
+        user = HibernateController.getUserByLogin("hibernate");
         assertNull("Пользователь не удалился", user);
-        List<OuterPhone> testPhones = hibernateController.getAllTestPhones();
+        List<OuterPhone> testPhones = HibernateController.getAllTestPhones();
         assertEquals("Внешние номера удалились при удалении пользователя", 3, testPhones.size());
         for (OuterPhone phone : testPhones) {
             assertNull(phone.getSitename());
@@ -124,13 +125,13 @@ public class HibernateDaoTest {
 
     @Test
     public void testUsersProperties() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         user.setPassword("newPass");
         user.setTrackingId("newTrackId");
         user.setEmail("newMail");
-        hibernateController.update(user);
+        HibernateController.update(user);
 
-        user = hibernateController.getUserByLogin("hibernate");
+        user = HibernateController.getUserByLogin("hibernate");
         assertEquals("Пароль пользователя не сохраняется", "newPass", user.getPassword());
         assertEquals("Tracking id пользователя не сохраняется", "newTrackId", user.getTrackingId());
         assertEquals("Email пользователя не сохраняется", "newMail", user.getEmail());
@@ -138,7 +139,7 @@ public class HibernateDaoTest {
 
     @Test
     public void amoAccountTest() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         assertNull(user.getAmoAccount());
 
         AmoAccount amoAccount = new AmoAccount();
@@ -148,9 +149,9 @@ public class HibernateDaoTest {
         amoAccount.setApiKey("apiKey");
         amoAccount.setPhoneId("phoneId");
         user.setAmoAccount(amoAccount);
-        hibernateController.update(user);
+        HibernateController.update(user);
 
-        user = hibernateController.getUserByLogin("hibernate");
+        user = HibernateController.getUserByLogin("hibernate");
         amoAccount = user.getAmoAccount();
         assertNotNull("Амо аккаунт не сохраняется", amoAccount);
         assertEquals("amoLogin", amoAccount.getAmoLogin());
@@ -160,41 +161,41 @@ public class HibernateDaoTest {
         assertEquals("phoneId", amoAccount.getPhoneId());
 
         user.setAmoAccount(null);
-        hibernateController.update(user);
+        HibernateController.update(user);
 
-        amoAccount = hibernateController.getAmoAccountByUser("hibernate");
+        amoAccount = HibernateController.getAmoAccountByUser("hibernate");
         assertNull(amoAccount);
     }
 
 
     @Test
     public void roistatAccountTest() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         assertNull(user.getRoistatAccount());
 
         RoistatAccount roistatAccount = new RoistatAccount();
         roistatAccount.setApiKey("apiKey");
         roistatAccount.setProjectNumber("projectNumber");
         user.setRoistatAccount(roistatAccount);
-        hibernateController.update(user);
+        HibernateController.update(user);
 
-        user = hibernateController.getUserByLogin("hibernate");
+        user = HibernateController.getUserByLogin("hibernate");
         roistatAccount = user.getRoistatAccount();
         assertNotNull("Roistat аккаунт не сохраняется", roistatAccount);
         assertEquals("apiKey", roistatAccount.getApiKey());
         assertEquals("projectNumber", roistatAccount.getProjectNumber());
 
         user.setRoistatAccount(null);
-        hibernateController.update(user);
+        HibernateController.update(user);
 
-        roistatAccount = hibernateController.getRoistatAccountByUser("hibernate");
+        roistatAccount = HibernateController.getRoistatAccountByUser("hibernate");
         assertNull(roistatAccount);
     }
 
 
     @Test
     public void siteTest() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         assertEquals(1,user.getSites().size());
 
         Site site = user.getSiteByName("hiber");
@@ -202,35 +203,75 @@ public class HibernateDaoTest {
 
         site.addIpToBlackList("78.159.55.63");
 
-        hibernateController.update(user);
-        user = hibernateController.getUserByLogin("hibernate");
+        HibernateController.update(user);
+        user = HibernateController.getUserByLogin("hibernate");
         site = user.getSiteByName("hiber");
         assertEquals(1, site.getBlackList().size());
+        
+
+    }
+
+    @Test
+    public void rulesAndScenariosTest() throws Exception {
+        User user = HibernateController.getUserByLogin("hibernate");
+//        List<Rule> allRules = HibernateController.getAllRules();
+//        allRules.forEach(System.out::println);
+
+        addNewRule(user, "hiberScenario", "hiberRule");
+
+        HibernateController.update(user);
 
 
+        Set<Rule> rules = user.getRules();
+        rules.forEach(System.out::println);
 
+        Set<Scenario> scenarios = user.getScenarios();
+        scenarios.forEach(System.out::println);
 
     }
 
 
+    private void addNewRule(User user, String scenario, String name){
+        Rule rule = new Rule();
+        rule.setName(name);
+        rule.setDays(new boolean[]{true,true,true,true,true,true,true});
+        rule.setDestinationType(SIP);
+        rule.setStartHour(0);
+        rule.setEndHour(24);
+        rule.setScenario(scenario);
+        rule.setUser(user);
+        user.getRules().add(rule);
+    }
+
+
+
+
     @AfterClass
     public static void cleaningDb() throws Exception {
-        User user = hibernateController.getUserByLogin("hibernate");
+        User user = HibernateController.getUserByLogin("hibernate");
         if (user != null){
-            hibernateController.delete(user);
+            HibernateController.delete(user);
         }
 
-        AmoAccount amoAccount = hibernateController.getAmoAccountByUser("hibernate");
+        AmoAccount amoAccount = HibernateController.getAmoAccountByUser("hibernate");
         if (amoAccount != null){
-            hibernateController.delete(amoAccount);
+            HibernateController.delete(amoAccount);
         }
 
-        RoistatAccount roistatAccount = hibernateController.getRoistatAccountByUser("hibernate");
+        RoistatAccount roistatAccount = HibernateController.getRoistatAccountByUser("hibernate");
         if (roistatAccount != null) {
-            hibernateController.delete(roistatAccount);
+            HibernateController.delete(roistatAccount);
         }
 
-        hibernateController.removeAllTestPhones();
+        HibernateController.removeAllTestPhones();
 
+        List<Long> time = HibernateController.time;
+        long summary = 0;
+        for (Long aLong : time) {
+            summary+=aLong;
+        }
+        summary = summary / time.size();
+
+        System.out.println("Operation count: " + HibernateController.operationsCount + " AVG time: " + summary);
     }
 }

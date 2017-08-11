@@ -3,8 +3,6 @@ package ua.adeptius.asterisk.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.telephony.SipConfig;
@@ -17,19 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-@Component
+
 public class SipConfigDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(SipConfigDao.class.getSimpleName());
 
-    private static String folder = Settings.getSetting("sipConfigsFolder");
+    private static String folder = Settings.getSetting("folder.sips");
 
-    private static HibernateController hibernateController;
-
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     public static void writeToFile(SipConfig sipConfig) throws Exception {
         LOGGER.trace("Запись SIP конфига в файл {}", sipConfig.getNumber());
@@ -41,7 +33,7 @@ public class SipConfigDao {
 
     public static void synchronizeSipFilesAndInnerDb() throws Exception{
         LOGGER.debug("Синхронизация SIP конфигов с БД");
-        List<InnerPhone> allInnerPhones = hibernateController.getAllInnerPhones();
+        List<InnerPhone> allInnerPhones = HibernateController.getAllInnerPhones();
         HashMap<String, String> dbSips = new HashMap<>();
         for (InnerPhone phone : allInnerPhones) {
             dbSips.put(phone.getNumber(), phone.getPass());

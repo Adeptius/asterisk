@@ -22,7 +22,6 @@ public class AdminController {
 
     public static final String ADMIN_PASS = "csadmx84";
     private static Logger LOGGER = LoggerFactory.getLogger(AdminController.class.getSimpleName());
-    private static ObjectMapper mapper = new ObjectMapper();
 
 
     @PostMapping(value = "/getAllUsers")
@@ -45,15 +44,6 @@ public class AdminController {
         }
         return hashMap;
     }
-
-
-//    @PostMapping(value = "/getsetting", produces = "text/html; charset=UTF-8")
-//    public String getSetting(@RequestParam String name, @RequestParam String adminPassword) {
-//        if (isAdminPasswordWrong(adminPassword)) {
-//            return "Wrong password";
-//        }
-//        return Settings.getSetting(name);
-//    }
 
     @PostMapping("/getAllSettings")
     public Object getSetting(@RequestParam String adminPassword) {

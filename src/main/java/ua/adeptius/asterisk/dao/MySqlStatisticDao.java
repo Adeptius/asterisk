@@ -27,7 +27,7 @@ public class MySqlStatisticDao {
         String password = Settings.getSetting("dbPassword");
         statisticDataSource = new ComboPooledDataSource();
         statisticDataSource.setDriverClass("com.mysql.jdbc.Driver");
-        statisticDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("dbAdress") + "statisticdb");
+        statisticDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("dbAdress"));
         statisticDataSource.setUser(login);
         statisticDataSource.setPassword(password);
         statisticDataSource.setMinPoolSize(1);

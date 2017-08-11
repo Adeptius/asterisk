@@ -23,17 +23,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
 import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
 
-@SuppressWarnings("Duplicates")
+
 public class AmoCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoCallSender.class.getSimpleName());
     private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
-    private static HibernateController hibernateController;
 
-    @Autowired
-    public void setHibernateController(HibernateController controller) {
-        hibernateController = controller;
-    }
 
     public void send(Call call) {
         try {
@@ -100,7 +95,7 @@ public class AmoCallSender extends Thread {
                 //получили айдишники телефонов. Теперь сохраняем в бд
                 amoAccount.setPhoneId(phoneId);
                 amoAccount.setPhoneEnumId(phoneEnumId);
-                hibernateController.update(user);
+                HibernateController.update(user);
             } catch (AmoWrongLoginOrApiKeyExeption e) {
                 LOGGER.debug("{}: Не правильный логин или пароль к AMO аккаунту {}", login, amoAccount);
             } catch (Exception e) {
