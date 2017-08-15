@@ -4,12 +4,10 @@ package ua.adeptius.asterisk.webcontrollers;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonSite;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
@@ -22,9 +20,9 @@ import java.util.Set;
 @Controller
 @ResponseBody
 @RequestMapping(value = "/sites", produces = "application/json; charset=UTF-8")
-public class SiteController {
+public class SiteWebController {
     //    private static boolean safeMode = true;
-    private static Logger LOGGER =  LoggerFactory.getLogger(SiteController.class.getSimpleName());
+    private static Logger LOGGER =  LoggerFactory.getLogger(SiteWebController.class.getSimpleName());
     private boolean safeMode = true;
 
 

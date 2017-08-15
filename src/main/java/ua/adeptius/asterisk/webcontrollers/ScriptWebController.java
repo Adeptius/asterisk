@@ -8,12 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
@@ -22,9 +20,9 @@ import static ua.adeptius.asterisk.json.Message.Status.Error;
 @Controller
 @RequestMapping("/script")
 @ResponseBody
-public class ScriptController {
+public class ScriptWebController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(ScriptController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(ScriptWebController.class.getSimpleName());
 
     @PostMapping(value = "/get", produces = "application/json; charset=UTF-8")
     public Object getScript(HttpServletRequest request, @RequestParam String siteName) {

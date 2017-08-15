@@ -1,27 +1,13 @@
 package ua.adeptius.asterisk.json;
 
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
-
-import java.util.Arrays;
 import java.util.List;
 
 public class JsonScenario {
 
-    public JsonScenario() {
-    }
-
     private int id;
     private String name;
-    private List<String> fromNumbers;
-    private List<String> toNumbers;
-    private ForwardType forwardType;
-    private DestinationType destinationType;
-    private int awaitingTime;
-    private String melody;
-    private Integer startHour;
-    private Integer endHour;
-    private boolean[] days;
+    private List<JsonRule> rules;
+
 
     public int getId() {
         return id;
@@ -39,92 +25,11 @@ public class JsonScenario {
         this.name = name;
     }
 
-    public ForwardType getForwardType() {
-        return forwardType;
+    public List<JsonRule> getRules() {
+        return rules;
     }
 
-    public void setForwardType(ForwardType forwardType) {
-        this.forwardType = forwardType;
-    }
-
-    public DestinationType getDestinationType() {
-        return destinationType;
-    }
-
-    public void setDestinationType(DestinationType destinationType) {
-        this.destinationType = destinationType;
-    }
-
-    public int getAwaitingTime() {
-        return awaitingTime;
-    }
-
-    public void setAwaitingTime(int awaitingTime) {
-        this.awaitingTime = awaitingTime;
-    }
-
-    public String getMelody() {
-        return melody;
-    }
-
-    public void setMelody(String melody) {
-        this.melody = melody;
-    }
-
-    public Integer getStartHour() {
-        return startHour;
-    }
-
-    public void setStartHour(int startHour) {
-        this.startHour = startHour;
-    }
-
-    public Integer getEndHour() {
-        return endHour;
-    }
-
-    public void setEndHour(int endHour) {
-        this.endHour = endHour;
-    }
-
-    public List<String> getFromNumbers() {
-        return fromNumbers;
-    }
-
-    public void setFromNumbers(List<String> fromNumbers) {
-        this.fromNumbers = fromNumbers;
-    }
-
-    public List<String> getToNumbers() {
-        return toNumbers;
-    }
-
-    public void setToNumbers(List<String> toNumbers) {
-        this.toNumbers = toNumbers;
-    }
-
-    public boolean[] getDays() {
-        return days;
-    }
-
-    public void setDays(boolean[] days) {
-        this.days = days;
-    }
-
-    @Override
-    public String toString() {
-        return "JsonScenario{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", fromNumbers=" + fromNumbers +
-                ", toNumbers=" + toNumbers +
-                ", forwardType=" + forwardType +
-                ", destinationType=" + destinationType +
-                ", awaitingTime=" + awaitingTime +
-                ", melody='" + melody + '\'' +
-                ", startHour=" + startHour +
-                ", endHour=" + endHour +
-                ", days=" + Arrays.toString(days) +
-                '}';
+    public void setRules(List<JsonRule> rules) {
+        this.rules = rules;
     }
 }

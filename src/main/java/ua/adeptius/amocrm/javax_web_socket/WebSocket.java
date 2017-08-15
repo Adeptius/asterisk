@@ -7,6 +7,7 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -105,7 +106,7 @@ public class WebSocket {
             }
             LOGGER.debug("{}: пользователь {} использует click2call для звонка на {}", amoDomain, userId, callTo);
             try {
-                callTo = cleanAndValidatePhoneNumber(callTo);
+                callTo = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(callTo);
             } catch (IllegalArgumentException e) {
                 sendMessage(userId, new WsMessage(wrongToNumber, callTo));
                 return;
@@ -129,21 +130,5 @@ public class WebSocket {
     }
 
 
-    public static String cleanAndValidatePhoneNumber(String number) throws IllegalArgumentException {
-        if (number == null) {
-            throw new IllegalArgumentException();
-        }
-        number = number.replaceAll("\\D+", "");
 
-        if (number.startsWith("380")) {
-            number = number.substring(2);
-        } else if (number.startsWith("80")) {
-            number = number.substring(1);
-        }
-        System.out.println("result filtering: " + number);
-        if (number.length() == 10 && number.startsWith("0")) {
-            return number;
-        }
-        throw new IllegalArgumentException();
-    }
 }

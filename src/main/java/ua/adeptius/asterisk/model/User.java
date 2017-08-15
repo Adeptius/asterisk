@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -66,7 +68,7 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<AmoOperatorLocation> amoOperatorLocations;
 
-//    @JsonProperty
+    //    @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Rule> rules;
@@ -74,7 +76,6 @@ public class User {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Scenario> scenarios;
-
 
 
     @JsonProperty
@@ -126,7 +127,7 @@ public class User {
     /**
      * Sites
      */
-    public void removeSite(Site site){
+    public void removeSite(Site site) {
         site.releaseAllPhones();
         getSites().remove(site);
     }
@@ -158,8 +159,8 @@ public class User {
     @Transient
     private HashMap<String, OuterPhone> outerPhonesCache;
 
-    public OuterPhone getOuterPhoneByNumber(String number){
-        if (outerPhonesCache == null){ // если кэш пуст - наполняем его
+    public OuterPhone getOuterPhoneByNumber(String number) {
+        if (outerPhonesCache == null) { // если кэш пуст - наполняем его
             outerPhonesCache = new HashMap<>();
             outerPhones.forEach(phone -> outerPhonesCache.put(phone.getNumber(), phone));
         }
@@ -195,8 +196,8 @@ public class User {
     @Transient
     private HashMap<String, InnerPhone> innerPhonesCache;
 
-    public InnerPhone getInnerPhoneByNumber(String number){
-        if (innerPhonesCache == null){ // если кэш пуст - наполняем его
+    public InnerPhone getInnerPhoneByNumber(String number) {
+        if (innerPhonesCache == null) { // если кэш пуст - наполняем его
             innerPhonesCache = new HashMap<>();
             innerPhones.forEach(phone -> innerPhonesCache.put(phone.getNumber(), phone));
         }
@@ -262,17 +263,30 @@ public class User {
         return Collections.unmodifiableSet(scenarios);
     }
 
-    public void addScenario(Scenario scenario){
+    public Scenario getScenarioById(int id) {
+        return scenarios.stream()
+                .filter(scenario -> id == scenario.getId())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Scenario getScenarioByName(String name) {
+        return scenarios.stream()
+                .filter(scenario -> name.equals(scenario.getName()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void addScenario(Scenario scenario) {
         scenario.setUser(this);
         scenarios.add(scenario);
     }
 
-    public void removeScenario(Scenario scenario){
+    public void removeScenario(Scenario scenario) {
         List<Rule> rulesInScenario = scenario.getRules();
         rulesInScenario.forEach(this::removeRule);
         scenarios.remove(scenario);
     }
-
 
 
     /**
@@ -283,11 +297,11 @@ public class User {
         return Collections.unmodifiableSet(rules);
     }
 
-    void saveInUsersRules(Rule rule){ // это должго быть в scenario
+    void saveInUsersRules(Rule rule) { // это должго быть в scenario
         rules.add(rule);
     }
 
-    void removeRule(Rule rule){
+    void removeRule(Rule rule) {
         rules.remove(rule);
     }
 
@@ -452,22 +466,16 @@ public class User {
 //        return allOuterPhones.stream().anyMatch(s -> s.equals(number));
 //    }
 //
-//    public boolean isThatUsersInnerNumber(@Nonnull List<String> numbers) {
-//        for (String number : numbers) {
-//            if (isThatUsersInnerNumber(number)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//
-//    public boolean isThatUsersInnerNumber(@Nonnull String number) {
-//        if (getTelephony() != null) {
-//            return getTelephony().getInnerPhonesList().stream().anyMatch(s -> s.equals(number));
-//        } else {
-//            return false;
-//        }
-//    }
-//
-//
+    public boolean isThatAllUsersSipNumbers(@Nonnull List<String> numbers) {
+        for (String number : numbers) {
+            if (!isThatUserSipNumber(number)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isThatUserSipNumber(@Nonnull String number) {
+        return getInnerPhoneByNumber(number) != null;
+    }
 }

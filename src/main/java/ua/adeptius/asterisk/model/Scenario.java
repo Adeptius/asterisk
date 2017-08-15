@@ -18,6 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class Scenario {
 
+    @JsonProperty
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
     @GenericGenerator(name = "increment", strategy = "increment")

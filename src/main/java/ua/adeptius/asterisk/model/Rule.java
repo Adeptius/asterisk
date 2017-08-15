@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.exceptions.JsonParseException;
+import ua.adeptius.asterisk.json.JsonRule;
 import ua.adeptius.asterisk.telephony.DestinationType;
 import ua.adeptius.asterisk.telephony.ForwardType;
 
@@ -27,6 +29,79 @@ public class Rule {
 
     public Rule() {
     }
+
+
+    // Конвертор из json обьекта в POJO в ScenarioWebController
+    public Rule(JsonRule jsonRule) throws JsonParseException{
+        String jName = jsonRule.getName();
+        if (jName == null){
+            throw new JsonParseException("Rule name not set");
+        }
+        this.name = jName;
+
+        List<String> jToNumbers = jsonRule.getToList();
+        try {
+            setToList(jToNumbers);
+        }catch (Exception e){
+            throw new JsonParseException(name + ": wrong ToList: " + jToNumbers);
+        }
+
+        String jForwardType = jsonRule.getForwardType();
+        try{
+            forwardType = ForwardType.valueOf(jForwardType);
+        }catch (Exception e){
+            throw new JsonParseException(name + ": wrong forward type: " + jForwardType);
+        }
+
+        String jDestinationType = jsonRule.getDestinationType();
+        try{
+            destinationType = DestinationType.valueOf(jDestinationType);
+        }catch (Exception e){
+            throw new JsonParseException(name + ": wrong destination type: " + jDestinationType);
+        }
+
+        String jType = jsonRule.getType();
+        try{
+            type = RuleType.valueOf(jType);
+        }catch (Exception e){
+            throw new JsonParseException(name + ": wrong rule type: " + jType);
+        }
+
+        Integer jAwaitingTime = jsonRule.getAwaitingTime();
+        if (jAwaitingTime == null){
+            throw new JsonParseException(name + ": awaiting time not set: " + jAwaitingTime);
+        }
+        this.awaitingTime = jAwaitingTime;
+
+
+        String jMelody = jsonRule.getMelody();
+        if (jMelody == null) {
+            throw new JsonParseException(name + ": melody not set: " + jMelody);
+        }
+        this.melody = jMelody;
+
+        Integer jStartHour = jsonRule.getStartHour();
+        if (jStartHour == null) {
+            throw new JsonParseException(name + ": start hour not set: " + jStartHour);
+        }
+        this.startHour = jStartHour;
+
+        Integer jEndHour = jsonRule.getEndHour();
+        if (jEndHour == null) {
+            throw new JsonParseException(name + ": end hour not set: " + jEndHour);
+        }
+        this.endHour = jEndHour;
+
+
+        boolean[] jDays = jsonRule.getDays();
+        if (jDays == null || jDays.length != 7) {
+            throw new JsonParseException(name + ": wrong days");
+        }
+        setDays(jDays);
+
+    }
+
+
 
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
@@ -58,9 +133,9 @@ public class Rule {
     private DestinationType destinationType;
 
     @JsonProperty
-    @Column(name = "status")
+    @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    private ScenarioStatus status;
+    private RuleType type;
 
     @JsonProperty
     @Column(name = "awaitingTime")
@@ -272,8 +347,8 @@ public class Rule {
         return source;
     }
 
-    public boolean isThisScenarioCompatibleWith(Rule another) {
-        LOGGER.debug("Проверка совместимости сценария \n{}\nсо сценарием\n{}", this, another);
+    public boolean isThisRuleCompatibleWith(Rule another) {
+        LOGGER.debug("Проверка совместимости правила \n{}\nс правилом\n{}", this, another);
 
         boolean[] thisFirstDays = this.getDays();
         boolean[] anotherDays = another.getDays();
@@ -303,27 +378,27 @@ public class Rule {
 
         // Первый содержит второго или полное совпадение
         if (thisStartTime <= anotherStartTime && thisEndTime >= anotherEndTime) {
-            LOGGER.debug("Сценарий \n{}\nсодержит диапазон сценария\n{}", this, another);
+            LOGGER.debug("Правило \n{}\nсодержит диапазон правила\n{}", this, another);
             return false;
         }
 
         // Второй содержит первого
         if (thisStartTime >= anotherStartTime && thisEndTime <= anotherEndTime) {
-            LOGGER.debug("Сценарий \n{}\nсодержит диапазон сценария\n{}", another, this);
+            LOGGER.debug("Правило \n{}\nсодержит диапазон правила\n{}", another, this);
             System.out.println("Второй содержит первого или полное совпадение");
             return false;
         }
 
         // Первый начинается во время второго
         if (thisStartTime >= anotherStartTime && thisStartTime < anotherEndTime) {// первый может кончится в тоже время когда заканчивается второй
-            LOGGER.debug("Диапазон сценария \n{}\nначинается во время сценария\n{}", this, another);
+            LOGGER.debug("Диапазон правила \n{}\nначинается во время правила\n{}", this, another);
             System.out.println("Первый начинается во время второго");
             return false;
         }
 
         // Второй начинается во время первого
         if (anotherStartTime >= thisStartTime && anotherStartTime < thisEndTime) { // второй может кончится в тоже время когда начинается первый
-            LOGGER.debug("Диапазон сценария \n{}\nначинается во время сценария\n{}", another, this);
+            LOGGER.debug("Диапазон правила \n{}\nначинается во время правила\n{}", another, this);
             System.out.println("Второй начинается во время первого");
             return false;
         }
@@ -392,12 +467,12 @@ public class Rule {
         return user;
     }
 
-    public ScenarioStatus getStatus() {
-        return status;
+    public RuleType getType() {
+        return type;
     }
 
-    public void setStatus(ScenarioStatus status) {
-        this.status = status;
+    public void setType(RuleType type) {
+        this.type = type;
     }
 
     public void setUser(User user) {
@@ -416,7 +491,7 @@ public class Rule {
                 ", toNumbers='" + toNumbers + '\'' +
                 ", forwardType=" + forwardType +
                 ", destinationType=" + destinationType +
-                ", status=" + status +
+//                ", status=" + status +
                 ", awaitingTime=" + awaitingTime +
                 ", melody='" + melody + '\'' +
                 ", startHour=" + startHour +

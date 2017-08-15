@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping(value = "/history", produces = "application/json; charset=UTF-8")
 @ResponseBody
-public class HistoryController {
+public class HistoryWebController {
 
     //TODO offset, count
-    private static Logger LOGGER =  LoggerFactory.getLogger(HistoryController.class.getSimpleName());
+    private static Logger LOGGER =  LoggerFactory.getLogger(HistoryWebController.class.getSimpleName());
 
     @PostMapping("/get")
     public Object getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {

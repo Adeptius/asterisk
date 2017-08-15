@@ -1,6 +1,5 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -18,10 +17,10 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping(value = "/admin", produces = "application/json; charset=UTF-8")
 @ResponseBody
-public class AdminController {
+public class AdminWebController {
 
     public static final String ADMIN_PASS = "csadmx84";
-    private static Logger LOGGER = LoggerFactory.getLogger(AdminController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(AdminWebController.class.getSimpleName());
 
 
     @PostMapping(value = "/getAllUsers")

@@ -7,12 +7,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonRoistatForController;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.RoistatAccount;
@@ -23,10 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 @ResponseBody
 @RequestMapping(value = "/roistat", produces = "application/json; charset=UTF-8")
-public class RoistatController {
+public class RoistatWebController {
 
     private static boolean safeMode = true;
-    private static Logger LOGGER = LoggerFactory.getLogger(RoistatController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(RoistatWebController.class.getSimpleName());
 
 
     @PostMapping("/get")

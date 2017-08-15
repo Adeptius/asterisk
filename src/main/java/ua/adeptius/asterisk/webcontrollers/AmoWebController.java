@@ -6,18 +6,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.amocrm.AmoDAO;
-import ua.adeptius.amocrm.exceptions.AmoAccountNotFoundException;
-import ua.adeptius.amocrm.exceptions.AmoCantCreateDealException;
-import ua.adeptius.amocrm.exceptions.AmoUnknownException;
-import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyExeption;
+import ua.adeptius.amocrm.exceptions.*;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.*;
@@ -34,10 +29,10 @@ import static ua.adeptius.asterisk.json.Message.Status.Error;
 @Controller
 @RequestMapping(value = "/amo", produces = "application/json; charset=UTF-8")
 @ResponseBody
-public class AmoController {
+public class AmoWebController {
 
     private static boolean safeMode = true;
-    private static Logger LOGGER = LoggerFactory.getLogger(AmoController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(AmoWebController.class.getSimpleName());
     private static ObjectMapper mapper = new ObjectMapper();
 
 
@@ -117,6 +112,8 @@ public class AmoController {
             return new Message(Error, "Wrong login or api key");
         } catch (AmoCantCreateDealException e) {
             return new Message(Error, "User have not enough rights for create contacts and deals");
+        } catch (AmoAccountNotPaidException e) {
+            return new Message(Error, "User have not paid account");
         } catch (UnirestException e) {
             LOGGER.error("Ошибка соединения или парсинга для проверки аккаунта амо. Аккаунт Nextel " + user.getLogin(), e);
             return new Message(Error, "Internal error.");

@@ -330,6 +330,8 @@ public class AmoDAO {
                 throw new AmoWrongLoginOrApiKeyExeption();
             } else if (errorCode == 244) {
                 throw new AmoCantCreateDealException();
+            } else if (errorCode == 402) {
+                throw new AmoAccountNotPaidException();
             }
 
             LOGGER.error("Добавить обработку кода ошибки авторизации " + errorCode);

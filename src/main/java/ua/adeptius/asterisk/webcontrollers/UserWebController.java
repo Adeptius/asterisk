@@ -2,16 +2,13 @@ package ua.adeptius.asterisk.webcontrollers;
 
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonUser;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
@@ -23,9 +20,9 @@ import java.util.regex.Pattern;
 @Controller
 @ResponseBody
 @RequestMapping(value = "/user", produces = "application/json; charset=UTF-8")
-public class UserController {
+public class UserWebController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(UserController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(UserWebController.class.getSimpleName());
 
     private static Pattern emailRegex = Pattern.compile("(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|" +
             "}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x" +
@@ -63,7 +60,7 @@ public class UserController {
         }
 
         try {
-            WebController.clearCache();
+            RootWebController.clearCache();
             User newUser = new User();
             newUser.setLogin(login);
             newUser.setPassword(jsonUser.getPassword());
@@ -142,7 +139,7 @@ public class UserController {
         }
 
         try {
-            WebController.clearCache();
+            RootWebController.clearCache();
             HibernateController.delete(user);
             UserContainer.removeUser(user);
             UserContainer.getHashes().remove(hash);

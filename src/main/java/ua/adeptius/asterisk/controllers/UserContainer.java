@@ -3,14 +3,10 @@ package ua.adeptius.asterisk.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.model.Telephony;
-import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.webcontrollers.AdminController;
 
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class UserContainer {
 

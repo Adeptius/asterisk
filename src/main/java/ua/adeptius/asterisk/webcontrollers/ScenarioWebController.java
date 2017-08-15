@@ -3,27 +3,43 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
+import ua.adeptius.asterisk.exceptions.JsonParseException;
+import ua.adeptius.asterisk.json.JsonRule;
+import ua.adeptius.asterisk.json.JsonScenario;
 import ua.adeptius.asterisk.json.Message;
+import ua.adeptius.asterisk.model.Rule;
+import ua.adeptius.asterisk.model.RuleType;
+import ua.adeptius.asterisk.model.Scenario;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.telephony.DestinationType;
+import ua.adeptius.asterisk.telephony.ForwardType;
+import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Deprecated
+import static ua.adeptius.asterisk.json.Message.Status.Error;
+import static ua.adeptius.asterisk.json.Message.Status.Success;
+import static ua.adeptius.asterisk.model.RuleType.NORMAL;
+import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
+import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
+import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
+
 @Controller
 @RequestMapping(value = "/scenario", produces = "application/json; charset=UTF-8")
 @ResponseBody
-public class ScenarioController {
+public class ScenarioWebController {
 
 //    private static boolean safeMode = true;
-    private static Logger LOGGER = LoggerFactory.getLogger(ScenarioController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(ScenarioWebController.class.getSimpleName());
 
     private static List<String> melodies;
     private static long melodiesTimeCache;
@@ -33,25 +49,28 @@ public class ScenarioController {
         melodiesTimeCache = new Date().getTime();
     }
 
+    private List<String> getMelodiesFromCache() throws Exception {
+        if (melodies == null) {
+            loadMelodies();
+        }
+
+        long currentTime = new Date().getTime();
+        long past = currentTime - melodiesTimeCache;
+        long updateEvery = 3600000; // обновление каждый час
+
+        if (past > updateEvery) {
+            loadMelodies();
+        }
+        return melodies;
+    }
+
     @PostMapping("/getMelodies")
     public Object getHistory() {
         try {
-            if (melodies == null) {
-                loadMelodies();
-            }
-
-            long currentTime = new Date().getTime();
-            long past = currentTime - melodiesTimeCache;
-            long updateEvery = 3600000; // обновление каждый час
-
-            if (past > updateEvery) {
-                loadMelodies();
-            }
-
-            return melodies;
+            return getMelodiesFromCache();
         } catch (Exception e) {
             LOGGER.error("Ошибка получения списка мелодий", e);
-            return new Message(Message.Status.Error, "Internal error").toString();
+            return new Message(Error, "Internal error").toString();
         }
     }
 
@@ -60,9 +79,192 @@ public class ScenarioController {
     public Object getAllScenarios(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid").toString();
         }
         return user.getScenarios();
+    }
+
+    @PostMapping("/get")
+    public Object getScenarioById(Integer id, HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid").toString();
+        }
+
+        if (id == null){
+            return new Message(Error, "Id is null");
+        }
+
+        Scenario scenario = user.getScenarioById(id);
+        if (scenario == null) {
+            return new Message(Error, "No such scenario");
+        }
+        return scenario;
+    }
+
+    @PostMapping("/remove")
+    public Object removeScenario(HttpServletRequest request, Integer id) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid").toString();
+        }
+
+        if (id == null){
+            return new Message(Error, "Id is null");
+        }
+
+        Scenario scenario = user.getScenarioById(id);
+        if (scenario == null) {
+            return new Message(Error, "No such scenario");
+        }
+
+        user.removeScenario(scenario);
+        try {
+            HibernateController.update(user);
+            return new Message(Success, "Scenario deleted");
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin()+": ошибка удаления сценария c id " + id, e);
+            return new Message(Success, "Internal error");
+        }
+    }
+
+
+    @PostMapping("/set")
+    public Object setScenario(@RequestBody JsonScenario jsonScenario, HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid").toString();
+        }
+
+        // создаём обьект Scenario из json запроса
+        Scenario inScenario = new Scenario();
+        String jName = jsonScenario.getName();
+        inScenario.setName(jName);
+        inScenario.setId(jsonScenario.getId());
+
+        List<JsonRule> jRules = jsonScenario.getRules();
+        List<Rule> rules = new ArrayList<>();
+        for (JsonRule jRule : jRules) {
+            try {
+                rules.add(new Rule(jRule));
+            } catch (JsonParseException e) {
+                return new Message(Error, "Parsing error. " + e.getMessage());
+            }
+        }
+
+        // создали inScenario и rules. теперь валидация
+
+        int defaultRulesCount = 0;
+        for (Rule rule : rules) {
+            String name = rule.getName();
+
+            if (rule.getType() == RuleType.DEFAULT){
+                defaultRulesCount++;
+                rule.setStartHour(0);
+                rule.setEndHour(24);
+                rule.setDays(new boolean[]{true,true,true,true,true,true,true});
+            }
+
+            // валидация номеров телефонов
+            DestinationType destinationType = rule.getDestinationType();
+            List<String> toList = rule.getToList();
+            if (destinationType == SIP){
+                for (String sipNumber : toList) {
+                    if (!user.isThatUserSipNumber(sipNumber)){
+                        return new Message(Error, name + ": Number '" + sipNumber + "' is not SIP");
+                    }
+                }
+            }else if (destinationType == GSM){
+                for (int i = 0; i < toList.size(); i++) {
+                    String gsmNumber = toList.get(i);
+                    try {
+                        toList.set(i, MyStringUtils.cleanAndValidateUkrainianPhoneNumber(gsmNumber));
+                    } catch (IllegalArgumentException e) {
+                        return new Message(Error, name + ": Number '" + gsmNumber + "' is not Ukrainian");
+                    }
+                }
+                rule.setToList(toList);
+            }
+
+            ForwardType forwardType = rule.getForwardType();
+            if (forwardType == TO_ALL){
+                rule.setAwaitingTime(600);
+            }else if (forwardType == QUEUE){
+                if (rule.getAwaitingTime() < 1){
+                    return new Message(Error, name + ": Awaiting time must be higher than 0");
+                }
+            }
+
+
+            try {
+                List<String> melodiesFromCache = getMelodiesFromCache();
+                String melody = rule.getMelody();
+                if (!melodiesFromCache.contains(melody)){
+                    return new Message(Error, name + ": Melody '" + melody + "' does not exist");
+                }
+            } catch (Exception e) {
+                LOGGER.error("Ошибка загрузки мелодий из кэша");
+                return new Message(Error, "Internal error");
+            }
+
+            int startHour = rule.getStartHour();
+            if (startHour < 0 || startHour > 23){
+                return new Message(Error, name + ": Wrong start hour");
+            }
+
+            int endHour = rule.getEndHour();
+            if (endHour < 1 || endHour > 24){
+                return new Message(Error, name + ": Wrong end hour");
+            }
+
+            if (startHour == endHour || startHour > endHour){
+                return new Message(Error, name + ": Wrong time range. From " + startHour + " to " + endHour);
+            }
+        }
+        if (defaultRulesCount != 1){
+            return new Message(Error, "Scenario must contains one default rule.");
+        }
+
+//        данные валидированы. Теперь ищем конфликты.
+        List<Rule> normalRules = rules.stream().filter(rule -> rule.getType() == NORMAL).collect(Collectors.toList());
+        // Сравниваем всё со всеми
+        for (Rule first : normalRules) {
+            for (Rule second : normalRules) {
+                if (first.equals(second)){ // если сравниваемое правило сравнивается с ним же.
+                    continue;
+                }
+                if(!first.isThisRuleCompatibleWith(second)){
+                    return new Message(Error, "Rule '" + first.getName() + "' has time conflict with '" + second.getName() + "'");
+                }
+            }
+        }
+
+
+        // валидация завершена. Сохраняем всё.
+
+        int inScenarioId = inScenario.getId();
+        Scenario presentScenario = user.getScenarioById(inScenarioId);
+
+
+        //todo добавить проверку на случай, если по новому айди вставят сценарий с существующим в базе названием.
+//        ищем cценарий с тем же id
+//        Scenario scenarioByName = user.getScenarioByName(jName);
+//        if (scenarioByName != null && scenarioByName.getId() != inScenarioId){
+//            return new Message(Error, "Scenario '" + jName + "' already present");
+//        }
+
+        if (presentScenario != null) {
+            user.removeScenario(presentScenario);
+        }
+
+        user.addScenario(inScenario);
+        for (Rule rule : rules) {
+            inScenario.addRule(rule);
+        }
+
+        // как только сохраняется сценарий - проверить на каких номерах он активирован и поменять имя в телефонах, если оно изменилось.
+        HibernateController.update(user);
+        return new Message(Success, "Scenario setted");
     }
 
 

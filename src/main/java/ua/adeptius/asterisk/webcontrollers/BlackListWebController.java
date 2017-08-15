@@ -2,12 +2,10 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
@@ -20,9 +18,9 @@ import java.util.regex.Pattern;
 @Controller
 @RequestMapping(value = "/blacklist", produces = "application/json; charset=UTF-8")
 @ResponseBody
-public class BlackListController {
+public class BlackListWebController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(BlackListController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(BlackListWebController.class.getSimpleName());
 
 
     @PostMapping("/add")

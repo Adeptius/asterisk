@@ -42,4 +42,22 @@ public class MyStringUtils {
         }
         return true;
     }
+
+    public static String cleanAndValidateUkrainianPhoneNumber(String number) throws IllegalArgumentException {
+        if (number == null) {
+            throw new IllegalArgumentException();
+        }
+        number = number.replaceAll("\\D+", "");
+
+        if (number.startsWith("380")) {
+            number = number.substring(2);
+        } else if (number.startsWith("80")) {
+            number = number.substring(1);
+        }
+        System.out.println("result filtering: " + number);
+        if (number.length() == 10 && number.startsWith("0")) {
+            return number;
+        }
+        throw new IllegalArgumentException();
+    }
 }

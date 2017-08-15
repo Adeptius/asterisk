@@ -3,25 +3,21 @@ package ua.adeptius.asterisk.webcontrollers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.model.User;
 
 import java.util.HashMap;
-import java.util.Set;
 
 
 @Controller
-public class WebController {
+public class RootWebController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(WebController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(RootWebController.class.getSimpleName());
 
     private static HashMap<String, User> usersCache = new HashMap<>();
 
