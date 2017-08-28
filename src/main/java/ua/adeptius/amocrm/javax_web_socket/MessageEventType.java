@@ -5,6 +5,7 @@ public enum MessageEventType {
     click2call,
     wrongMessage,
     incomingCall,
+    outgoingCall,
     copySession,
     wrongToNumber
 

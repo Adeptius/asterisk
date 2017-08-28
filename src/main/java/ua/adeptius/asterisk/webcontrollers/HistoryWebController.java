@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.json.JsonHistoryQuery;
+import ua.adeptius.asterisk.json.JsonHistoryResponse;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.Call;
@@ -37,9 +38,21 @@ public class HistoryWebController {
             return new Message(Message.Status.Error, "Authorization invalid");
         }
 
+        String login = user.getLogin();
+
         String dateFrom = query.getDateFrom();
         String dateTo = query.getDateTo();
         String direction = query.getDirection();
+        int limit = query.getLimit();
+        int offset = query.getOffset();
+
+        if ( 1 > limit || limit > 300){
+            return new Message(Message.Status.Error, "Limit range is 1-300");
+        }
+
+        if (offset < 0){
+            return new Message(Message.Status.Error, "Offset is less than 0");
+        }
 
         if (!direction.equals("IN") && !direction.equals("OUT")) {
             return new Message(Message.Status.Error, "Wrong direction");
@@ -53,11 +66,18 @@ public class HistoryWebController {
             return new Message(Message.Status.Error, "Wrong TO date");
         }
 
-        String login = user.getLogin();
         try {
+
+        // если offset 0 то с ответом передаём количество записей с помощью второго запроса
+            int count = -1;
+            if (offset == 0){
+                count = MySqlStatisticDao.getCountStatisticOfRange(login, dateFrom, dateTo, direction);
+            }
+
             LOGGER.debug("{}: запрос истории c {} по {}, направление {}", login, dateFrom, dateTo, direction);
-            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction);
-            return calls;
+            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction, limit, offset);
+
+            return new JsonHistoryResponse(limit,offset, calls, count);
         } catch (Exception e) {
             LOGGER.error(login +": ошибка запроса истории c "+dateFrom+" по "+dateTo+", направление "+direction, e);
             return new Message(Message.Status.Error, "Internal error");

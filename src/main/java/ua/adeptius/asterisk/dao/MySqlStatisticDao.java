@@ -57,13 +57,37 @@ public class MySqlStatisticDao {
         throw new Exception("Ошибка при загрузке таблиц статистики с БД");
     }
 
-    public static List<Call> getStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
+
+    public static int getCountStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
+        LOGGER.trace("{}: запрос количества строк статистики с {} по {} направление {}", user,startDate, endDate, direction);
+        String sql = "SELECT COUNT(*) FROM " + user +
+                " WHERE direction = '" + direction +
+                "' AND calledDate BETWEEN STR_TO_DATE('" + startDate +
+                "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
+                "', '%Y-%m-%d %H:%i:%s')";
+        try (Connection connection = getStatisticConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery(sql);
+            int count = 0;
+            while (set.next()) {
+                count = set.getInt("COUNT(*)");
+            }
+            return count;
+        } catch (Exception e) {
+            LOGGER.error(user+": ошибка получения количества строк истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
+        }
+        throw new Exception("Ошибка при загрузке количества статистики с БД");
+    }
+
+
+    public static List<Call> getStatisticOfRange(String user, String startDate, String endDate, String direction,
+                                                 int limit, int offset) throws Exception {
         LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
         String sql = "SELECT * FROM " + user +
                 " WHERE direction = '" + direction +
                 "' AND calledDate BETWEEN STR_TO_DATE('" + startDate +
                 "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
-                "', '%Y-%m-%d %H:%i:%s')";
+                "', '%Y-%m-%d %H:%i:%s')  LIMIT "+limit+" OFFSET "+offset;
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);

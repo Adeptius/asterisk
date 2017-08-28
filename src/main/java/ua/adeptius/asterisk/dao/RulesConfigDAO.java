@@ -4,15 +4,19 @@ package ua.adeptius.asterisk.dao;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.Rule;
+import ua.adeptius.asterisk.model.Scenario;
+import ua.adeptius.asterisk.test.HelloAgiScript;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RulesConfigDAO {
 
@@ -21,22 +25,43 @@ public class RulesConfigDAO {
     private static String folder = Settings.getSetting("folder.rules");
 
 
-    public static void writeAllNeededScenarios() {
+    public static void writeAllNeededScenarios() throws Exception {
         LOGGER.info("Подготовка сценариев на следующий час");
-//        List<Scenario> scenarios = UserContainer.getUsers().stream().flatMap(user -> user.getScenarios().stream())
-//                .filter(scenario -> scenario.getStatus() == ScenarioStatus.ACTIVATED)
-//                .collect(Collectors.toList());
-        try {
-            RulesConfigDAO.clearRulesFolder();
-        } catch (IOException e) {
-            LOGGER.error("Ошибка очистки папки сценариев", e);
+
+        // Список телефонов, на которых вообще назначены какие либо сценарии.
+        List<OuterPhone> outerPhonesWithScenario = UserContainer.getUsers().stream()
+                .flatMap(user -> user.getOuterPhones().stream())
+                .filter(phone -> phone.getScenarioId() != null)
+                .collect(Collectors.toList());
+
+        // Сюда будем ложить айдишки сценариев и их список телефонов
+        HashMap<Integer, ArrayList<OuterPhone>> scenarioIdAndPhones = new HashMap<>();
+
+        LOGGER.debug("Всего номеров со сценариями: {}. Задействованных сценариев: {}",
+                outerPhonesWithScenario.size(), scenarioIdAndPhones.size());
+
+        for (OuterPhone outerPhone : outerPhonesWithScenario) { // собственно наполняем мапу айдишками сценариев и соответствующих телефонов
+            Integer scenarioId = outerPhone.getScenarioId();
+            ArrayList<OuterPhone> outerPhones = scenarioIdAndPhones.get(scenarioId);
+            if (outerPhones == null) {
+                ArrayList<OuterPhone> list = new ArrayList<>();
+                list.add(outerPhone);
+                scenarioIdAndPhones.put(scenarioId, list);
+            } else {
+                outerPhones.add(outerPhone);
+            }
         }
 
+        List<Scenario> scenarios = UserContainer.getUsers().stream() // Получаем список всех сценариев, айдишки которых
+                .flatMap(user -> user.getScenarios().stream())       // имеются в мапе
+                .filter(scenario -> scenarioIdAndPhones.containsKey(scenario.getId()))
+                .collect(Collectors.toList());
+
+        RulesConfigDAO.clearRulesFolder();
 
         Calendar calendar = new GregorianCalendar();
-
         long currentMillis = calendar.getTimeInMillis();
-        long newTimeMillis = currentMillis + (10 * 1000 * 60); // раз в 10 минут
+        long newTimeMillis = currentMillis + (3600000); // Просчитываем следующий час
         calendar.setTimeInMillis(newTimeMillis);
 
         int dayByCalendar = calendar.get(Calendar.DAY_OF_WEEK);
@@ -58,34 +83,34 @@ public class RulesConfigDAO {
 
         int hour = calendar.get(Calendar.HOUR_OF_DAY); // Час дня. час ночи = 1
 
-        LOGGER.debug("Ищем сценарии на {} день (нумерация с нуля) недели, {} час", day, hour);
+        LOGGER.debug("Ищем правила на {} день (нумерация с нуля) недели, {} час", day, hour);
 
-//        for (Scenario scenario : scenarios) { // проходимся по всем сценариям и проверяем какие из них можно активировать на следующий час.
-//            boolean[] days = scenario.getDays();
-//            int startTime = scenario.getStartHour();
-//            int endTime = scenario.getEndHour();
-//
-//            if (!days[day]) {
-//                LOGGER.trace("Не тот день для сценария {}", scenario);
-//                continue;
-//            }
-//
-//            if (startTime > hour) {
-//                LOGGER.trace("Не наступило время сценария {}", scenario);
-//                continue;
-//            }
-//
-//            if (endTime <= hour) {
-//                LOGGER.trace("Прошло время сценария {}", scenario);
-//                continue;
-//            }
-//
-//            try {
-//                RulesConfigDAO.writeToFile(scenario);
-//            } catch (IOException e) {
-//                LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
-//            }
-//        }
+        // Тут нужна какая-то мапа <номер телефона, правило>
+        HashMap<String, Rule> phoneNumbersAndRules = new HashMap<>();
+
+        for (Scenario scenario : scenarios) { // проходимся по всем сценариям и проверяем какие из них можно активировать на следующий час.
+            Rule rule = scenario.getRuleByTime(day, hour);
+            if (rule == null) {
+                LOGGER.error("{}: при поиске активного правила на {} день, {} час - вернулся null", scenario.getLogin(), day, hour);
+                continue;
+            }
+
+            List<String> fromNumbers = scenarioIdAndPhones.get(scenario.getId()).stream()
+                    .map(OuterPhone::getNumber)
+                    .collect(Collectors.toList());
+
+            for (String fromNumber : fromNumbers) { // Наполняем мапу для AGI
+                phoneNumbersAndRules.put(fromNumber, rule);
+            }
+
+            try {
+                RulesConfigDAO.writeToFile(rule, fromNumbers);
+            } catch (IOException e) {
+                LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
+            }
+        }
+
+        HelloAgiScript.setPhoneNumbersAndRules(phoneNumbersAndRules); // меняем ссылку на новую мапу
     }
 
     public static void clearRulesFolder() throws IOException {
@@ -104,98 +129,11 @@ public class RulesConfigDAO {
     }
 
 
-    public static void writeToFile(Rule rule) throws IOException {
-        LOGGER.trace("{}: запись сценария в файл", rule.getLogin());
-        String filename = rule.getLogin() + "-" + rule.getId() + ".conf";
-        BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename));
-        writer.write(rule.getConfig());
+    public static void writeToFile(Rule rule, List<String> fromNumbers) throws IOException {
+//        LOGGER.trace("{}: запись сценария в файл", rule.getLogin());
+        String filename = rule.getLogin() + ".conf";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename, true));
+        writer.write(rule.getConfig(fromNumbers));
         writer.close();
     }
-
-    public static void removeFile(String name) throws Exception {
-        LOGGER.trace("{}: удаление файла правил", name);
-        Files.deleteIfExists(Paths.get(folder + name + ".conf"));
-    }
-
-//    public static void writeToFile(String filename, List<OldRule> oldRuleList) throws Exception {
-//        LOGGER.trace("{}: запись правил в файл", filename);
-//        BufferedWriter writer = new BufferedWriter(new FileWriter(folder + filename + ".conf"));
-//        for (OldRule oldRule : oldRuleList) {
-//            writer.write(oldRule.getConfig());
-//        }
-//        writer.close();
-//    }
-
-//    public static List<OldRule> readFromFile(String filename) throws Exception {
-//        LOGGER.trace("{}: чтение правил из файла", filename);
-//        List<String> lines = readStringsFromFile(folder + filename + ".conf");
-//        List<OldRule> oldRules = new ArrayList<>();
-//        List<String> linesOfRule = new ArrayList<>();
-//        for (String line : lines) {
-//            if (line.startsWith("; Start Rule")) {
-//                linesOfRule.clear();
-//            } else if (line.startsWith("; End Rule")) {
-//                oldRules.add(new OldRule(linesOfRule));
-//            } else {
-//                linesOfRule.add(line);
-//            }
-//        }
-//        return oldRules;
-//    }
-
-
-//    public static List<String> readStringsFromFile(String path) throws Exception {
-//        List<String> fileEnrty = Files.readAllLines(Paths.get(path));
-//        List<String> filteredEntry = new ArrayList<>();
-//        for (String s : fileEnrty) {
-//            if (!s.endsWith(",1,Noop(${CALLERID(num)})")
-//                    && !s.endsWith(",n,Gosub(sub-record-check,s,1(in,${EXTEN},force))")
-//                    && !s.endsWith(",n,Set(__FROM_DID=${EXTEN})")
-//                    && !s.endsWith(",n,Set(CDR(did)=${FROM_DID})")
-//                    && !s.endsWith(",n,Set(num=${CALLERID(num)})")
-//                    && !s.equals("\n")
-//                    && !s.equals("")
-//                    ) {
-//                filteredEntry.add(s);
-//            }
-//        }
-//        return filteredEntry;
-//    }
-
-
-
-//    public static void removeFileIfNeeded(User user) throws Exception {
-//        List<String> customerNumbers = new ArrayList<>();
-//        List<OldRule> rulesToDelete = new ArrayList<>();
-//        List<OldRule> currentOldRules = user.getOldRules();
-//
-//        if (user.getTracking() != null) {
-//            customerNumbers.addAll(user.getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
-//        }
-//        if (user.getTelephony() != null) {
-//            customerNumbers.addAll(user.getTelephony().getInnerPhonesList());
-//            customerNumbers.addAll(user.getTelephony().getOuterPhonesList());
-//        }
-//
-//        for (OldRule oldRule : currentOldRules) {
-//            List<String> numbersInRules = new ArrayList<>();
-//            numbersInRules.addAll(oldRule.getFrom());
-////            numbersInRules.addAll(rule.getTo());
-//
-//            for (String s : numbersInRules) {
-//                if (!customerNumbers.contains(s)) {
-//                    rulesToDelete.add(oldRule);
-//                    break;
-//                }
-//            }
-//        }
-//
-//        currentOldRules.removeAll(rulesToDelete);
-//
-//        if (currentOldRules.size() == 0) {
-//            Files.deleteIfExists(Paths.get(folder + user.getLogin() + ".conf"));
-//        } else if (rulesToDelete.size() > 0) {
-//            user.saveRules();
-//        }
-//    }
 }

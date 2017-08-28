@@ -19,6 +19,7 @@ import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.model.AmoAccount;
+import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.model.IdPairTime;
 
 
@@ -143,7 +144,7 @@ public class AmoDAO {
         getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
     }
 
-    public static void addNewContactNewMethod(AmoAccount amoAccount, String contactNumber, int dealId,
+    public static int addNewContactNewMethod(AmoAccount amoAccount, String contactNumber, int dealId,
                                               String tags, String contactName) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
@@ -156,13 +157,24 @@ public class AmoDAO {
             throw new AmoException("Отсутствует phoneEnumId и phoneId. Не могу создать контакт.");
         }
 
-        String contact = "{\"tags\":\"" + tags + "\",\"name\":\"" + contactName
-                + "\",\"custom_fields\": [{\"code\":\"PHONE\",\"values\":[{\"value\":\""
-                + contactNumber + "\",\"enum\":\"" + phoneEnumId + "\"}],\"name\":\"Телефон\",\"id\":\""
-                + phoneId + "\"}],\"linked_leads_id\":[\"" + dealId + "\"]}";
+        String contact = "{" +
+                "\"tags\":\"" + tags + "\"," +
+                "\"name\":\"" + contactName + "\"," +
+                "\"custom_fields\": [{" +
+                "\"code\":\"PHONE\"," +
+                "\"values\":[{" +
+                "\"value\":\"" + contactNumber + "\"," +
+                "\"enum\":\"" + phoneEnumId + "\"}]," +
+                "\"name\":\"Телефон\"," +
+                "\"id\":\"" + phoneId + "\"}]," +
+                "\"linked_leads_id\":[\"" + dealId + "\"]" +
+                "}";
+
         String request = "{\"request\":{\"contacts\":{\"add\":[" + contact + "]}}}";
 
-        getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
+        JSONObject jResponse = getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
+        int id = jResponse.getJSONObject("contacts").getJSONArray("add").getJSONObject(0).getInt("id");
+        return id;
     }
 
     /**
@@ -182,6 +194,44 @@ public class AmoDAO {
         int serverTime = jResponse.getInt("server_time");
         int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
         return new IdPairTime(responseId, serverTime);
+    }
+
+
+    public static void addCallToNotes(AmoAccount amoAccount, Call call) throws Exception {
+        String amoLogin = amoAccount.getAmoLogin();
+        String login = amoAccount.getUser().getLogin();
+        int amoContactId = call.getAmoContactId();
+
+        LOGGER.debug("{}: Запрос добавления входящего звонка в аккаунт {}, id контакта {}", login, amoLogin, amoContactId);
+
+        String calledDate = call.getCalledDate();
+        String asteriskId = call.getAsteriskId();
+        String calledFrom = call.getCalledFrom();
+        int secondsTalk = call.getSecondsTalk();
+        String yearMonthDay = calledDate.substring(0, calledDate.indexOf(" "));
+
+        String textIfAnswered = "";
+
+        if (call.getCallState() == Call.CallState.ANSWER){
+            textIfAnswered = "\\\"LINK\\\":\\\"https://cstat.nextel.com.ua:8443/tracking/history/record/"+ asteriskId +"/"+ yearMonthDay +"\\\"," +
+                    "\\\"DURATION\\\": \\\""+ secondsTalk +"\\\",";
+        }
+
+        String request = "{\"request\": {\"notes\": {\"add\": [{" +
+                "\"element_id\": "+ amoContactId +"," +
+                "\"element_type\": 1," + //1 - контакт 2-сделка 3-компания
+                "\"note_type\": \"10\"," + //10 или 11, входящий или исходящий
+                "\"text\": \"{\\\"UNIQ\\\": \\\""+ asteriskId +"\\\"," +
+                 textIfAnswered +
+                "\\\"PHONE\\\":\\\""+ calledFrom +"\\\"," +
+                "\\\"call_status\\\": \\\"4\\\"," +
+                "\\\"SRC\\\": \\\"nextel_widget\\\"}\"}]}}}";
+
+
+        JSONObject jResponse = getJResponse(false, amoAccount, "api/v2/json/notes/set", request, null);
+//        int serverTime = jResponse.getInt("server_time");
+//        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
+//        return new IdPairTime(responseId, serverTime);
     }
 
 //    public static void setTagsToDeal(AmoAccount amoAccount, @Nonnull String tags, int dealid, int dealTime) throws Exception {

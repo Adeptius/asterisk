@@ -83,7 +83,7 @@ public class HibernateDao {
         for (OuterPhone outerPhone : outerPhones) {
             outerPhone.setBusy(null);
             outerPhone.setSitename(null);
-            outerPhone.setScenario(null);
+            outerPhone.setScenarioId(null);
             session.update(outerPhone);
         }
 
@@ -386,6 +386,14 @@ public class HibernateDao {
         LOGGER.info("Загрузка занятых внешних телефонов");
         Session session = sessionFactory.openSession();
         List<OuterPhone> list = session.createQuery("select o from OuterPhone o where o.busy != null").list();
+        session.close();
+        return list;
+    }
+
+    public List<OuterPhone> getOuterPhonesWithScenario() throws Exception {
+        LOGGER.info("Загрузка внешних телефонов со сценариями");
+        Session session = sessionFactory.openSession();
+        List<OuterPhone> list = session.createQuery("select o from OuterPhone o where o.scenarioId != null").list();
         session.close();
         return list;
     }

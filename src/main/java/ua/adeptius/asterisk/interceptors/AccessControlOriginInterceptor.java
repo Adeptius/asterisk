@@ -1,13 +1,14 @@
 package ua.adeptius.asterisk.interceptors;
 
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.interceptor.Interceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
+@Component
 public class AccessControlOriginInterceptor extends HandlerInterceptorAdapter {
 
     @Override

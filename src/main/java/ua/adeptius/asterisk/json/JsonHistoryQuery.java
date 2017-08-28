@@ -6,11 +6,16 @@ public class JsonHistoryQuery {
     private String dateFrom;
     private String dateTo;
     private String direction;
+    private int limit;
+    private int offset;
 
-    public JsonHistoryQuery(String dateFrom, String dateTo, String direction) {
+
+    public JsonHistoryQuery(String dateFrom, String dateTo, String direction, int limit, int offset) {
         this.dateFrom = dateFrom;
         this.dateTo = dateTo;
         this.direction = direction;
+        this.limit = limit;
+        this.offset = offset;
     }
 
     public JsonHistoryQuery() {
@@ -40,12 +45,30 @@ public class JsonHistoryQuery {
         this.direction = direction;
     }
 
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
     @Override
     public String toString() {
         return "JsonHistoryQuery{" +
                 "dateFrom='" + dateFrom + '\'' +
                 ", dateTo='" + dateTo + '\'' +
                 ", direction='" + direction + '\'' +
+                ", limit=" + limit +
+                ", offset=" + offset +
                 '}';
     }
 }

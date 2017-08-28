@@ -16,6 +16,7 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -231,7 +232,11 @@ public class AmoWebController {
                 }
 
                 if (user.getInnerPhoneByNumber(phone) == null){
-                    return new Message(Error, "Phone " + phone + " is not user's SIP");
+                    try {
+                        phone = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(phone);
+                    } catch (IllegalArgumentException e) {
+                        return new Message(Error, "Phone " + phone + " is not user's SIP or Ukrainian GSM");
+                    }
                 }
 
                 if (nameCheck.add(phone)){

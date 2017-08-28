@@ -114,7 +114,7 @@ public class HibernateController {
      */
 
     public static List<OuterPhone> getAllFreeOuterPhones() throws Exception {
-        return getAllFreeOuterPhones();
+        return hibernateDao.getAllFreeOuterPhones();
     }
 
     @Deprecated
@@ -122,6 +122,9 @@ public class HibernateController {
         return hibernateDao.getAllBusyOuterPhones();
     }
 
+    public static List<OuterPhone> getOuterPhonesWithScenario() throws Exception {
+        return hibernateDao.getOuterPhonesWithScenario();
+    }
 
     public static void markOuterPhoneBusy(String user, List<String> numbers) throws Exception {
         hibernateDao.markOuterPhoneBusy(user, numbers);

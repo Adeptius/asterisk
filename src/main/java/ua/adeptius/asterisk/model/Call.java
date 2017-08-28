@@ -36,7 +36,6 @@ public class Call {
 
     @JsonProperty
     private String googleId;
-    private Service service;
     private User user;
 
     @JsonProperty
@@ -52,6 +51,7 @@ public class Call {
     private int secondsFullTime;
     boolean callIsEnded;
     private int amoDealId;
+    private int amoContactId;
     private int lastOperationTime;
     private OuterPhone outerPhone;
 
@@ -247,20 +247,20 @@ public class Call {
         this.direction = direction;
     }
 
-    public Service getService() {
-        return service;
-    }
-
-    public void setService(Service service) {
-        this.service = service;
-    }
-
     public User getUser() {
         return user;
     }
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public int getAmoContactId() {
+        return amoContactId;
+    }
+
+    public void setAmoContactId(int amoContactId) {
+        this.amoContactId = amoContactId;
     }
 
     public static String addZero(String source) {
@@ -277,25 +277,22 @@ public class Call {
     @Override
     public String toString() {
         return "Call{" +
-                "\n  firstCall='" + firstCall + '\'' +
-                "\n  calledFrom='" + calledFrom + '\'' +
-                "\n  calledTo='" + calledTo + '\'' +
-                "\n  callState=" + callState +
-                "\n  direction=" + direction +
-                "\n  asteriskId='" + asteriskId + '\'' +
-                "\n  utm='" + utm + '\'' +
-                "\n  googleId='" + googleId + '\'' +
-                "\n  service=" + service +
-                "\n  user=" + user.getLogin() +
-                "\n  calledDate='" + calledDate + '\'' +
-                "\n  calledMillis=" + calledMillis +
-                "\n  secondsToAnswer=" + secondsToAnswer +
-                "\n  secondsFullTime=" + secondsFullTime +
-                "\n  callIsEnded=" + callIsEnded +
-                "\n  amoDealId=" + amoDealId +
-                "\n  lastOperationTime=" + lastOperationTime +
-                "\n  timeDifference=" + timeDifference +
-                "\n  stateIsSetted=" + stateIsSetted +
-                "\n}";
+                "firstCall='" + firstCall + '\'' +
+                ", calledFrom='" + calledFrom + '\'' +
+                ", calledTo='" + calledTo + '\'' +
+                ", callState=" + callState +
+                ", direction=" + direction +
+                ", asteriskId='" + asteriskId + '\'' +
+                ", utm='" + utm + '\'' +
+                ", googleId='" + googleId + '\'' +
+                ", user=" + user.getLogin() +
+                ", calledDate='" + calledDate + '\'' +
+                ", calledMillis=" + calledMillis +
+                ", secondsToAnswer=" + secondsToAnswer +
+                ", secondsFullTime=" + secondsFullTime +
+                ", amoDealId=" + amoDealId +
+                ", lastOperationTime=" + lastOperationTime +
+                ", outerPhone=" + outerPhone +
+                '}';
     }
 }

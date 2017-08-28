@@ -119,7 +119,8 @@ public class WebSocket {
                     String workersNumber = amoAccount.getWorkersPhone(userId);
                     if (workersNumber != null) {
                         try {
-                            Main.monitor.sendCallToOutsideAction(workersNumber, callTo);
+                            sendMessage(userId, new WsMessage(outgoingCall, callTo));
+                            Main.monitor.sendCallToOutsideAction(workersNumber, callTo, "AMOCRM-C2C "+callTo);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -128,7 +129,4 @@ public class WebSocket {
             }
         }
     }
-
-
-
 }

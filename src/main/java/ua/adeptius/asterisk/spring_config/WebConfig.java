@@ -5,9 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import ua.adeptius.asterisk.interceptors.AccessControlOriginInterceptor;
 
 @Configuration
 
@@ -21,6 +23,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         resolver.setSuffix(".html");
         return resolver;
     }
+    @Bean
+    AccessControlOriginInterceptor localInterceptor() {
+        return new AccessControlOriginInterceptor();
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(localInterceptor());
+    }
+
 
 //    @Override
 //    public void addInterceptors(final InterceptorRegistry registry) {

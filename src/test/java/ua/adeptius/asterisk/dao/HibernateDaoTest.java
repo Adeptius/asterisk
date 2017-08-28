@@ -12,12 +12,14 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.telephony.ForwardType;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 
 public class HibernateDaoTest {
 
@@ -212,23 +214,36 @@ public class HibernateDaoTest {
     }
 
     @Test
-    public void rulesAndScenariosTest() throws Exception {
+    public void rulesScenariosAndChainsTest() throws Exception {
         User user = HibernateController.getUserByLogin("hibernate");
 
         Scenario scenario = addNewScenario(user, "hiberScenario");
 
-        addNewRule(scenario, "hiberRule");
-        addNewRule(scenario, "hiberRule2");
+        Rule firstRule = addNewRule(scenario, "hiberRule");
+        Rule secondRule = addNewRule(scenario, "hiberRule2");
+        ChainElement firstChainElement = addNewChainElement(firstRule, 0);
 
         HibernateController.update(user);
         user = HibernateController.getUserByLogin("hibernate");
 
-
-
         Set<Scenario> scenarios = user.getScenarios();
-        Scenario next = scenarios.iterator().next();
-        List<Rule> rules = next.getRules();
+        scenario = scenarios.iterator().next();
+        List<Rule> rules = scenario.getRules();
         assertEquals(2,rules.size());
+
+        firstRule = rules.stream().filter(rule -> rule.getName().equals("hiberRule")).findFirst().get();
+        firstChainElement = firstRule.getChain().get(0);
+        assertNotNull(firstChainElement);
+
+//        HibernateController.update(user);
+//        user = HibernateController.getUserByLogin("hibernate");
+
+        user.removeScenario(scenario);
+        HibernateController.update(user);
+        user = HibernateController.getUserByLogin("hibernate");
+
+        //todo дописать тесты что бы убедится что на этом моменте и правила и цепочки удалены
+
     }
 
 
@@ -239,18 +254,27 @@ public class HibernateDaoTest {
        return scenario;
     }
 
-    private void addNewRule(Scenario scenario, String name){
+    private Rule addNewRule(Scenario scenario, String name){
         Rule rule = new Rule();
         rule.setName(name);
         rule.setDays(new boolean[]{true,true,true,true,true,true,true});
-        rule.setDestinationType(SIP);
         rule.setStartHour(0);
         rule.setEndHour(24);
+        rule.setType(RuleType.DEFAULT);
         scenario.addRule(rule);
+        return rule;
     }
 
-
-
+    private ChainElement addNewChainElement(Rule rule, int position){
+        ChainElement chainElement = new ChainElement();
+        chainElement.setAwaitingTime(10);
+        chainElement.setDestinationType(SIP);
+        chainElement.setForwardType(TO_ALL);
+        chainElement.setPosition(position);
+        chainElement.setMelody("none");
+        rule.addChainElement(chainElement);
+        return chainElement;
+    }
 
     @AfterClass
     public static void cleaningDb() throws Exception {
@@ -271,13 +295,13 @@ public class HibernateDaoTest {
 
         HibernateController.removeAllTestPhones();
 
-        List<Long> time = HibernateController.time;
-        long summary = 0;
-        for (Long aLong : time) {
-            summary+=aLong;
-        }
-        summary = summary / time.size();
+//        List<Long> time = HibernateController.time;
+//        long summary = 0;
+//        for (Long aLong : time) {
+//            summary+=aLong;
+//        }
+//        summary = summary / time.size();
 
-        System.out.println("Operation count: " + HibernateController.operationsCount + " AVG time: " + summary);
+//        System.out.println("Operation count: " + HibernateController.operationsCount + " AVG time: " + summary);
     }
 }

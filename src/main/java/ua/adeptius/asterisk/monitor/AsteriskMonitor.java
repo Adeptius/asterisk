@@ -9,9 +9,12 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
+import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @SuppressWarnings("Duplicates")
 public class AsteriskMonitor implements ManagerEventListener {
@@ -41,9 +44,16 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
 
-    public ManagerResponse sendCallToOutsideAction(String from, String to) throws IOException, TimeoutException {
-        OriginateAction callToOutside = AsteriskActionsGenerator.callToOutside(from, to);
-        return managerConnection.sendAction(callToOutside, 10000);
+    public ManagerResponse sendCallToOutsideAction(String from, String to, @Nullable String callerName) throws IOException, TimeoutException {
+        OriginateAction callToOutside = AsteriskActionsGenerator.callToOutside(from, to, callerName);
+        return managerConnection.sendAction(callToOutside, 30000);
+
+    }
+
+    public ManagerResponse callToOutsideFromOuter(String outerPhone, String destinationPhone, @Nullable String callerName) throws IOException, TimeoutException {
+        OriginateAction callToOutside = AsteriskActionsGenerator.callToOutsideFromOuter(outerPhone, destinationPhone, callerName);
+        return managerConnection.sendAction(callToOutside, 30000);
+
     }
 
     public void onManagerEvent(ManagerEvent event) {

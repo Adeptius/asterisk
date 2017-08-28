@@ -20,11 +20,13 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
+import static ua.adeptius.asterisk.json.Message.Status.Success;
 
 @Controller
 @ResponseBody
@@ -161,7 +163,7 @@ public class PhonesWebController {
             }
 
             HibernateController.update(user);
-            return new Message(Message.Status.Success, "Number count set");
+            return new Message(Success, "Number count set");
         } catch (Exception e) {
             LOGGER.error(login + ": ошибка изменения количества номеров телефонии: " + jsonPhoneCount, e);
             return new Message(Error, "Internal error");
@@ -173,6 +175,35 @@ public class PhonesWebController {
                 } catch (Exception e) {
                     LOGGER.error(user.getLogin() + ": ошибка синхронизации после изменения количества номеров", e);
                 }
+        }
+    }
+
+
+    @PostMapping("/setBindings")
+    public Object getBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newAssign) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid").toString();
+        }
+
+        // проверим все ли присланные имена сайтов существуют
+        for (String sitename : newAssign.values()) {
+            if (user.getSiteByName(sitename) == null){
+                return new Message(Error, "No site with name " + sitename);
+            }
+        }
+
+        for (OuterPhone outerPhone : user.getOuterPhones()) {
+            String site = newAssign.get(outerPhone.getNumber());
+            outerPhone.setSitename(site);// если ключа в мапе нет - вернётся null и телефон освободится.
+        }
+
+        try {
+            HibernateController.update(user);
+            return new Message(Success, "Bindings saved");
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + " ошибка сохранения назначения телефонов к сайтам: " + newAssign, e);
+            return new Message(Error, "Internal error");
         }
     }
 }

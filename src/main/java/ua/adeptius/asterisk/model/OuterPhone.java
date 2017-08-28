@@ -28,8 +28,8 @@ public class OuterPhone {
     private String sitename;
 
     @JsonProperty
-    @Column(name = "scenario")
-    private String scenario;
+    @Column(name = "scenario_id")
+    private Integer scenarioId;
 
     @JsonProperty
     @Transient
@@ -141,14 +141,6 @@ public class OuterPhone {
         this.number = number;
     }
 
-    public String getScenario() {
-        return scenario;
-    }
-
-    public void setScenario(String scenario) {
-        this.scenario = scenario;
-    }
-
     public String getBusy() {
         return busy;
     }
@@ -188,7 +180,13 @@ public class OuterPhone {
         this.ip = ip;
     }
 
+    public Integer getScenarioId() {
+        return scenarioId;
+    }
 
+    public void setScenarioId(Integer scenarioId) {
+        this.scenarioId = scenarioId;
+    }
 
     public long getUpdatedTime() {
         return updatedTime;

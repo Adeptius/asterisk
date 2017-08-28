@@ -7,17 +7,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import ua.adeptius.asterisk.exceptions.JsonParseException;
+import ua.adeptius.asterisk.json.JsonChainElement;
 import ua.adeptius.asterisk.json.JsonRule;
 import ua.adeptius.asterisk.telephony.DestinationType;
 import ua.adeptius.asterisk.telephony.ForwardType;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
+import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
+import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 
 
 @Entity
@@ -32,53 +37,19 @@ public class Rule {
 
 
     // Конвертор из json обьекта в POJO в ScenarioWebController
-    public Rule(JsonRule jsonRule) throws JsonParseException{
+    public Rule(JsonRule jsonRule) throws JsonParseException {
         String jName = jsonRule.getName();
-        if (jName == null){
+        if (jName == null) {
             throw new JsonParseException("Rule name not set");
         }
         this.name = jName;
 
-        List<String> jToNumbers = jsonRule.getToList();
-        try {
-            setToList(jToNumbers);
-        }catch (Exception e){
-            throw new JsonParseException(name + ": wrong ToList: " + jToNumbers);
-        }
-
-        String jForwardType = jsonRule.getForwardType();
-        try{
-            forwardType = ForwardType.valueOf(jForwardType);
-        }catch (Exception e){
-            throw new JsonParseException(name + ": wrong forward type: " + jForwardType);
-        }
-
-        String jDestinationType = jsonRule.getDestinationType();
-        try{
-            destinationType = DestinationType.valueOf(jDestinationType);
-        }catch (Exception e){
-            throw new JsonParseException(name + ": wrong destination type: " + jDestinationType);
-        }
-
         String jType = jsonRule.getType();
-        try{
+        try {
             type = RuleType.valueOf(jType);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new JsonParseException(name + ": wrong rule type: " + jType);
         }
-
-        Integer jAwaitingTime = jsonRule.getAwaitingTime();
-        if (jAwaitingTime == null){
-            throw new JsonParseException(name + ": awaiting time not set: " + jAwaitingTime);
-        }
-        this.awaitingTime = jAwaitingTime;
-
-
-        String jMelody = jsonRule.getMelody();
-        if (jMelody == null) {
-            throw new JsonParseException(name + ": melody not set: " + jMelody);
-        }
-        this.melody = jMelody;
 
         Integer jStartHour = jsonRule.getStartHour();
         if (jStartHour == null) {
@@ -92,16 +63,57 @@ public class Rule {
         }
         this.endHour = jEndHour;
 
-
         boolean[] jDays = jsonRule.getDays();
         if (jDays == null || jDays.length != 7) {
             throw new JsonParseException(name + ": wrong days");
         }
         setDays(jDays);
 
+
+        chain = new HashMap<>();
+
+
+        for (Map.Entry<Integer, JsonChainElement> entry : jsonRule.getChain().entrySet()) {
+            JsonChainElement jElement = entry.getValue();
+            Integer number = entry.getKey();
+            ChainElement element = new ChainElement();
+            List<String> jToNumbers = jElement.getToList();
+            try {
+                element.setToList(jToNumbers);
+            } catch (Exception e) {
+                throw new JsonParseException(name + ": wrong ToList: " + jToNumbers);
+            }
+
+            String jForwardType = jElement.getForwardType();
+            try {
+                element.setForwardType(ForwardType.valueOf(jForwardType));
+            } catch (Exception e) {
+                throw new JsonParseException(name + ": wrong forward type: " + jForwardType);
+            }
+
+            String jDestinationType = jElement.getDestinationType();
+            try {
+                element.setDestinationType(DestinationType.valueOf(jDestinationType));
+            } catch (Exception e) {
+                throw new JsonParseException(name + ": wrong destination type: " + jDestinationType);
+            }
+
+
+            Integer jAwaitingTime = jElement.getAwaitingTime();
+            if (jAwaitingTime == null) {
+                throw new JsonParseException(name + ": awaiting time not set: " + jAwaitingTime);
+            }
+            element.setAwaitingTime(jAwaitingTime);
+
+            String jMelody = jElement.getMelody();
+            if (jMelody == null) {
+                throw new JsonParseException(name + ": melody not set: " + jMelody);
+            }
+            element.setMelody(jMelody);
+
+            chain.put(number, element);
+        }
     }
-
-
 
     @Id
     @GeneratedValue(generator = "increment") //галка в mysql "AI"
@@ -119,31 +131,31 @@ public class Rule {
     @Column(name = "scenario")
     private String scenario;
 
-    @Column(name = "toNumbers")
-    private String toNumbers;
+//    @Column(name = "toNumbers")
+//    private String toNumbers;
 
-    @JsonProperty
-    @Column(name = "forwardType")
-    @Enumerated(EnumType.STRING)
-    private ForwardType forwardType;
+//    @JsonProperty
+//    @Column(name = "forwardType")
+//    @Enumerated(EnumType.STRING)
+//    private ForwardType forwardType;
 
-    @JsonProperty
-    @Column(name = "destinationType")
-    @Enumerated(EnumType.STRING)
-    private DestinationType destinationType;
+//    @JsonProperty
+//    @Column(name = "destinationType")
+//    @Enumerated(EnumType.STRING)
+//    private DestinationType destinationType;
 
     @JsonProperty
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private RuleType type;
 
-    @JsonProperty
-    @Column(name = "awaitingTime")
-    private int awaitingTime;
+//    @JsonProperty
+//    @Column(name = "awaitingTime")
+//    private int awaitingTime;
 
-    @JsonProperty
-    @Column(name = "melody")
-    private String melody;
+//    @JsonProperty
+//    @Column(name = "melody")
+//    private String melody;
 
     @JsonProperty
     @Column(name = "startTime")
@@ -169,57 +181,88 @@ public class Rule {
         this.scenario = scenario;
     }
 
-    @SuppressWarnings("Duplicates")
-    public String getConfig() {
-//        if (destinationType == SIP) {
-//            if (forwardType == TO_ALL) {
-//                awaitingTime = 600;
-//            }
-//        }
-//
-//        List<String> from = getFromList();
-//        List<String> to = getToList();
-//
-//        StringBuilder builder = new StringBuilder();
-//        builder.append("; Start Rule\n");
-//        for (int i = 0; i < from.size(); i++) {
-//            String numberFrom = removeZero(from.get(i)); // удаляем нолик
-//            builder.append("exten => ").append(numberFrom).append(",1,Noop(${CALLERID(num)})\n");
-//            builder.append("exten => ").append(numberFrom).append(",n,Gosub(sub-record-check,s,1(in,${EXTEN},force))\n");
-//            builder.append("exten => ").append(numberFrom).append(",n,Set(__FROM_DID=${EXTEN})\n");
-//            builder.append("exten => ").append(numberFrom).append(",n,Set(CDR(did)=${FROM_DID})\n");
-//            builder.append("exten => ").append(numberFrom).append(",n,Set(num=${CALLERID(num)})\n");
-//
-//            if (destinationType == SIP) {
-//                for (String sipTo : to) {
-//                    builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/").append(sipTo).append(",").append(awaitingTime).append(")\n");
-//                }
-//            } else if (destinationType == GSM) {
-//                if (forwardType == QUEUE) { // По очереди
-//                    for (String numberTo : to) {
-//                        builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/Intertelekom_main/")
-//                                .append(numberTo).append(",").append(awaitingTime).append(",m(").append(melody).append("))\n");
-//                    }
-//                } else if (forwardType == TO_ALL) { // Сразу всем
-//                    builder.append("exten => ").append(numberFrom).append(",n,Dial(");
-//                    for (int j = 0; j < to.size(); j++) {
-//                        builder.append("SIP/Intertelekom_main/").append(to.get(j));
-//                        if (j != to.size() - 1) {
-//                            builder.append("&");
-//                        }
-//                    }
-//                    builder.append(",").append(600).append(",m(").append(melody).append("))\n");
-//                }
-//            }
-//            builder.append("\n");
-//        }
-//
-//        if (builder.toString().endsWith("\n")) {
-//            builder.deleteCharAt(builder.length() - 1);
-//        }
-//        builder.append("; End Rule\n");
-//        return builder.toString();
-        return "";
+    /**
+     * Chain
+     */
+    @Transient
+    private HashMap<Integer, ChainElement> chain; // Это кэш.
+
+    @JsonProperty
+    public HashMap<Integer, ChainElement> getChain() {
+        if (chain == null) {
+            chain = new HashMap<>();
+//        HashMap<Integer, ChainElement> chain = new HashMap<>();
+            Set<ChainElement> ruleElements = user.getAllChainElements().stream()
+                    .filter(element -> element.getRule().equals(name))
+                    .collect(Collectors.toSet());
+            for (ChainElement ruleElement : ruleElements) {
+                chain.put(ruleElement.getPosition(), ruleElement);
+            }
+        }
+        return chain;
+    }
+
+
+    public void addChainElement(ChainElement element) {
+        element.setUser(user);
+        element.setRule(name);
+        user.saveInUsersChains(element);
+    }
+
+    public static final String AGI_ADDRESS = "78.159.55.63/hello.agi";
+
+    public String getConfig(List<String> from) {
+        ChainElement firstElement = getChain().get(0);
+
+        DestinationType destinationType = firstElement.getDestinationType();
+        ForwardType forwardType = firstElement.getForwardType();
+        int awaitingTime = firstElement.getAwaitingTime();
+        String melody = firstElement.getMelody();
+
+        if (destinationType == SIP) {
+            if (forwardType == TO_ALL) {
+                awaitingTime = 600;
+            }
+        }
+
+        List<String> to = firstElement.getToList();
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("; '").append(scenario).append("' - '").append(name).append("' ").append(from).append("\n");
+
+        for (int i = 0; i < from.size(); i++) {
+            String numberFrom = removeZero(from.get(i)); // удаляем нолик
+            builder.append("exten => ").append(numberFrom).append(",1,Noop(${CALLERID(num)})\n");
+            builder.append("exten => ").append(numberFrom).append(",n,Gosub(sub-record-check,s,1(in,${EXTEN},force))\n");
+            builder.append("exten => ").append(numberFrom).append(",n,Set(__FROM_DID=${EXTEN})\n");
+            builder.append("exten => ").append(numberFrom).append(",n,Set(CDR(did)=${FROM_DID})\n");
+            builder.append("exten => ").append(numberFrom).append(",n,Set(num=${CALLERID(num)})\n");
+            builder.append("exten => ").append(numberFrom).append(",n,Agi(agi://").append(AGI_ADDRESS).append(")\n");
+
+            if (destinationType == SIP) {
+                for (String sipTo : to) {
+                    builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/").append(sipTo).append(",").append(awaitingTime).append(")\n");
+                }
+            } else if (destinationType == GSM) {
+                if (forwardType == QUEUE) { // По очереди
+                    for (String numberTo : to) {
+                        builder.append("exten => ").append(numberFrom).append(",n,Dial(SIP/Intertelekom_main/")
+                                .append(numberTo).append(",").append(awaitingTime).append(",m(").append(melody).append("))\n");
+                    }
+                } else if (forwardType == TO_ALL) { // Сразу всем
+                    builder.append("exten => ").append(numberFrom).append(",n,Dial(");
+                    for (int j = 0; j < to.size(); j++) {
+                        builder.append("SIP/Intertelekom_main/").append(to.get(j));
+                        if (j != to.size() - 1) {
+                            builder.append("&");
+                        }
+                    }
+                    builder.append(",").append(600).append(",m(").append(melody).append("))\n");
+                }
+            }
+            builder.append("\n");
+        }
+        return builder.toString();
     }
 
     public void setDays(boolean[] newDays) {
@@ -299,41 +342,41 @@ public class Rule {
 //    }
 
 
-    public void removeFromToList(@Nonnull String number) {
-        List<String> toList = getToList();
-        toList.remove(number);
-        setToList(toList);
-    }
+//    public void removeFromToList(@Nonnull String number) {
+//        List<String> toList = getToList();
+//        toList.remove(number);
+//        setToList(toList);
+//    }
 
-    public void setToList(@Nonnull List<String> numbers) {
-        clearToList();
-        for (String number : numbers) {
-            addToToList(number);
-        }
-    }
+//    public void setToList(@Nonnull List<String> numbers) {
+//        clearToList();
+//        for (String number : numbers) {
+//            addToToList(number);
+//        }
+//    }
 
-    public void clearToList() {
-        toNumbers = "";
-    }
+//    public void clearToList() {
+//        toNumbers = "";
+//    }
+//
+//    public void addToToList(@Nonnull String number) {
+//        if (!toNumbers.equals("")) {
+//            toNumbers += " ";
+//        }
+//        if (toNumbers.contains(number)) {
+//            return;
+//        }
+//        toNumbers += number;
+//    }
 
-    public void addToToList(@Nonnull String number) {
-        if (!toNumbers.equals("")) {
-            toNumbers += " ";
-        }
-        if (toNumbers.contains(number)) {
-            return;
-        }
-        toNumbers += number;
-    }
-
-    @JsonProperty
-    public List<String> getToList() {
-        if (toNumbers.equals("")) {
-            return new ArrayList<>();
-        }
-        String[] splitted = toNumbers.split(" ");
-        return new ArrayList<>(Arrays.asList(splitted));
-    }
+//    @JsonProperty
+//    public List<String> getToList() {
+//        if (toNumbers.equals("")) {
+//            return new ArrayList<>();
+//        }
+//        String[] splitted = toNumbers.split(" ");
+//        return new ArrayList<>(Arrays.asList(splitted));
+//    }
 
 
     private String removeZero(String source) {
@@ -371,8 +414,6 @@ public class Rule {
 
         int anotherStartTime = another.getStartHour();
         int anotherEndTime = another.getEndHour();
-
-        //FIXME добавить поддержку ночных сценариев или дефолтных или сценариев либо сценарий "в данный момент никто не работает".
 
         // Проверяем временные диапазоны первого и второго сценария
 
@@ -431,38 +472,6 @@ public class Rule {
         this.id = id;
     }
 
-    public ForwardType getForwardType() {
-        return forwardType;
-    }
-
-    public void setForwardType(ForwardType forwardType) {
-        this.forwardType = forwardType;
-    }
-
-    public DestinationType getDestinationType() {
-        return destinationType;
-    }
-
-    public void setDestinationType(DestinationType destinationType) {
-        this.destinationType = destinationType;
-    }
-
-    public int getAwaitingTime() {
-        return awaitingTime;
-    }
-
-    public void setAwaitingTime(int awaitingTime) {
-        this.awaitingTime = awaitingTime;
-    }
-
-    public String getMelody() {
-        return melody;
-    }
-
-    public void setMelody(String melody) {
-        this.melody = melody;
-    }
-
     public User getUser() {
         return user;
     }
@@ -488,12 +497,12 @@ public class Rule {
                 ", login='" + login + '\'' +
                 ", name='" + name + '\'' +
                 ", scenario='" + scenario + '\'' +
-                ", toNumbers='" + toNumbers + '\'' +
-                ", forwardType=" + forwardType +
-                ", destinationType=" + destinationType +
+//                ", toNumbers='" + toNumbers + '\'' +
+//                ", forwardType=" + forwardType +
+//                ", destinationType=" + destinationType +
 //                ", status=" + status +
-                ", awaitingTime=" + awaitingTime +
-                ", melody='" + melody + '\'' +
+//                ", awaitingTime=" + awaitingTime +
+//                ", melody='" + melody + '\'' +
                 ", startHour=" + startHour +
                 ", endHour=" + endHour +
                 ", days='" + days + '\'' +

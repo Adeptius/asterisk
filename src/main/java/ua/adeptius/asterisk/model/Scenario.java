@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -49,10 +50,27 @@ public class Scenario {
         user.saveInUsersRules(rule);
     }
 
-    public void removeRule(Rule rule){
-        user.removeRule(rule);
-    }
+    public Rule getRuleByTime(int day, int hour){
+        List<Rule> rules = getRules();
+        Rule ruleToReturn = null;
+        Rule defaultRule = null;
+        for (Rule rule : rules) {
+            if (rule.getType() == RuleType.DEFAULT){
+                defaultRule = rule;
+                continue;
+            }
+            if (rule.getDays()[day] && rule.getStartHour() <= hour && rule.getEndHour() > hour){
+                ruleToReturn = rule;
+                break;
+            }
+        }
 
+        if (ruleToReturn != null){
+            return ruleToReturn;
+        }else {
+            return defaultRule;
+        }
+    }
 
     public int getId() {
         return id;

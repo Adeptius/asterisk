@@ -68,7 +68,6 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<AmoOperatorLocation> amoOperatorLocations;
 
-    //    @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Rule> rules;
@@ -77,6 +76,9 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Scenario> scenarios;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "login", referencedColumnName = "login")
+    private Set<ChainElement> chainElements;
 
     @JsonProperty
     @Transient
@@ -282,10 +284,21 @@ public class User {
         scenarios.add(scenario);
     }
 
-    public void removeScenario(Scenario scenario) {
-        List<Rule> rulesInScenario = scenario.getRules();
-        rulesInScenario.forEach(this::removeRule);
+    public void removeScenarioButLeaveIdInPhone(Scenario scenario) { // этот метод нужен при изменении сценария
+        List<Rule> rulesInScenario = scenario.getRules(); // прежде чем удалить сценарий - сначала надо удалить все его правила
+        rulesInScenario.forEach(rule -> {
+            HashMap<Integer, ChainElement> chain = rule.getChain();// прежде чем удалить правило - надо удалить всю цепочку
+            chain.values().forEach(element -> removeChainElement(element)); // удалили у пользователя
+            removeRule(rule);
+        });
         scenarios.remove(scenario);
+    }
+
+    public void removeScenario(Scenario scenario) {
+        removeScenarioButLeaveIdInPhone(scenario);
+        getOuterPhones().stream()
+                .filter(phone -> (phone.getScenarioId() != null && phone.getScenarioId() == scenario.getId()))
+                .forEach(phone -> phone.setScenarioId(null));
     }
 
 
@@ -304,6 +317,22 @@ public class User {
     void removeRule(Rule rule) {
         rules.remove(rule);
     }
+
+    /**
+     * Chain
+     */
+    public Set<ChainElement> getAllChainElements() {
+        return Collections.unmodifiableSet(chainElements);
+    }
+
+    void saveInUsersChains(ChainElement element) { // это должго быть в scenario
+        chainElements.add(element);
+    }
+
+    void removeChainElement(ChainElement element) {
+        chainElements.remove(element);
+    }
+
 
 
     public static void setLOGGER(Logger LOGGER) {
@@ -346,126 +375,23 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "\n login='" + login + '\'' +
-                "\n password='" + password + '\'' +
-                "\n email='" + email + '\'' +
-                "\n trackingId='" + trackingId + '\'' +
-                "\n amoAccountSet=" + amoAccountSet +
-                "\n roistatAccountSet=" + roistatAccountSet +
-                "\n outerPhones=" + outerPhones +
-                "\n innerPhones=" + innerPhones +
-                "\n operatorLocations=" + amoOperatorLocations +
-                "\n sites=" + sites +
-                "\n}";
+                "login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", trackingId='" + trackingId + '\'' +
+                ", amoAccount=" + getAmoAccount() +
+                ", roistatAccount=" + getRoistatAccount() +
+                ", outerPhones=" + outerPhones +
+                ", innerPhones=" + innerPhones +
+                ", sites=" + sites +
+                ", amoOperatorLocations=" + amoOperatorLocations +
+                ", rules=" + rules +
+                ", scenarios=" + scenarios +
+                ", outerPhonesCache=" + outerPhonesCache +
+                ", innerPhonesCache=" + innerPhonesCache +
+                '}';
     }
 
-
-    /**
-     * Scenario
-     */
-
-//    public List<Scenario> getScenarios() {
-//        return scenarios;
-//    }
-//
-//    public void setScenarios(List<Scenario> scenarios) {
-//        this.scenarios = scenarios;
-//    }
-//
-//    public void addScenario(Scenario newScenario) throws ScenarioConflictException {
-//        if (getScenarios().stream().map(Scenario::getName).anyMatch(s -> s.equals(newScenario.getName()))) {
-//            throw new ScenarioConflictException("Scenario with such name already present");
-//        }
-//        if (newScenario.getStatus() == ScenarioStatus.ACTIVATED){
-//            throw new ScenarioConflictException("Can't add activated scenario");
-//        }
-//        getScenarios().add(newScenario);
-//    }
-//
-//    public void activateScenario(int id) throws ScenarioConflictException {
-//        Scenario scenario;
-//        try {
-//            scenario = getScenarioById(id);
-//        } catch (NoSuchElementException e) {
-//            throw new ScenarioConflictException("Сценарий c id " + id + " не найден");
-//        }
-//
-//        List<String> numbers = scenario.getFromList(); // Это список номеров нового сценария.
-//        // нужно по каждому номеру, содержащимся в нём найти его сценарии и каждый проверить на конфликты с новым сценарием.
-//        for (String number : numbers) {
-//            Set<Scenario> scenariosByNumber = getActivatedScenariosByOuterPhoneNumber(number);
-//            for (Scenario userScenario : scenariosByNumber) {
-//                if (!userScenario.isThisScenarioCompatibleWith(scenario)) { // если один из существующих сценариев не совместим с новым.
-//                    throw new ScenarioConflictException("For number '" + number + "' assigned active scenario '"
-//                            + userScenario.getName() + "' that has time conflict with '" + scenario.getName() + "'");
-//                }
-//            }
-//        }
-//        scenario.setStatus(ScenarioStatus.ACTIVATED);
-//    }
-//
-//    public void deactivateScenario(int id) throws NoSuchElementException {
-//        getScenarioById(id).setStatus(ScenarioStatus.DEACTIVATED);
-//    }
-//
-//    public Scenario getScenarioById(int id) throws NoSuchElementException {
-//        return getScenarios().stream().filter(scenario -> scenario.getId() == id).findFirst().get();
-//    }
-//
-//    private Set<Scenario> getActivatedScenariosByOuterPhoneNumber(String number) {
-//        return getScenariosByOuterPhoneNumber(number).stream().filter(scenario -> scenario.getStatus() == ScenarioStatus.ACTIVATED).collect(Collectors.toSet());
-//    }
-//
-//    private Set<Scenario> getDeactivatedScenariosByOuterPhoneNumber(String number) {
-//        return getScenariosByOuterPhoneNumber(number).stream().filter(scenario -> scenario.getStatus() == ScenarioStatus.DEACTIVATED).collect(Collectors.toSet());
-//    }
-//
-//    private Set<Scenario> getScenariosByOuterPhoneNumber(String number) {
-//        Set<Scenario> foundedScenarios = new HashSet<>(); // сюда ложим сценарии, которые связаны с данным номером
-//        for (Scenario scenario : scenarios) {
-//            List<String> phones = scenario.getFromList();// взяли у сценария список его номеров.
-//            for (String phone : phones) {
-//                if (phone.equals(number)) { // если есть совпадение
-//                    foundedScenarios.add(scenario); // ложим сценарий в найденные
-//                    break; // прерываем цикл и переходим к следующему сценарию
-//                }
-//            }
-//        }
-//        return foundedScenarios;
-//    }
-
-//    @JsonIgnore
-//    public List<String> getAvailableNumbers() {
-//        List<String> numbers = new ArrayList<>();
-//        if (telephony != null) {
-//            numbers.addAll(telephony.getAvailableNumbers());
-//        }
-//        if (tracking != null) {
-//            numbers.addAll(tracking.getAvailableNumbers());
-//        }
-//        return numbers;
-//    }
-//
-//    public boolean isThatUsersOuterNumber(@Nonnull List<String> numbers) {
-//        for (String number : numbers) {
-//            if (isThatUsersOuterNumber(number)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//
-//    public boolean isThatUsersOuterNumber(@Nonnull String number) {
-//        List<String> allOuterPhones = new ArrayList<>();
-//        if (getTelephony() != null) {
-//            allOuterPhones.addAll(getTelephony().getOuterPhonesList());
-//        }
-//        if (getTracking() != null) {
-//            allOuterPhones.addAll(getTracking().getPhones().stream().map(Phone::getNumber).collect(Collectors.toList()));
-//        }
-//        return allOuterPhones.stream().anyMatch(s -> s.equals(number));
-//    }
-//
     public boolean isThatAllUsersSipNumbers(@Nonnull List<String> numbers) {
         for (String number : numbers) {
             if (!isThatUserSipNumber(number)) {

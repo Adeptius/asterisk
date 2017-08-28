@@ -8,21 +8,14 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.exceptions.JsonParseException;
-import ua.adeptius.asterisk.json.JsonRule;
-import ua.adeptius.asterisk.json.JsonScenario;
-import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.model.Rule;
-import ua.adeptius.asterisk.model.RuleType;
-import ua.adeptius.asterisk.model.Scenario;
-import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.json.*;
+import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.DestinationType;
 import ua.adeptius.asterisk.telephony.ForwardType;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
@@ -88,7 +81,7 @@ public class ScenarioWebController {
     public Object getScenarioById(Integer id, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
 
         if (id == null){
@@ -141,20 +134,35 @@ public class ScenarioWebController {
         String jName = jsonScenario.getName();
         inScenario.setName(jName);
         inScenario.setId(jsonScenario.getId());
+        // сценарий создан
 
+        // создаём правила сценария
         List<JsonRule> jRules = jsonScenario.getRules();
         List<Rule> rules = new ArrayList<>();
+
+//        HashMap<Rule, List<ChainElement>> rulesAndChains = new HashMap<>();
+
+
+        int defaultRulesCount = 0;
+
         for (JsonRule jRule : jRules) {
             try {
-                rules.add(new Rule(jRule));
+                Rule rule = new Rule(jRule);
+                rule.setUser(user); // это для того что бы не вылетел нулл позже при сохранении цепочки
+//                HashMap<Integer, JsonChainElement> jchain = jRule.getChain();
+//                HashMap<Integer, ChainElement> chain = new HashMap<>();
+//                for (Map.Entry<Integer, ChainElement> entry : chain.entrySet()) {
+//                    chain.put(entry.getKey(), new ChainElement(entry.getValue()));
+//                }
+//
+//                rule.setChainByDirectFieldOnlyForWebControllerDontUseRegulary(chain);
+                rules.add(rule); // в конструкторе создаётся rule c цепочкой из json обьекта
             } catch (JsonParseException e) {
                 return new Message(Error, "Parsing error. " + e.getMessage());
             }
         }
 
         // создали inScenario и rules. теперь валидация
-
-        int defaultRulesCount = 0;
         for (Rule rule : rules) {
             String name = rule.getName();
 
@@ -163,48 +171,6 @@ public class ScenarioWebController {
                 rule.setStartHour(0);
                 rule.setEndHour(24);
                 rule.setDays(new boolean[]{true,true,true,true,true,true,true});
-            }
-
-            // валидация номеров телефонов
-            DestinationType destinationType = rule.getDestinationType();
-            List<String> toList = rule.getToList();
-            if (destinationType == SIP){
-                for (String sipNumber : toList) {
-                    if (!user.isThatUserSipNumber(sipNumber)){
-                        return new Message(Error, name + ": Number '" + sipNumber + "' is not SIP");
-                    }
-                }
-            }else if (destinationType == GSM){
-                for (int i = 0; i < toList.size(); i++) {
-                    String gsmNumber = toList.get(i);
-                    try {
-                        toList.set(i, MyStringUtils.cleanAndValidateUkrainianPhoneNumber(gsmNumber));
-                    } catch (IllegalArgumentException e) {
-                        return new Message(Error, name + ": Number '" + gsmNumber + "' is not Ukrainian");
-                    }
-                }
-                rule.setToList(toList);
-            }
-
-            ForwardType forwardType = rule.getForwardType();
-            if (forwardType == TO_ALL){
-                rule.setAwaitingTime(600);
-            }else if (forwardType == QUEUE){
-                if (rule.getAwaitingTime() < 1){
-                    return new Message(Error, name + ": Awaiting time must be higher than 0");
-                }
-            }
-
-
-            try {
-                List<String> melodiesFromCache = getMelodiesFromCache();
-                String melody = rule.getMelody();
-                if (!melodiesFromCache.contains(melody)){
-                    return new Message(Error, name + ": Melody '" + melody + "' does not exist");
-                }
-            } catch (Exception e) {
-                LOGGER.error("Ошибка загрузки мелодий из кэша");
-                return new Message(Error, "Internal error");
             }
 
             int startHour = rule.getStartHour();
@@ -220,6 +186,68 @@ public class ScenarioWebController {
             if (startHour == endHour || startHour > endHour){
                 return new Message(Error, name + ": Wrong time range. From " + startHour + " to " + endHour);
             }
+
+
+            HashMap<Integer, ChainElement> chain = rule.getChain();
+            if (chain.size()==0 && chain.get(0) == null){
+                return new Message(Error, name + ": no chain");
+            }
+
+            for (int i = 0; i < chain.size(); i++) {
+                ChainElement element = chain.get(i);
+                if (element == null) {
+                    return new Message(Error, name + ": wrong numeration");
+                }
+
+                element.setPosition(i); // добавляем нумерацию
+
+                // валидация номеров телефонов
+                DestinationType destinationType = element.getDestinationType();
+                List<String> toList = element.getToList();
+                if (toList.size()==0){
+                    return new Message(Error, name + ": ToList is empty");
+                }
+
+                if (destinationType == SIP){
+                    for (String sipNumber : toList) {
+                        if (!user.isThatUserSipNumber(sipNumber)){
+                            return new Message(Error, name + ": Number '" + sipNumber + "' is not SIP");
+                        }
+                    }
+                }else if (destinationType == GSM){
+                    for (int j = 0; j < toList.size(); j++) {
+                        String gsmNumber = toList.get(j);
+                        try {
+                            toList.set(j, MyStringUtils.cleanAndValidateUkrainianPhoneNumber(gsmNumber));
+                        } catch (IllegalArgumentException e) {
+                            return new Message(Error, name + ": Number '" + gsmNumber + "' is not Ukrainian");
+                        }
+                    }
+                    element.setToList(toList);
+                }
+
+                ForwardType forwardType = element.getForwardType();
+                if (forwardType == TO_ALL){
+                    element.setAwaitingTime(600);
+                }else if (forwardType == QUEUE){
+                    if (element.getAwaitingTime() < 1){
+                        return new Message(Error, name + ": Awaiting time must be higher than 0");
+                    }
+                }
+
+
+                try {
+                    List<String> melodiesFromCache = getMelodiesFromCache();
+                    String melody = element.getMelody();
+                    if (!melodiesFromCache.contains(melody)){
+                        return new Message(Error, name + ": Melody '" + melody + "' does not exist");
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Ошибка загрузки мелодий из кэша");
+                    return new Message(Error, "Internal error");
+                }
+            }
+
         }
         if (defaultRulesCount != 1){
             return new Message(Error, "Scenario must contains one default rule.");
@@ -239,34 +267,80 @@ public class ScenarioWebController {
             }
         }
 
+        int inScenarioId = inScenario.getId();
+
+
+//        ищем cценарий с тем же id
+        Scenario scenarioByName = user.getScenarioByName(jName);
+        if (scenarioByName != null && scenarioByName.getId() != inScenarioId){
+            return new Message(Error, "Scenario '" + jName + "' already present");
+        }
 
         // валидация завершена. Сохраняем всё.
 
-        int inScenarioId = inScenario.getId();
         Scenario presentScenario = user.getScenarioById(inScenarioId);
-
-
-        //todo добавить проверку на случай, если по новому айди вставят сценарий с существующим в базе названием.
-//        ищем cценарий с тем же id
-//        Scenario scenarioByName = user.getScenarioByName(jName);
-//        if (scenarioByName != null && scenarioByName.getId() != inScenarioId){
-//            return new Message(Error, "Scenario '" + jName + "' already present");
-//        }
-
         if (presentScenario != null) {
-            user.removeScenario(presentScenario);
+            user.removeScenarioButLeaveIdInPhone(presentScenario);
         }
 
         user.addScenario(inScenario);
+
         for (Rule rule : rules) {
+            Collection<ChainElement> chainElements = rule.getChain().values();
+            for (ChainElement chainElement : chainElements) {
+                rule.addChainElement(chainElement);
+            }
             inScenario.addRule(rule);
         }
+
 
         // как только сохраняется сценарий - проверить на каких номерах он активирован и поменять имя в телефонах, если оно изменилось.
         HibernateController.update(user);
         return new Message(Success, "Scenario setted");
     }
 
+
+    @PostMapping("/getBindings")
+    public Object getBindings(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid").toString();
+        }
+
+        Set<OuterPhone> outerPhones = user.getOuterPhones();
+        Set<Scenario> scenarios = user.getScenarios();
+
+        return new JsonScenarioBindings(outerPhones, scenarios);
+    }
+
+    @PostMapping("/setBindings")
+    public Object getBindings(HttpServletRequest request, @RequestBody HashMap<String, Integer> newBindings) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid").toString();
+        }
+
+        // проверим все ли присланные id сценариев существуют
+        for (Integer id : newBindings.values()) {
+            if (user.getScenarioById(id) == null){
+                return new Message(Error, "No scenario with id " + id);
+            }
+        }
+
+        for (OuterPhone outerPhone : user.getOuterPhones()) {
+            Integer scenarioId = newBindings.get(outerPhone.getNumber());
+            outerPhone.setScenarioId(scenarioId);// если ключа в мапе нет - вернётся тгдд и телефон освободится.
+        }
+
+        try {
+            HibernateController.update(user);
+            return new Message(Success, "Bindings setted");
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + " ошибка сохранения привязок сценариев к телефонам: " + newBindings, e);
+            return new Message(Error, "Internal error");
+        }
+
+    }
 
 
 

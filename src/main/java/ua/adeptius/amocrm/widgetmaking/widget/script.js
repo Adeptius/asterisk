@@ -80,10 +80,12 @@ define(['jquery'], function ($) {
                     var eventType = incomingMessage.eventType;
                     if (eventType === 'incomingCall' && isActiveTab) {
                         incomingCall(incomingMessage)
+                    } else if (eventType === 'outgoingCall' && isActiveTab) {
+                        outgoingCall(incomingMessage)
                     } else if (eventType === 'wrongToNumber') {
                         AMOCRM.notifications.show_message_error({
                             header: 'Ошибка',
-                            text: 'К сожалению, звонок на номер '+incomingMessage.content+' нельзя осуществить'
+                            text: 'К сожалению, звонок на номер ' + incomingMessage.content + ' нельзя осуществить'
                         });
                     }
                 };
@@ -106,6 +108,38 @@ define(['jquery'], function ($) {
             });
         };
 
+
+        var outgoingCall = function (incomingMessage) {
+            var calledTo = incomingMessage.content;
+
+            jQuery.get('//' + window.location.host + '/private/api/v2/json/contacts/list/?type=all&query=' + calledTo, function (res) {
+                var contactId, contactName, contactCompany, link_type;
+                if (res != undefined && res.response != undefined && res.response.contacts != undefined) {
+                    var contact = res.response.contacts[0];
+                    contactId = contact.id;
+                    contactName = contact.name;
+                    contactCompany = contact.company_name;
+                }
+
+                var notifierBody = '<p><a  href="/contacts/detail/' + contactId + '">' + contactName + ' </a>';
+                notifierBody += (contactCompany ? ', ' + contactCompany : '') + '</p>';
+                // notifierBody += '<p><a  href="/leads/detail/' + createdDealId + '">' + dealName + '</a></p>';
+
+                var notification = $('.popup-inbox');
+                notification.find('.notification-call').remove(); // удаляем существующие уведомления о звонках
+
+                var header = 'Вы звоните ' + calledTo;
+
+                AMOCRM.notifications.show_message({
+                    type: 'call',
+                    header: header,
+                    text: notifierBody
+                });
+
+            });
+        };
+
+
         var incomingCall = function (incomingMessage) {
             var calledFrom = incomingMessage.from;
             var createdDealId = incomingMessage.dealId;
@@ -119,12 +153,8 @@ define(['jquery'], function ($) {
                     contactId = contact.id;
                     contactName = contact.name;
                     contactCompany = contact.company_name;
-                    if (contact.type == 'contact') {
-                        link_type = 'contacts';
-                    } else if (contact.type == 'company') {
-                        link_type = 'companies';
-                    }
                 }
+
                 jQuery.get('//' + window.location.host + '/private/api/v2/json/leads/list?id=' + createdDealId, function (res) {
                     var dealName;
                     if (res != undefined && res.response != undefined && res.response.leads != undefined) {

@@ -1,23 +1,43 @@
 package ua.adeptius.asterisk.utils;
 
 
+import org.asteriskjava.manager.action.CommandAction;
 import org.asteriskjava.manager.action.OriginateAction;
 import org.asteriskjava.manager.action.RedirectAction;
+import org.asteriskjava.manager.response.CommandResponse;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AsteriskActionsGenerator {
 
 
-    public static OriginateAction callToOutside(String internalPhone, String outerPhone){
+    public static OriginateAction callToOutside(String internalPhone, String outerPhone, @Nullable String callerName){
         OriginateAction action = new OriginateAction();
         action.setChannel("SIP/"+internalPhone);
         action.setExten(outerPhone);
+        if (callerName != null) {
+            action.setCallerId(callerName);
+        }else {
+            action.setCallerId(outerPhone);
+        }
         action.setContext("from-internal");
         action.setPriority(1);
-//        action.setVariable("customernum", "1212");
-//        action.setVariable("SIPURI", "sip:2001037@78.159.55.63:39566");
-//        action.setVariable("SIPDOMAIN", "cstat.nextel.com.ua");
-//        action.setVariable("calleridnum", "1212");
-//        action.setVariable("calleridname", "2001037");
+        return action;
+    }
+
+    public static OriginateAction callToOutsideFromOuter(String outerPhone, String destinationPhone, @Nullable String callerName){
+        OriginateAction action = new OriginateAction();
+        action.setChannel("SIP/Intertelekom_main/"+outerPhone);
+        action.setExten(destinationPhone);
+        if (callerName != null) {
+            action.setCallerId(callerName);
+        }else {
+            action.setCallerId(outerPhone);
+        }
+        action.setContext("from-internal");
+        action.setPriority(1);
         return action;
     }
 
@@ -25,12 +45,10 @@ public class AsteriskActionsGenerator {
         RedirectAction action = new RedirectAction();
         action.setChannel(chanel);
         action.setContext("from-internal");
-        action.setExten("2001036");
+        action.setExten(sipTo);
         action.setPriority(1);
         return action;
     }
-
-
 
 
 

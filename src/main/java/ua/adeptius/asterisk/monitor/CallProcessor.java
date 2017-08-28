@@ -25,7 +25,7 @@ public class CallProcessor {
 
     //    public static HashMap<String, Call> calls = new HashMap<>();
     public static HashMap<String, Call> calls = new HashMap<>();
-    private static HashMap<String, User> phonesAndUsers = new HashMap<>();
+    public static HashMap<String, User> phonesAndUsers = new HashMap<>();
 
 
     public static void processEvent(ManagerEvent event, String id) {
@@ -41,10 +41,11 @@ public class CallProcessor {
             NewChannelEvent newChannelEvent = (NewChannelEvent) event;
             String from = addZero(newChannelEvent.getCallerIdNum());
             String to = addZero(newChannelEvent.getExten());
-            if ("s".equals(to) && ("from-internal".equals(newChannelEvent.getContext()))) { // та самая внутренняя линия
-                return; // отбой странной ерунды при редиректе на сип
-                    //генерирует дубли. При звонках снаружи на сип и с сипа на сип можно обойтись без этого s
-            }
+//            if ("s".equals(to) && ("from-internal".equals(newChannelEvent.getContext()))) { // та самая внутренняя линия
+//                return; // отбой странной ерунды при редиректе на сип
+//                    //генерирует дубли. При звонках снаружи на сип и с сипа на сип можно обойтись без этого s
+//            Но при click2Call не видит звонок. Так что закоментировано
+//            }
 
             // Ищем связь с сервисом и определяем направление звонка
             User user = phonesAndUsers.get(to);
@@ -61,7 +62,7 @@ public class CallProcessor {
             }
 
             if (from.length()==7&&from.startsWith("2")&&to.length()==7&&to.startsWith("2")){
-                LOGGER.debug("{}: Обнаружен внутренний звонок. {} -> {}. Не регистрируем...",user.getLogin(), from, to);
+                LOGGER.info("{}: Обнаружен внутренний звонок. {} -> {}. Не регистрируем...",user.getLogin(), from, to);
                 return;
             }
 
@@ -82,7 +83,7 @@ public class CallProcessor {
             call.setDirection(direction);
 
             calls.put(newChannelEvent.getUniqueId(), call);
-            LOGGER.debug("Поступил новый звонок {} ->", call.getCalledFrom());
+            LOGGER.info("Поступил новый звонок {} ->", call.getCalledFrom());
             return;
         }
 
@@ -104,7 +105,7 @@ public class CallProcessor {
                 redirectedTo = redirectedTo.substring(redirectedTo.lastIndexOf("/") + 1);
             }
             call.setCalledTo(redirectedTo);
-            LOGGER.debug("Звонок перенаправлен на {} -> {}", call.getCalledFrom(), call.getCalledTo());
+            LOGGER.info("Звонок перенаправлен на {} -> {}", call.getCalledFrom(), call.getCalledTo());
             MainController.amoCallSender.send(call); // Создаём сделку в Amo или обновляем существующую
             return;
         }
@@ -137,15 +138,15 @@ public class CallProcessor {
                     LOGGER.error("ДОБАВИТЬ СТАТУС ЗВОНКА: {}", dialStatus);
                 }
 
-                LOGGER.debug("Состояние звонка установлено на: {}", call.getCallState());
+                LOGGER.info("Состояние звонка установлено на: {}", call.getCallState());
             }
             return;
         }
 
         if (event instanceof HangupEvent) { // Событие определяет окончание звонка. не содержит никакой инфы при звонке sip->gsm
             HangupEvent hangupEvent = (HangupEvent) event;
-            LOGGER.info("Завершен разговор {} c {}", call.getCalledFrom(), call.getCalledTo());
             LOGGER.trace("ID {} HangupEvent: {}", id, makePrettyLog(hangupEvent));
+            LOGGER.info("Завершен разговор {} c {}", call.getCalledFrom(), call.getCalledTo());
 
             calls.remove(id); // конец звонка. айди звонка больше не будет отслеживатся так как он завершен. Удаляем.
             if (calls.size() > 5) {// По идее мапа должна чистится calls.remove(id), но я не знаю что будет в будущем.
@@ -156,7 +157,7 @@ public class CallProcessor {
             call.setEndedDate(event.getDateReceived());
 
             if ("s".equals(call.getCalledTo())) {
-                LOGGER.trace("{} не дождался совершения исходящего звонка", call.getCalledTo());
+                LOGGER.info("{} не дождался совершения исходящего звонка", call.getCalledTo());
                 return; // обязательно нужен этот отбойник для фильтрования второго звонка при звонке снаружи на сип (gsm - outer- sip)
             }
 
@@ -167,7 +168,7 @@ public class CallProcessor {
             if (call.getCallState() == null) {
                 LOGGER.error("Завершен разговор c состоянием null! " + call);
             } else {
-                LOGGER.debug("Завершен разговор: {}", call);
+                LOGGER.info("Завершен разговор: {}", call);
             }
         }
     }

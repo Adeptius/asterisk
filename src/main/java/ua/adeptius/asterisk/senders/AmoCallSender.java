@@ -78,7 +78,7 @@ public class AmoCallSender extends Thread {
             return;
         }
 
-        LOGGER.info("{}: отправка в Amo {} звонка {}", login, domain, call);
+        LOGGER.debug("{}: отправка в Amo {} звонка {}", login, domain, call);
 
 
         // Нужен phoneId и EnumId для создания контакта
@@ -98,6 +98,7 @@ public class AmoCallSender extends Thread {
                 HibernateController.update(user);
             } catch (AmoWrongLoginOrApiKeyExeption e) {
                 LOGGER.debug("{}: Не правильный логин или пароль к AMO аккаунту {}", login, amoAccount);
+                return;
             } catch (Exception e) {
                 LOGGER.error(login + ": Не удалось получить айдишники телефонов или сохранить пользователя", e);
                 return;
@@ -107,9 +108,8 @@ public class AmoCallSender extends Thread {
         int startedLeadId = amoAccount.getLeadId(); // айдишник этапа сделки
 
 //        Все данные готовы. Теперь отправляем инфу.
-
         if (call.getAmoDealId() == 0) {
-            LOGGER.trace("{}: Только позвонили - это первый редирект. Создаём или привязываем сделку", login);
+            LOGGER.info("{}: Только позвонили - это первый редирект. Создаём или привязываем сделку", login);
             try {
                 createOrFindDeal(amoAccount, startedLeadId, user, call);
                 // Сделка создана или была и найдена. Теперь оповещаем пользователя о том, что ему звонят
@@ -124,37 +124,52 @@ public class AmoCallSender extends Thread {
         //Сделку уже создали или нашли. Возможно сотрудник не ответил и это редирект другому сотруднику.
         // CallState null только если еще никто не ответил, а просто выполнился еще один редирект
         if (call.getCallState() == null) {
-            LOGGER.trace("{}: Еще никто не ответил на звонок, просто выполнился еще один редирект", login);
-            sendWsMessage(amoAccount, call,dial);
+            LOGGER.info("{}: Еще никто не ответил на звонок, просто выполнился еще один редирект", login);
+            sendWsMessage(amoAccount, call, dial);
             return;
         }
 
         //Проверим сначала не завершен ли звонок
         if (call.isCallIsEnded()) {
-            LOGGER.trace("{}: Звонок завершен проверяем отвечен ли он или нет", login);
+            LOGGER.info("{}: Звонок завершен проверяем отвечен ли он или нет", login);
+            try {
+                AmoDAO.addCallToNotes(amoAccount, call);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             if (call.getCallState() == Call.CallState.ANSWER) {
-                sendWsMessage(amoAccount, call,ended);
+                sendWsMessage(amoAccount, call, ended);
                 return;
 
             } else {
-                sendWsMessage(amoAccount, call,noanswer);
+                sendWsMessage(amoAccount, call, noanswer);
                 return;
             }
+
         }
 
 
-        // если мы здесь - значит CallState не null - произошел либо ответ либо сбой. выясняем
+        // если мы здесь - значит звонок не завершен. Скорее всего на него ответили
         if (call.getCallState() == Call.CallState.ANSWER) { // на звонок ответили
-            LOGGER.trace("{}: Произошел какой-то сбой при звонке, но он был отвечен", login);
-            sendWsMessage(amoAccount, call,answer);
-
-        } else { // на звонок не ответили. Просто сообщаем что был звонок
-            LOGGER.trace("{}: Произошел какой-то сбой при звонке и ответа не было", login);
-            sendWsMessage(amoAccount, call,noanswer);
+            LOGGER.info("{}: На звонок только что ответили. Трубку поднял {}", login, call.getCalledTo());
+            sendWsMessage(amoAccount, call, answer);
         }
+
+
+//        else { // на звонок не ответили. Просто сообщаем что был звонок
+//            try {
+//                AmoDAO.addNewComent(amoAccount, call.getAmoDealId(), "На звонок не ответили. Возможно сбой", call.getCalculatedModifiedTime());
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//            LOGGER.trace("{}: Произошел какой-то сбой при звонке и ответа не было", login);
+//            sendWsMessage(amoAccount, call, noanswer);
+//            throw new RuntimeException("По какой-то причине звонок не завершен и нам вернулся STATE="+call.getCallState()+" call="+call);
+//        }
     }
 
-    private void sendWsMessage(AmoAccount amoAccount, Call call, MessageCallPhase callPhase){
+    private void sendWsMessage(AmoAccount amoAccount, Call call, MessageCallPhase callPhase) {
         String workersId = amoAccount.getWorkersId(call.getCalledTo());
         if (workersId != null) {// мы знаем id работника.
             String login = amoAccount.getUser().getLogin();
@@ -164,11 +179,11 @@ public class AmoCallSender extends Thread {
             message.setCallId(call.getAsteriskId());
             message.setCallPhase(callPhase);
             WebSocket.sendMessage(workersId, message);// отправляем
-            if (callPhase == noanswer){
+            if (callPhase == noanswer) {
                 LOGGER.trace("{}: Отправлено WS сообщение, что звонок был пропущен.", login);
-            }else if (callPhase == answer || callPhase == ended){
+            } else if (callPhase == answer || callPhase == ended) {
                 LOGGER.trace("{}: Отправлено WS сообщение, что ответ на звонок был.", login);
-            }else if (callPhase == dial){
+            } else if (callPhase == dial) {
                 LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
             }
         }
@@ -178,27 +193,30 @@ public class AmoCallSender extends Thread {
     private void createOrFindDeal(AmoAccount amoAccount, int startedLeadId, User user, Call call) throws Exception {
         String contactName = "Уточнить имя";
         String contactNumber = call.getCalledFrom();
+        String login = user.getLogin();
 
         // Сначала проверяем есть ли уже такой контакт
         JsonAmoContact jsonAmoContact = AmoDAO.getContactIdByPhoneNumber(amoAccount, contactNumber);
 
         if (jsonAmoContact == null) { //если такого контакта еще нет - создаём и контакт и сделку.
-            LOGGER.debug("Контакт AMO по телефону {} не найден. Создаём новый контакт и сделку.", contactNumber);
+            LOGGER.debug("{}: Контакт AMO по телефону {} не найден. Создаём новый контакт и сделку.", login, contactNumber);
 
             IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", startedLeadId);
-            call.setAmoDealId(idPairTime.getId()); // ПРИВЯЗКА
+            int dealId = idPairTime.getId();
+            call.setAmoDealId(dealId); // ПРИВЯЗКА
             call.setLastOperationTime(idPairTime.getTime());
 
-            AmoDAO.addNewContactNewMethod(amoAccount, contactNumber, idPairTime.getId(), "Nextel", contactName);
-            LOGGER.debug("Новый контакт и сделка для пользователя {} созданы!", user.getLogin());
+            int contactId = AmoDAO.addNewContactNewMethod(amoAccount, contactNumber, dealId, "Nextel", contactName);
+            LOGGER.debug("{}: Новый контакт {} и сделка {} созданы!", login, contactId, dealId);
+            call.setAmoContactId(contactId);
 
         } else { // контакт уже есть.
             LOGGER.debug("Контакт AMO по телефону {} найден. id={} Ищем и обновляем сделку.", contactNumber, jsonAmoContact.getId());
+            call.setAmoContactId(jsonAmoContact.getId());
             // нужно найти сделки привязанные к этому контакту
             JsonAmoDeal latestActiveDial = AmoDAO.getContactsLatestActiveDial(amoAccount, jsonAmoContact);
 
             if (latestActiveDial != null) { // если у контакта есть уже открытая сделка - то просто добавляем комент
-                AmoDAO.addNewComent(amoAccount, latestActiveDial.getIdInt(), "Повторный звонок от клиента.", call.getCalculatedModifiedTime());
                 call.setAmoDealId(latestActiveDial.getIdInt());
                 call.setLastOperationTime(latestActiveDial.getServerResponseTime());
 
