@@ -1,9 +1,9 @@
 package ua.adeptius.asterisk;
 
 
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import org.asteriskjava.Cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,10 @@ import ua.adeptius.asterisk.monitor.*;
 
 
 @Component
-//@EnableWebMvc
+@EnableWebMvc
 public class Main {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(Main.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(Main.class.getSimpleName());
     private static boolean startedOnWindows;
     public static AsteriskMonitor monitor;
 
@@ -29,41 +29,41 @@ public class Main {
         checkIfNeedRestartAndSetVariables();
     }
 
-    private void checkIfNeedRestartAndSetVariables(){
+    private void checkIfNeedRestartAndSetVariables() {
         boolean itsLinux = "root".equals(System.getenv().get("USER"));
         boolean firstStart = Settings.getSettingBoolean("firstStart");
         LOGGER.info("Сервер загружается");
 
-        if (itsLinux){ // это линукс
+        if (itsLinux) { // это линукс
             LOGGER.info("OS Linux");
-            Settings.setSetting("folder.rules","/var/www/html/admin/modules/core/etc/clients/");
-            Settings.setSetting("folder.sips","/etc/asterisk/sip_clients/");
-            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","cstat.nextel.com.ua:8443");
+            Settings.setSetting("folder.rules", "/var/www/html/admin/modules/core/etc/clients/");
+            Settings.setSetting("folder.sips", "/etc/asterisk/sip_clients/");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT", "cstat.nextel.com.ua:8443");
 
-        }else { // Это винда
+        } else { // Это винда
             LOGGER.info("OS Windows");
             startedOnWindows = true;
-            Settings.setSetting("folder.rules","D:\\home\\adeptius\\tomcat\\rules\\");
-            Settings.setSetting("folder.sips","D:\\home\\adeptius\\tomcat\\sips\\");
-            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT","adeptius.pp.ua:8443");
+            Settings.setSetting("folder.rules", "D:\\home\\adeptius\\tomcat\\rules\\");
+            Settings.setSetting("folder.sips", "D:\\home\\adeptius\\tomcat\\sips\\");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT", "adeptius.pp.ua:8443");
         }
 
         if (firstStart && itsLinux) {
             Settings.setSetting("firstStart", "false");
             LOGGER.info("------------------- TOMCAT RESTARTING NOW!!! -------------------");
             try {
-                String[] cmd = { "/bin/sh", "-c", "pkill -9 java; sleep 1; sh /home/adeptius/tomcat/apache-tomcat-9.0.0.M17/bin/startup.sh" };
+                String[] cmd = {"/bin/sh", "-c", "pkill -9 java; sleep 1; sh /home/adeptius/tomcat/apache-tomcat-9.0.0.M17/bin/startup.sh"};
                 Runtime.getRuntime().exec(cmd);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else {
+        } else {
             LOGGER.info("------------------- TOMCAT READY!!! -------------------");
             afterTomcatRebootInit();
         }
     }
 
-    private void afterTomcatRebootInit(){
+    private void afterTomcatRebootInit() {
 
         LOGGER.info("Начало инициализации модели");
         try {
@@ -80,7 +80,7 @@ public class Main {
             LOGGER.info("Hibernate: Загрузка всех пользователей");
             UserContainer.setUsers(HibernateController.getAllUsers());
             LOGGER.info("Hibernate: Загружено {} пользователей", UserContainer.getUsers().size());
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.error("Hibernate: Ошибка загрузки пользователей", e);
             throw new RuntimeException("ОШИБКА ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ");
         }
@@ -114,16 +114,18 @@ public class Main {
             e.printStackTrace();
         }
 
-        if (startedOnWindows){
-            try{
+        new Cli().start();
+
+        if (startedOnWindows) {
+            try {
                 HttpResponse<String> response = Unirest
                         .post("http://cstat.nextel.com.ua/tracking/scenario/getMelodies")
                         .header("content-type", "application/json")
                         .asString();
-                if (response.getStatus()==200){
+                if (response.getStatus() == 200) {
                     System.out.println("!!!!!!!!!!!!!!!!!!!ВНИМАНИЕ! ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!!!!!!!!!!!");
                 }
-            }catch (Exception ignored){
+            } catch (Exception ignored) {
             }
         }
     }

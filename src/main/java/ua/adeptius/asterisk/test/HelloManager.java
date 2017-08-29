@@ -1,7 +1,9 @@
 package ua.adeptius.asterisk.test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.asteriskjava.manager.AuthenticationFailedException;
 import org.asteriskjava.manager.ManagerConnection;
@@ -26,12 +28,17 @@ public class HelloManager {
     }
 
     public void call() throws IOException, AuthenticationFailedException, TimeoutException, InterruptedException {
-        CommandAction action= new CommandAction();
-//        action.setCommand("sip show channelstats");
-        action.setCommand("core show help");
+
+
+        long t0 = System.nanoTime();
+        CommandAction action = new CommandAction();
+        action.setCommand("sip show inuse");
+//        action.setCommand("core show help");
 ////        action.setCommand("core show hanguphandlers all");
         CommandResponse response = (CommandResponse) managerConnection.sendAction(action);
         List<String> list = response.getResult();
+        System.out.println(TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - t0));
+
         list.forEach(System.err::println);
 
 //        OriginateAction action = AsteriskActionsGenerator.callToOutside("2001036", "0934027182", "Vova");

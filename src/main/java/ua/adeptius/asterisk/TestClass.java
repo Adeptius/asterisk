@@ -1,61 +1,50 @@
 package ua.adeptius.asterisk;
 
-
-
-import org.asteriskjava.Cli;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import it.sauronsoftware.jave.AudioAttributes;
+import it.sauronsoftware.jave.Encoder;
+import it.sauronsoftware.jave.EncodingAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ua.adeptius.asterisk.dao.Settings;
-import ua.adeptius.asterisk.test.AsteriskQueqe;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-
+import java.io.File;
 
 public class TestClass {
-
 
     public static void main(String[] args) throws Exception {
         TestClass testClass = new TestClass();
         testClass.test();
     }
-    private void test() throws Exception{
-        ApplicationContext context = new AnnotationConfigApplicationContext("ua.adeptius");
-        Settings.load(this.getClass());
 
-        new Cli().parseOptions(new String[]{});
-//        MySqlStatisticDao.init();
-//        MySqlStatisticDao.getListOfTables().forEach(System.out::println);
-//        MySqlStatisticDao.getStatisticOfRange()
+    private void test() throws Exception {
+//        ApplicationContext context = new AnnotationConfigApplicationContext("ua.adeptius");
 
-
-//        List<String> sips = new ArrayList<>();
-//        sips.add("1111");
-//        sips.add("2222");
-//        sips.add("3333");
+//        AudioAttributes audioAttributes = new AudioAttributes();
+//        audioAttributes.setChannels(1);
+//        audioAttributes.setBitRate(128);
+//        audioAttributes.setSamplingRate(8000);
 //
-//        AsteriskQueqe queqe = new AsteriskQueqe();
-//        queqe.setSips(sips);
-//        queqe.setForwardType(ROUND);
+//        EncodingAttributes encodingAttributes = new EncodingAttributes();
+//        encodingAttributes.setAudioAttributes(audioAttributes);
+//        encodingAttributes.setDuration(20f);
 //
-//        for (int i = 0; i < 10; i++) {
-//            System.out.println(queqe.getNextOperator());
-//        }
+//        Encoder encoder = new Encoder();
+//
+//        encoder.encode(
+//                new File("D:\\Barns Courtney – Fire.mp3"),
+//                new File("D:\\Barns.mp3"),
+//                encodingAttributes
+//                );
 
 
-//        Random random = new Random();
-//        HashMap<Integer, Integer> map = new HashMap<>();
-//        for (int i = 0; i < 10000; i++) {
-//            int randomInt = 1+random.nextInt(5);
-//            Integer integer = map.computeIfAbsent(randomInt, k -> 0);
-//            integer++;
-//            map.put(randomInt, integer);
-//        }
-//        map.forEach((integer, integer2) -> System.out.println(integer + " = " + integer2));
-
+        HttpResponse<String> stringHttpResponse = Unirest.post("http://localhost:8080/tracking/melodies/upload")
+                .header("Authorization", "i am registered user")
+                .field("file", new File("D:\\YandexDisk\\Мои фото\\Java\\20170812_184811_Richtone(HDR).jpg"))
+//                .field("file", new File("D:\\YandexDisk\\YouTube\\BEST OF DASHCAMS - Driving Fails Compilation - Episode #180 HD.mp4"))
+                .field("name", "Some greeting")
+                .asString();
+        System.out.println(stringHttpResponse.getBody());
 
     }
-
 }
