@@ -1,7 +1,6 @@
 package ua.adeptius.asterisk.spring_config;
 
 
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
@@ -10,13 +9,8 @@ import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletRegistration;
 import java.io.File;
 
-@Configuration
 public class WebInit extends AbstractAnnotationConfigDispatcherServletInitializer {
-    @Override
-    protected Class<?>[] getRootConfigClasses() {
-//        return new Class[]{};
-        return new Class[]{RootConfig.class};
-    }
+
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
@@ -29,6 +23,12 @@ public class WebInit extends AbstractAnnotationConfigDispatcherServletInitialize
     }
 
     @Override
+    protected Class<?>[] getRootConfigClasses() {
+//        return new Class[]{RootConfig.class};
+        return null;
+    }
+
+    @Override
     protected Filter[] getServletFilters() {
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding("UTF-8");
@@ -38,18 +38,11 @@ public class WebInit extends AbstractAnnotationConfigDispatcherServletInitialize
 
     @Override
     protected void customizeRegistration(ServletRegistration.Dynamic registration) {
-
         // temp file will be uploaded here
         File uploadDirectory = new File(System.getProperty("java.io.tmpdir"));
-
-        // register a MultipartConfigElement
-        int maxUploadSizeInMb = 10 * 1024 * 1024;
+        int maxUploadSizeInMb = 5 * 1024 * 1024;
         MultipartConfigElement multipartConfigElement = new MultipartConfigElement(
-                uploadDirectory.getAbsolutePath(),
-                maxUploadSizeInMb,
-                maxUploadSizeInMb * 2,
-                maxUploadSizeInMb / 2);
-
+                uploadDirectory.getAbsolutePath(),maxUploadSizeInMb,maxUploadSizeInMb*2,0);
         registration.setMultipartConfig(multipartConfigElement);
     }
 }

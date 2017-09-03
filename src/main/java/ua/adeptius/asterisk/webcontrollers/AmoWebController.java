@@ -246,13 +246,11 @@ public class AmoWebController {
                 }
             }
 
-
             AmoOperatorLocation location = new AmoOperatorLocation();
             location.setLogin(user.getLogin());
             location.setName("location");
             location.setAmoUserIdAndInnerNumber(newHashAmoBindings);
             user.setAmoOperatorLocations(location);
-
 
             HibernateController.update(user);
             return new Message(Message.Status.Success, "Bindings saved");

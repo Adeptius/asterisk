@@ -11,6 +11,24 @@ public class JsonRule {
     private Integer endHour;
     private boolean[] days = null;
     HashMap<Integer, JsonChainElement> chain;
+    private Integer greeting;
+    private Integer message;
+
+    public Integer getGreeting() {
+        return greeting;
+    }
+
+    public void setGreeting(Integer greeting) {
+        this.greeting = greeting;
+    }
+
+    public Integer getMessage() {
+        return message;
+    }
+
+    public void setMessage(Integer message) {
+        this.message = message;
+    }
 
     public String getName() {
         return name;

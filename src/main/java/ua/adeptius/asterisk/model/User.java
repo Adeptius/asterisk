@@ -80,6 +80,10 @@ public class User {
     @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<ChainElement> chainElements;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "login", referencedColumnName = "login")
+    private Set<UserMelody> userMelodies;
+
     @JsonProperty
     @Transient
     public AmoAccount getAmoAccount() {
@@ -333,7 +337,20 @@ public class User {
         chainElements.remove(element);
     }
 
+    /**
+     * User Melodies
+     */
+    public Set<UserMelody> getUserMelodies() {
+        return Collections.unmodifiableSet(userMelodies);
+    }
 
+    public void addMelody(UserMelody melody){
+        userMelodies.add(melody);
+    }
+
+    public void removeMelody(UserMelody melody){
+        userMelodies.remove(melody);
+    }
 
     public static void setLOGGER(Logger LOGGER) {
         User.LOGGER = LOGGER;
@@ -370,7 +387,6 @@ public class User {
     public void setTrackingId(String trackingId) {
         this.trackingId = trackingId;
     }
-
 
     @Override
     public String toString() {

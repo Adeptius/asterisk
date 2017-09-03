@@ -4,7 +4,6 @@ package ua.adeptius.asterisk.monitor;
 import org.asteriskjava.manager.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.*;
@@ -19,11 +18,12 @@ import java.util.stream.Collectors;
 import static ua.adeptius.asterisk.model.Call.CallState.*;
 import static ua.adeptius.asterisk.model.Call.Direction.IN;
 
+@SuppressWarnings("Duplicates")
 public class CallProcessor {
 
     private static Logger LOGGER = LoggerFactory.getLogger(CallProcessor.class.getSimpleName());
 
-    //    public static HashMap<String, Call> calls = new HashMap<>();
+    //    public static HashMap<String, Call> chanelsAndCalls = new HashMap<>();
     public static HashMap<String, Call> calls = new HashMap<>();
     public static HashMap<String, User> phonesAndUsers = new HashMap<>();
 
@@ -33,7 +33,7 @@ public class CallProcessor {
         /**
          * Только NewChannelEvent означает что это новый звонок
          * И только в случае, если он содержит номер какого-либо сервиса пользователя - то ID этого ивента
-         * добавляется в мапу calls для его дальнейшего отслеживания.
+         * добавляется в мапу chanelsAndCalls для его дальнейшего отслеживания.
          *
          * Другие NewChannelEvent, у которых связи с пользователями нет - игнорируются
          */
@@ -149,7 +149,7 @@ public class CallProcessor {
             LOGGER.info("Завершен разговор {} c {}", call.getCalledFrom(), call.getCalledTo());
 
             calls.remove(id); // конец звонка. айди звонка больше не будет отслеживатся так как он завершен. Удаляем.
-            if (calls.size() > 5) {// По идее мапа должна чистится calls.remove(id), но я не знаю что будет в будущем.
+            if (calls.size() > 5) {// По идее мапа должна чистится chanelsAndCalls.remove(id), но я не знаю что будет в будущем.
                 LOGGER.warn("Айдишников<->Звонков в мапе {}", calls.size());
             }// Если в мапе будут накапливатся айдишники, а такое наверное может быть если астериск по какой-то причине
             // создаст новый канал, а в конце не выдаст по нему hangUpEvent, то надо будет что-то думать.

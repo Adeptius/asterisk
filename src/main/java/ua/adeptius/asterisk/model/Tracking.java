@@ -1,18 +1,6 @@
 package ua.adeptius.asterisk.model;
 
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.controllers.PhonesController;
-import ua.adeptius.asterisk.dao.PhonesDao;
-import ua.adeptius.asterisk.monitor.CallProcessor;
-
-import javax.persistence.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
-
 //@SuppressWarnings("Duplicates")
 //@Entity
 //@Table(name = "tracking", schema = "calltrackdb")

@@ -34,7 +34,7 @@ public class Scheduler{
     /**
      * ConnectionKeeper
      */
-    @Scheduled(fixedDelay = 60000) // Каждую минуту
+    @Scheduled(initialDelay = 1000, fixedDelay = 60000) // Каждую минуту
     public void keepConnectHibernate(){
         try {
             HibernateController.getUserByLogin("e404");
@@ -135,7 +135,7 @@ public class Scheduler{
      * Scenario writer
      */
     private static int scenarioTries = 0;
-    @Scheduled(cron = "0 55 * * * ?") // в 55 минут каждого часа
+    @Scheduled(cron = "0 59 * * * ?") // в 55 минут каждого часа
     private void generateConfig(){
         LOGGER.trace("Начинается запись всех конфигов астериска в файлы.");
 
@@ -146,13 +146,13 @@ public class Scheduler{
         } catch (Exception e) {
             scenarioTries++;
             LOGGER.error("Ошибка записи конфигов. Повтор через 30 секунд", e);
-            if (scenarioTries > 3){
-                LOGGER.error("3 ошибки записи конфигов. прекращаю запись");
+            if (scenarioTries > 2){
+                LOGGER.error("2 ошибки записи конфигов. прекращаю запись");
                 return;
             }
             new Thread(() -> {
                 try {
-                    Thread.sleep(30000);
+                    Thread.sleep(10000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
@@ -166,7 +166,7 @@ public class Scheduler{
         CallProcessor.updatePhonesHashMap();
     }
 
-    @Scheduled(fixedDelay = 20000)
+    @Scheduled(initialDelay = 1000 ,fixedDelay = 20000)
     private void initMonitor() {
         if (monitor == null) {
             try {

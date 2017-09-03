@@ -3,14 +3,14 @@ package ua.adeptius.asterisk.test;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.*;
 import org.asteriskjava.manager.event.*;
-import org.asteriskjava.manager.response.ManagerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.dao.Settings;
+import ua.adeptius.asterisk.monitor.AsteriskLogAnalyzer;
 import ua.adeptius.asterisk.monitor.CallProcessor;
-import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +23,7 @@ public class HelloMonitor implements ManagerEventListener {
 
     public HelloMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                "cstat.nextel.com.ua","adeptius","ccb6f130f89de0bab95df361669e32ba");
+                "cstat.nextel.com.ua", "adeptius", "ccb6f130f89de0bab95df361669e32ba");
         this.managerConnection = factory.createManagerConnection();
     }
 
@@ -37,7 +37,7 @@ public class HelloMonitor implements ManagerEventListener {
     public static void main(String[] args) throws Exception {
         HelloMonitor helloMonitor = new HelloMonitor();
         helloMonitor.run();
-        while(true){
+        while (true) {
             Thread.sleep(1000);
         }
     }
@@ -52,90 +52,208 @@ public class HelloMonitor implements ManagerEventListener {
 //        return managerConnection.sendAction(callToOutside, 10000);
 //    }
 
+    String chanelToShow = null;
+
+
     public void onManagerEvent(ManagerEvent event) {
-        if (event instanceof VarSetEvent && event.toString().contains("value=null")){
+
+//        if (event instanceof NewChannelEvent) {
+//            NewChannelEvent newChannelEvent = (NewChannelEvent) event;
+//
+//            AsteriskLogAnalyzer.analyze(event);
+//        } else if (event instanceof HangupEvent) {
+//            HangupEvent hangupEvent = (HangupEvent) event;
+//
+//
+//
+//            AsteriskLogAnalyzer.analyze(event);
+//        } else if (event instanceof NewExtenEvent) {
+//            NewExtenEvent newExtenEvent = (NewExtenEvent) event;
+//            if (
+//                    newExtenEvent.getExtension().equals("recordcheck")
+////                            || newExtenEvent.getContext().equals("sub-record-check") // что это?
+//                            || newExtenEvent.getApplication().equals("Set")
+//                            || newExtenEvent.getApplication().equals("GotoIf")
+//                            || newExtenEvent.getApplication().equals("ExecIf")
+//                            || newExtenEvent.getApplication().equals("GosubIf")
+//                            || newExtenEvent.getApplication().equals("Macro")
+//                            || newExtenEvent.getApplication().equals("MacroExit")
+//                            || newExtenEvent.getApplication().equals("AGI")
+//                    ){
+//                return;
+//            }
+//
+//
+//            AsteriskLogAnalyzer.analyze(event);
+//        } else if (event instanceof VarSetEvent) {
+//            VarSetEvent varSetEvent = (VarSetEvent) event;
+//            List<String> variablesToSkip = new ArrayList<>();
+//            variablesToSkip.add("MACRO_DEPTH");
+//            variablesToSkip.add("NOW");
+//            variablesToSkip.add("__DAY");
+//            variablesToSkip.add("__MONTH");
+//            variablesToSkip.add("__TIMESTR");
+//            variablesToSkip.add("__MON_FMT");
+//            variablesToSkip.add("__REC_POLICY_MODE");
+//            variablesToSkip.add("__CALLFILENAME");
+//            variablesToSkip.add("MIXMONITOR_FILENAME");
+//            variablesToSkip.add("LOCAL_MIXMON_ID");
+//            variablesToSkip.add("__MIXMON_ID");
+//            variablesToSkip.add("__RECORD_ID");
+//            variablesToSkip.add("LOCAL(ARG1)");
+//            variablesToSkip.add("LOCAL(ARG2)");
+//            variablesToSkip.add("LOCAL(ARG3)");
+//            variablesToSkip.add("LOCAL(ARGC)");
+//            variablesToSkip.add("SIPDOMAIN");
+//            variablesToSkip.add("AJ_AGISTATUS");
+//            variablesToSkip.add("AGISTATUS");
+//            variablesToSkip.add("BRIDGEPVTCALLID");
+//            variablesToSkip.add("BRIDGEPEER");
+//            variablesToSkip.add("FROMEXTEN");
+//            variablesToSkip.add("NoOp");
+//            variablesToSkip.add("SIPCALLID");
+//            variablesToSkip.add("num");
+//            variablesToSkip.add("");
+//            variablesToSkip.add("__FROM_DID");
+//            variablesToSkip.add("MACRO_EXTEN");
+//            variablesToSkip.add("MACRO_CONTEXT");
+//            variablesToSkip.add("MACRO_PRIORITY");
+//            variablesToSkip.add("ARG1");
+//            variablesToSkip.add("ARG2");
+//            variablesToSkip.add("TOUCH_MONITOR");
+//            variablesToSkip.add("AMPUSER");
+//            variablesToSkip.add("MOHCLASS");
+//            variablesToSkip.add("ARG4");
+//            variablesToSkip.add("DIAL_TRUNK");
+//            variablesToSkip.add("OUTBOUND_GROUP");
+//            variablesToSkip.add("DB_RESULT");
+//            variablesToSkip.add("TRUNKOUTCID"); // внешний шлюз
+//            variablesToSkip.add("REALCALLERIDNUM");
+//            variablesToSkip.add("TRUNKCIDOVERRIDE");
+//            variablesToSkip.add("OUTNUM");
+//            variablesToSkip.add("DIAL_NUMBER");
+//            variablesToSkip.add("custom");
+//            variablesToSkip.add("MACRO_IN_HANGUP");
+//            variablesToSkip.add("SIPURI");
+//            variablesToSkip.add("DIALSTATUS"); // содержит CHANUNAVAIL ANSWER
+//
+//            String variable = varSetEvent.getVariable();
+//            String value = varSetEvent.getValue();
+//            if (value == null || value.equals("null") || variable.startsWith("RTPAUDIOQOS") || variablesToSkip.contains(variable)) {
+//                return;
+//            }
+//
+//
+//            AsteriskLogAnalyzer.analyze(event);
+//        }
+
+        if (event instanceof NewChannelEvent) {
+            NewChannelEvent newChannelEvent = (NewChannelEvent) event;
+            System.out.println(makePrettyLog(event));
+            AsteriskLogAnalyzer.analyze(event);
             return;
         }
 
-//        if (event instanceof NewChannelEvent){
-//            NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-//            String callerIdNum = newChannelEvent.getCallerIdNum();
-//            if (!"934027182".equals(callerIdNum)){
-//                return;
-//            }
-//            String channel = newChannelEvent.getChannel();
-////            RedirectAction redirectAction = AsteriskActionsGenerator.redirectChanelToSip(newChannelEvent.getChannel(), "2001036");
-//
-//
-////            QueueAddAction queueAddAction = new QueueAddAction();
-////            queueAddAction.setQueue("queue1");
-////            queueAddAction.setPaused(true);
-////            queueAddAction.setInterface();
-//
-//
-////            RedirectAction action = new RedirectAction();
-////            action.setChannel(channel);
-////            action.setContext("from-internal");
-////            action.setExten("2001036");
-////            action.setPriority(2);
-////            try {
-////                System.err.println(action);
-////                ManagerResponse managerResponse = managerConnection.sendAction(action, 10000);
-////                System.err.println(managerResponse);
-////            } catch (IOException e) {
-////                e.printStackTrace();
-////            } catch (TimeoutException e) {
-////                e.printStackTrace();
-////                System.out.println("TIMEOUT!!");
-////                action = new RedirectAction();
-////                action.setChannel(channel);
-////                action.setContext("from-word");
-////                action.setExten("443211118");
-////                action.setPriority(1);
-////                try {
-////                    ManagerResponse managerResponse = managerConnection.sendAction(action, 10000);
-////                    System.err.println(managerResponse);
-////                } catch (IOException e1) {
-////                    e1.printStackTrace();
-////                } catch (TimeoutException e1) {
-////                    System.out.println("Timeout2 ignored");
-////                    e1.printStackTrace();
-////                }
-////            }
-//        }
+        if (event instanceof HangupEvent) {
+            HangupEvent hangupEvent = (HangupEvent) event;
+            System.out.println(makePrettyLog(event));
+            AsteriskLogAnalyzer.analyze(event);
+            return;
+        }
 
 
-        System.out.println(makePrettyLog(event));
-//        try{
-//            if (event instanceof NewChannelEvent) {
-//                CallProcessor.processEvent(event, ((NewChannelEvent) event).getUniqueId());
-//
-//            } else if (event instanceof HangupEvent) {
-//                CallProcessor.processEvent(event, ((HangupEvent) event).getUniqueId());
-//
-//            } else if (event instanceof NewExtenEvent) {
-//                NewExtenEvent extenEvent = (NewExtenEvent) event;
-//                if (!(extenEvent.getApplication().equals("Dial"))) {
-//                    return;
-//                }
-//                CallProcessor.processEvent(event, extenEvent.getUniqueId());
-//
-//            } else if (event instanceof VarSetEvent) {
-//                VarSetEvent varSetEvent = (VarSetEvent) event;
-//                String key = varSetEvent.getVariable();
-//                String value = varSetEvent.getValue();
-//                if (!key.equals("DIALSTATUS")) {
-//                    return;
-//                }
-//                if (value == null) {
-//                    return;
-//                }
-//                CallProcessor.processEvent(event, varSetEvent.getUniqueId());
-//            }
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        if (event instanceof NewExtenEvent) {
+            NewExtenEvent newExtenEvent = (NewExtenEvent) event;
+            if (
+                    newExtenEvent.getExtension().equals("recordcheck")
+                            || newExtenEvent.getContext().equals("sub-record-check")
+                            || newExtenEvent.getApplication().equals("Set")
+                            || newExtenEvent.getApplication().equals("GotoIf")
+                            || newExtenEvent.getApplication().equals("ExecIf")
+                            || newExtenEvent.getApplication().equals("GosubIf")
+                            || newExtenEvent.getApplication().equals("Macro")
+                            || newExtenEvent.getApplication().equals("MacroExit")
+                            || newExtenEvent.getApplication().equals("AGI")
+                            || newExtenEvent.getApplication().equals("NoOp")
+                            || newExtenEvent.getApplication().equals("Gosub")
+                    ) {
+                return;
+            }
+            System.out.println(makePrettyLog(event));
+            AsteriskLogAnalyzer.analyze(event);
+            return;
+        }
+
+
+        if (event instanceof VarSetEvent) {
+            VarSetEvent varSetEvent = (VarSetEvent) event;
+            List<String> variablesToSkip = new ArrayList<>();
+            variablesToSkip.add("MACRO_DEPTH");
+            variablesToSkip.add("NOW");
+            variablesToSkip.add("__DAY");
+            variablesToSkip.add("__MONTH");
+            variablesToSkip.add("__YEAR");
+            variablesToSkip.add("__TIMESTR");
+            variablesToSkip.add("__MON_FMT");
+            variablesToSkip.add("__REC_POLICY_MODE");
+            variablesToSkip.add("__CALLFILENAME");
+            variablesToSkip.add("MIXMONITOR_FILENAME");
+            variablesToSkip.add("LOCAL_MIXMON_ID");
+            variablesToSkip.add("__MIXMON_ID");
+            variablesToSkip.add("__RECORD_ID");
+            variablesToSkip.add("__REC_STATUS");
+            variablesToSkip.add("LOCAL(ARG1)");
+            variablesToSkip.add("LOCAL(ARG2)");
+            variablesToSkip.add("LOCAL(ARG3)");
+            variablesToSkip.add("LOCAL(ARGC)");
+            variablesToSkip.add("SIPDOMAIN");
+            variablesToSkip.add("AJ_AGISTATUS");
+            variablesToSkip.add("AGISTATUS");
+            variablesToSkip.add("BRIDGEPVTCALLID");
+            variablesToSkip.add("BRIDGEPEER");
+            variablesToSkip.add("FROMEXTEN");
+            variablesToSkip.add("NoOp");
+            variablesToSkip.add("SIPCALLID");
+            variablesToSkip.add("num");
+            variablesToSkip.add("");
+            variablesToSkip.add("__FROM_DID");
+            variablesToSkip.add("MACRO_EXTEN");
+            variablesToSkip.add("MACRO_CONTEXT");
+            variablesToSkip.add("MACRO_PRIORITY");
+            variablesToSkip.add("ARG1");
+            variablesToSkip.add("ARG2");
+            variablesToSkip.add("TOUCH_MONITOR");
+            variablesToSkip.add("AMPUSER");
+            variablesToSkip.add("MOHCLASS");
+            variablesToSkip.add("ARG4");
+            variablesToSkip.add("DIAL_TRUNK");
+            variablesToSkip.add("OUTBOUND_GROUP");
+            variablesToSkip.add("DB_RESULT");
+            variablesToSkip.add("TRUNKOUTCID"); // внешний шлюз
+            variablesToSkip.add("REALCALLERIDNUM");
+            variablesToSkip.add("TRUNKCIDOVERRIDE");
+            variablesToSkip.add("OUTNUM");
+            variablesToSkip.add("DIAL_NUMBER");
+            variablesToSkip.add("custom");
+            variablesToSkip.add("MACRO_IN_HANGUP");
+            variablesToSkip.add("SIPURI");
+            variablesToSkip.add("DIALSTATUS"); // содержит CHANUNAVAIL ANSWER
+            variablesToSkip.add("DID");
+            variablesToSkip.add("DIALEDPEERNAME");
+            variablesToSkip.add("DIALEDPEERNUMBER");// показывает номер того кто ответил в этот момент, но эта инфа есть в HangupEvent - connectedlinename
+
+            String variable = varSetEvent.getVariable();
+            String value = varSetEvent.getValue();
+            if (value == null || value.equals("null") || variable.startsWith("RTPAUDIOQOS") || variablesToSkip.contains(variable)) {
+                return;
+            }
+
+            System.out.println(makePrettyLog(event));
+            AsteriskLogAnalyzer.analyze(event);
+        }
     }
+
+    private static int i = 0;
 
     private static String makePrettyLog(ManagerEvent event) {
         String s = event.toString();
@@ -168,7 +286,11 @@ public class HelloMonitor implements ManagerEventListener {
         s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
         s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
         s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
+        s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
+        s = removeRegexFromString(s, "priority='\\d*',");
         return s;
+//        System.out.println(s);
+//        return event.toString();
     }
 
     private static String removeRegexFromString(String log, String regex) {

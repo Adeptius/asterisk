@@ -93,7 +93,7 @@ public class AmoDAO {
         String cookie = auth(amoAccount);
         LOGGER.debug("{}: Тест на возможность добавления новой сделки в amo для {}", login, amoLogin);
 
-        String request = "{\"request\": {\"leads\": {\"add\": [{}]}}}";
+        String request = "{\"request\": {\"leads\": {\"add\": [{\"name\": \"Удалить\",\"tags\": \"Nextel\" }]}}}";
         HttpResponse<String> uniresp = Unirest
                 .post("https://" + domain + ".amocrm.ru/private/api/v2/json/leads/set")
                 .header("Cookie", cookie)
@@ -105,11 +105,11 @@ public class AmoDAO {
         LOGGER.trace("{}: Получен ответ тестового добавления новой сделки amo для {}: {}", login, amoLogin, body);
         JSONObject jResponse = getJResponseIfAllGood(body);
         int dealId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
-        try {
-            AmoDAO.removeDeal(amoAccount, dealId);
-        } catch (Exception ignored) {
+//        try {
+//            AmoDAO.removeDeal(amoAccount, dealId);
+//        } catch (Exception ignored) {
 //             если нет прав на удаление сделки - ну и ладно: сами потом удалят.
-        }
+//        }
     }
 
 
@@ -246,7 +246,7 @@ public class AmoDAO {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
         LOGGER.debug("{}: Запрос удаления сделки {} в аккаунте {}", login, dealId, amoLogin);
-        getJResponse(false, amoAccount, "deals/delete.php", null,"ID", "" + dealId, "ACTION", "DELETE");
+        getJResponse(false, amoAccount, "deals/delete.php", null,"ID", "" + dealId, "ACTION", "DELETE","pipeline","Y");
     }
 
     @Nullable

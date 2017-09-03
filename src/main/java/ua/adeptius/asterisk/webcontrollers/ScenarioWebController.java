@@ -11,7 +11,6 @@ import ua.adeptius.asterisk.exceptions.JsonParseException;
 import ua.adeptius.asterisk.json.*;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,8 +22,6 @@ import static ua.adeptius.asterisk.json.Message.Status.Success;
 import static ua.adeptius.asterisk.model.RuleType.NORMAL;
 import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
-import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 
 @Controller
 @RequestMapping(value = "/scenario", produces = "application/json; charset=UTF-8")
@@ -162,6 +159,10 @@ public class ScenarioWebController {
             }
         }
 
+        // создаём мапу айдишников мелодий и обьектов мелодий для удобной и быстрой валидации
+        HashMap<Integer, UserMelody> userMelodyIdAndMelody = new HashMap<>();
+        user.getUserMelodies().forEach(melody -> userMelodyIdAndMelody.put(melody.getId(), melody));
+
         // создали inScenario и rules. теперь валидация
         for (Rule rule : rules) {
             String name = rule.getName();
@@ -185,6 +186,22 @@ public class ScenarioWebController {
 
             if (startHour == endHour || startHour > endHour) {
                 return new Message(Error, name + ": Wrong time range. From " + startHour + " to " + endHour);
+            }
+
+            Integer greeting = rule.getGreetingId();
+            if (greeting != null) {
+                UserMelody userMelody = userMelodyIdAndMelody.get(greeting);
+                if (userMelody == null) {
+                    return new Message(Error, name + ": greeting " + greeting + " not exists");
+                }
+            }
+
+            Integer message = rule.getMessageId();
+            if (message != null) {
+                UserMelody userMelody = userMelodyIdAndMelody.get(message);
+                if (userMelody == null) {
+                    return new Message(Error, name + ": message " + message + " not exists");
+                }
             }
 
 

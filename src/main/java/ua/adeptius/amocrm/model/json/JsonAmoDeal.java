@@ -17,6 +17,7 @@ public class JsonAmoDeal {
     private int dateCreate;
     int serverResponseTime;
     private Set<String> tags = new HashSet<>();
+    private String responsibleUserId;
 
     public JsonAmoDeal(String json, int serverTimeWhenResponse) {
 //        Server Time нужен только для синхронизации времени с серваком.
@@ -32,6 +33,7 @@ public class JsonAmoDeal {
         id = jDeal.getString("id");
         statusId = jDeal.getString("status_id");
         dateCreate = jDeal.getInt("date_create");
+        responsibleUserId = jDeal.getString("responsible_user_id");
 
         JSONArray jTags = jDeal.getJSONArray("tags");
         for (int i = 0; i < jTags.length(); i++) {
@@ -80,6 +82,13 @@ public class JsonAmoDeal {
         this.serverResponseTime = serverResponseTime;
     }
 
+    public String getResponsibleUserId() {
+        return responsibleUserId;
+    }
+
+    public void setResponsibleUserId(String responsibleUserId) {
+        this.responsibleUserId = responsibleUserId;
+    }
 
     public Set<String> getTags() {
         return tags;

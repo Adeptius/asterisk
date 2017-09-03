@@ -1,13 +1,11 @@
 package ua.adeptius.asterisk.model;
 
-import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import ua.adeptius.asterisk.exceptions.JsonParseException;
 import ua.adeptius.asterisk.json.JsonChainElement;
 import ua.adeptius.asterisk.json.JsonRule;
@@ -68,6 +66,9 @@ public class Rule {
             throw new JsonParseException(name + ": wrong days");
         }
         setDays(jDays);
+
+        greeting = jsonRule.getGreeting();
+        message = jsonRule.getMessage();
 
 
         chain = new HashMap<>();
@@ -131,31 +132,10 @@ public class Rule {
     @Column(name = "scenario")
     private String scenario;
 
-//    @Column(name = "toNumbers")
-//    private String toNumbers;
-
-//    @JsonProperty
-//    @Column(name = "forwardType")
-//    @Enumerated(EnumType.STRING)
-//    private ForwardType forwardType;
-
-//    @JsonProperty
-//    @Column(name = "destinationType")
-//    @Enumerated(EnumType.STRING)
-//    private DestinationType destinationType;
-
     @JsonProperty
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private RuleType type;
-
-//    @JsonProperty
-//    @Column(name = "awaitingTime")
-//    private int awaitingTime;
-
-//    @JsonProperty
-//    @Column(name = "melody")
-//    private String melody;
 
     @JsonProperty
     @Column(name = "startTime")
@@ -168,6 +148,14 @@ public class Rule {
     @JsonProperty
     @Column(name = "days")
     private String days;
+
+    @JsonProperty
+    @Column(name = "greeting")
+    private Integer greeting;
+
+    @JsonProperty
+    @Column(name = "message")
+    private Integer message;
 
     @ManyToOne
     @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
@@ -209,7 +197,7 @@ public class Rule {
         user.saveInUsersChains(element);
     }
 
-    public static final String AGI_ADDRESS = "78.159.55.63/hello.agi";
+    public static final String AGI_ADDRESS = "localhost/in_processor.agi";
 
     public String getConfig(List<String> from) {
         ChainElement firstElement = getChain().get(0);
@@ -306,79 +294,6 @@ public class Rule {
         this.login = login;
     }
 
-//    public void removeFromFromList(@Nonnull String number) {
-//        List<String> fromList = getFromList();
-//        fromList.remove(number);
-//        setFromList(fromList);
-//    }
-
-//    public void setFromList(@Nonnull List<String> numbers) {
-//        clearFromList();
-//        for (String number : numbers) {
-//            addToFromList(number);
-//        }
-//    }
-
-//    public void clearFromList() {
-//        fromNumbers = "";
-//    }
-//
-//    public void addToFromList(@Nonnull String number) {
-//        if (!fromNumbers.equals("")) {
-//            fromNumbers += " ";
-//        }
-//        if (fromNumbers.contains(number)) {
-//            return;
-//        }
-//        fromNumbers += number;
-//    }
-//
-//    public List<String> getFromList() {
-//        if (fromNumbers.equals("")) {
-//            return new ArrayList<>();
-//        }
-//        String[] splitted = fromNumbers.split(" ");
-//        return new ArrayList<>(Arrays.asList(splitted));
-//    }
-
-
-//    public void removeFromToList(@Nonnull String number) {
-//        List<String> toList = getToList();
-//        toList.remove(number);
-//        setToList(toList);
-//    }
-
-//    public void setToList(@Nonnull List<String> numbers) {
-//        clearToList();
-//        for (String number : numbers) {
-//            addToToList(number);
-//        }
-//    }
-
-//    public void clearToList() {
-//        toNumbers = "";
-//    }
-//
-//    public void addToToList(@Nonnull String number) {
-//        if (!toNumbers.equals("")) {
-//            toNumbers += " ";
-//        }
-//        if (toNumbers.contains(number)) {
-//            return;
-//        }
-//        toNumbers += number;
-//    }
-
-//    @JsonProperty
-//    public List<String> getToList() {
-//        if (toNumbers.equals("")) {
-//            return new ArrayList<>();
-//        }
-//        String[] splitted = toNumbers.split(" ");
-//        return new ArrayList<>(Arrays.asList(splitted));
-//    }
-
-
     private String removeZero(String source) {
         try {
             if (source.length() == 10 && source.startsWith("0")) {
@@ -447,6 +362,36 @@ public class Rule {
         return true;
     }
 
+    public Integer getGreetingId() {
+        return greeting;
+    }
+
+    public UserMelody getGreetingMelody() {
+        if (greeting == null){
+            return null;
+        }
+        return user.getUserMelodies().stream().filter(melody -> melody.getId() == greeting).findFirst().orElse(null);
+    }
+
+    public void setGreetingId(Integer greeting) {
+        this.greeting = greeting;
+    }
+
+    public Integer getMessageId() {
+        return message;
+    }
+
+    public void setMessageId(Integer message) {
+        this.message = message;
+    }
+
+    public UserMelody getMessageMelody(){
+        if (message == null){
+            return null;
+        }
+        return user.getUserMelodies().stream().filter(melody -> melody.getId() == message).findFirst().orElse(null);
+    }
+
 
     public int getStartHour() {
         return startHour;
@@ -497,12 +442,6 @@ public class Rule {
                 ", login='" + login + '\'' +
                 ", name='" + name + '\'' +
                 ", scenario='" + scenario + '\'' +
-//                ", toNumbers='" + toNumbers + '\'' +
-//                ", forwardType=" + forwardType +
-//                ", destinationType=" + destinationType +
-//                ", status=" + status +
-//                ", awaitingTime=" + awaitingTime +
-//                ", melody='" + melody + '\'' +
                 ", startHour=" + startHour +
                 ", endHour=" + endHour +
                 ", days='" + days + '\'' +

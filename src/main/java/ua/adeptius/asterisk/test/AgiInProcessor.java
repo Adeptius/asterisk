@@ -4,6 +4,9 @@ import org.asteriskjava.Cli;
 import org.asteriskjava.fastagi.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.amocrm.AmoDAO;
+import ua.adeptius.amocrm.model.json.JsonAmoContact;
+import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.monitor.AsteriskMonitor;
 import ua.adeptius.asterisk.telephony.DestinationType;
@@ -16,9 +19,6 @@ import java.util.Random;
 
 import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
-import static ua.adeptius.asterisk.telephony.ForwardType.RANDOM;
-import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
 
 public class AgiInProcessor extends BaseAgiScript {
 
@@ -31,52 +31,75 @@ public class AgiInProcessor extends BaseAgiScript {
     public void service(AgiRequest request, AgiChannel channel) {
         LOGGER.trace("Caller: {}, request {}", request.getCallerIdNumber(), request);
         try {
-            String toNumber = addZero(request.getExtension());
-            String fromNumber = addZero(request.getCallerIdNumber());
 
-            LOGGER.debug("Поступил звонок с {} на номер {}", fromNumber, toNumber);
-            Rule rule = phoneNumbersAndRules.get(toNumber);
-            if (rule == null) {
-                LOGGER.debug("Правило по номеру {} не найдено", toNumber);
-                return;
-            }
-
-            String username = rule.getUser().getLogin();
-
-            HashMap<Integer, ChainElement> chain = rule.getChain();
-            if (chain == null || chain.size() == 0) {
-                LOGGER.error("{}: цепочка отсутствует или пуста! Номер {}, правило {}", username, toNumber, rule);
-                return;
-            }
+//            dialToSip("2001036", 10, "slow");
+//            dialToSip("2001037", 10, "slow");
+            dialToGsm("0995306914", 10, "slow");
+            dialToGsm("0936518480", 10, "slow");
 
 
-            answer();
-            streamFile("/var/lib/asterisk/sounds/en/chillingmusic");
-//            streamFile("/home/adeptius/barns_countney2");
-//            playMusicOnHold("/var/lib/asterisk/sounds/en/barns_countney2");
-
-//            playMusicOnHold();
-
-            for (int i = 0; i < chain.size(); i++) {
-                ChainElement chainElement = chain.get(i);
-                if (chainElement == null) {
-                    break; // null будет если это конец цепочки
-                }
-                Integer position = chainElement.getPosition();
-                if (position != i) {
-                    LOGGER.error("Не сходится позиция элемента цепочки. i={}, position={}", i, position);
-                }
-
-                ForwardType forwardType = chainElement.getForwardType();
-
-                if (forwardType == TO_ALL) {
-                    processToAllRedirect(chainElement);
-                } else if (forwardType == QUEUE) {
-                    processQueueRedirect(chainElement);
-                } else if (forwardType == RANDOM) {
-                    processRandomRedirect(chainElement);
-                }
-            }
+//            String toNumber = addZero(request.getExtension());
+//            String fromNumber = addZero(request.getCallerIdNumber());
+//
+//            LOGGER.debug("Поступил звонок с {} на номер {}", fromNumber, toNumber);
+//            Rule rule = phoneNumbersAndRules.get(toNumber);
+//            if (rule == null) {
+//                LOGGER.debug("Правило по номеру {} не найдено", toNumber);
+//                return;
+//            }
+//
+//            User user = rule.getUser();
+//            String username = user.getLogin();
+//
+//            HashMap<Integer, ChainElement> chain = rule.getChain();
+//            if (chain == null || chain.size() == 0) {
+//                LOGGER.error("{}: цепочка отсутствует или пуста! Номер {}, правило {}", username, toNumber, rule);
+//                return;
+//            }
+//
+//            UserMelody greetingMelody = rule.getGreetingMelody();
+//            if (greetingMelody != null) { //если пользователь установил какое-то приветствие
+//                answer();
+//                playMelody(greetingMelody, username);
+//            }
+//
+//
+//            try{
+//                String melody = chain.get(0).getMelody();
+//                checkAmoResponsibleUser(user, fromNumber, melody);
+//            }catch (AgiException ae){
+//                throw ae;
+//            }catch (Exception e){
+//                e.printStackTrace();//вообще ignored но для первичного дебага так будет
+//            }
+//
+//
+//
+//            for (int i = 0; i < chain.size(); i++) {
+//                ChainElement chainElement = chain.get(i);
+//                if (chainElement == null) {
+//                    break; // null будет если это конец цепочки
+//                }
+//                Integer position = chainElement.getPosition();
+//                if (position != i) {
+//                    LOGGER.error("Не сходится позиция элемента цепочки. i={}, position={}", i, position);
+//                }
+//
+//                ForwardType forwardType = chainElement.getForwardType();
+//
+//                if (forwardType == TO_ALL) {
+//                    processToAllRedirect(chainElement);
+//                } else if (forwardType == QUEUE) {
+//                    processQueueRedirect(chainElement);
+//                } else if (forwardType == RANDOM) {
+//                    processRandomRedirect(chainElement);
+//                }
+//            }
+//
+//            UserMelody messageMelody = rule.getMessageMelody();
+//            if (messageMelody != null) { //если пользователь установил какое-то сообщение
+//                playMelody(messageMelody, username);
+//            }
 
 
 //            processCall(rule, toNumber);
@@ -99,6 +122,56 @@ public class AgiInProcessor extends BaseAgiScript {
             hangup();
         } catch (AgiException ignored) {
         }
+    }
+
+    private void checkAmoResponsibleUser(User user, String fromNumber, String melody) throws Exception{
+        AmoAccount amoAccount = user.getAmoAccount();
+        if (amoAccount == null) {
+            LOGGER.debug("{}: амо аккаунт отсутствует. Ответственного пользователя не ищем", user.getLogin());
+            return;
+        }
+
+        LOGGER.debug("{}: ищем ответственного пользователя по номеру {}", user.getLogin(), fromNumber);
+        JsonAmoContact contactByNumber = AmoDAO.getContactIdByPhoneNumber(amoAccount, fromNumber);
+        if (contactByNumber == null) {
+            LOGGER.debug("{}: контакт по телефону {} не найден в AMO", user.getLogin(), fromNumber);
+            return;
+        }
+
+        JsonAmoDeal contactsLatestActiveDial = AmoDAO.getContactsLatestActiveDial(amoAccount, contactByNumber);
+        if (contactsLatestActiveDial == null) {
+            LOGGER.debug("{}: активных сделок не найдено по контакту {}", user.getLogin(), contactByNumber);
+            return;
+        }
+
+        String responsibleUserId = contactsLatestActiveDial.getResponsibleUserId();
+        LOGGER.debug("{}: найдена сделка по телефону {}. Ответственный пользователь: {}", user.getLogin(), fromNumber, responsibleUserId);
+
+        HashMap<String, String> amoUserIdAndInnerNumber = user.getOperatorLocation().getAmoUserIdAndInnerNumber();
+        String responsibleOperatorNumber = amoUserIdAndInnerNumber.get(responsibleUserId);
+        if (responsibleOperatorNumber == null) {
+            LOGGER.debug("{}: номер телефона ответственного сотрудника не найден", user.getLogin());
+        }
+        LOGGER.debug("{}: найден номер телефона ответственного сотрудника: {}", user.getLogin(), responsibleOperatorNumber);
+
+        if (responsibleOperatorNumber.length() == 7 && responsibleOperatorNumber.startsWith("2")){//оператор на сипке сидит
+            HashMap<String, Boolean> sipsState = AsteriskMonitor.getSipsFree();
+            boolean operatorIsFree = sipsState.get(responsibleOperatorNumber);
+            if (!operatorIsFree){ // ответственный оператор занят.
+                return;
+            }
+            dialToSip(responsibleOperatorNumber, 10, melody);
+        }else {
+            dialToGsm(responsibleOperatorNumber, 13, melody);
+        }
+    }
+
+    private void playMelody(UserMelody melody, String username) throws AgiException{
+        String filename = melody.getFilename();
+        filename = filename.substring(0, filename.length()-4); //астериск не принимает расширение файлов
+        String filePath = "/var/lib/asterisk/sounds/user/" + username + "/" + filename;
+        LOGGER.debug("{}: проигрывание файла {}. Мелодия {}", username, filePath, melody);
+        streamFile(filePath);
     }
 
     private void processToAllRedirect(ChainElement element) throws AgiException {
@@ -127,12 +200,28 @@ public class AgiInProcessor extends BaseAgiScript {
         }
     }
 
-    private void processQueueRedirect(ChainElement element) {
+    private void processQueueRedirect(ChainElement element) throws AgiException {
         List<String> toList = element.getToList();
         int awaitingTime = element.getAwaitingTime();
         DestinationType destinationType = element.getDestinationType();
         String melody = element.getMelody();
 
+        for (String operatorNumber : toList) {
+            if (destinationType == SIP) {
+                HashMap<String, Boolean> sipsState = AsteriskMonitor.getSipsFree(); //берём только тех, кто не разговаривает и не звонит
+
+                boolean operatorIsFree = sipsState.get(operatorNumber);
+                if (operatorIsFree){// оператор свободен
+                    dialToSip(operatorNumber, awaitingTime, melody);
+                }else {// оператор занят. Ищем следующего
+                    continue;
+                }
+
+            } else if (destinationType == GSM) {
+
+                dialToGsm(operatorNumber, awaitingTime, melody);
+            }
+        }
     }
 
     private void processRandomRedirect(ChainElement element) throws AgiException {
@@ -180,6 +269,7 @@ public class AgiInProcessor extends BaseAgiScript {
     private void dialToSip(String sip, int timeout, String melody) throws AgiException {
         String command = "SIP/" + sip + "," + timeout + ",m(" + melody + ")";
         LOGGER.debug("Производится звонок на SIP {} с ожиданием {} секунд. Команда: {}", sip, timeout, command);
+        setVariable("redirectedToSIP", sip);
         int responseCode = exec("DIAL", command);
         if (responseCode == -1) {
             LOGGER.debug("SIP {}: разговор состоялся. Завершаем вызов: Hangup", sip);
@@ -203,7 +293,7 @@ public class AgiInProcessor extends BaseAgiScript {
         }
         result = result.substring(1);
         result = result + "," + timeout + ",m(" + melody + ")";
-
+        setVariable("redirectedToSIPGroup", sips.toString());
         int responseCode = exec("DIAL", result);
         LOGGER.debug("SIPS {}: {}", sips, getStringedCode(responseCode));
         if (responseCode == -1) {
@@ -216,6 +306,7 @@ public class AgiInProcessor extends BaseAgiScript {
     private void dialToGsm(String number, int timeout, String melody) throws AgiException {
         String command = "SIP/Intertelekom_main/" + number + "," + timeout + ",m(" + melody + ")";
         LOGGER.debug("Производится звонок на GSM {} с ожиданием {} секунд, мелодией: {}. Команда: {}", number, timeout, melody, command);
+        setVariable("redirectedToGSM", number);
         int responseCode = exec("DIAL", command);
         if (responseCode == -1) {
             LOGGER.debug("GSM {}: разговор состоялся. Завершаем вызов: Hangup", number);
@@ -240,6 +331,7 @@ public class AgiInProcessor extends BaseAgiScript {
         result = result.substring(1);
         result = result + "," + timeout + ",m(" + melody + ")";
 
+        setVariable("redirectedToGSMGroup", numbers.toString());
         int responseCode = exec("DIAL", result);
         LOGGER.debug("GSM {}: {}", numbers, getStringedCode(responseCode));
         if (responseCode == -1) {

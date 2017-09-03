@@ -1,15 +1,12 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.json.JsonInnerAndOuterPhones;
 import ua.adeptius.asterisk.json.JsonPhoneCount;
 import ua.adeptius.asterisk.json.Message;
@@ -17,7 +14,6 @@ import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.CallProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;

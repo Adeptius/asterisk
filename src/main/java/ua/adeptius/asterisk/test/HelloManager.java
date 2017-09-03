@@ -32,7 +32,7 @@ public class HelloManager {
 
         long t0 = System.nanoTime();
         CommandAction action = new CommandAction();
-        action.setCommand("sip show inuse");
+        action.setCommand("dialplan reload");
 //        action.setCommand("core show help");
 ////        action.setCommand("core show hanguphandlers all");
         CommandResponse response = (CommandResponse) managerConnection.sendAction(action);

@@ -57,7 +57,7 @@ public class JsonHistoryResponse {
         return "JsonHistoryResponse{" +
                 "limit=" + limit +
                 ", offset=" + offset +
-                ", calls=" + calls +
+                ", chanelsAndCalls=" + calls +
                 '}';
     }
 }
