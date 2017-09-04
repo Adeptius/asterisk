@@ -100,7 +100,7 @@ public class MySqlStatisticDao {
                 call.setCalledTo(set.getString("calledTo"));
                 call.setCallState(Call.CallState.valueOf(set.getString("callState")));
                 call.setSecondsToAnswer(set.getInt("secondsToAnswer"));
-                call.setSecondsFullTime(set.getInt("secondsFullTime"));
+                call.setSecondsTalk(set.getInt("secondsTalk"));
                 call.setAsteriskId(set.getString("call_id"));
                 call.setGoogleId(set.getString("google_id"));
                 call.setUtm(set.getString("utm"));
@@ -137,7 +137,7 @@ public class MySqlStatisticDao {
                     "`calledTo` VARCHAR(45) NULL,  " +
                     "`callState` VARCHAR(15) NOT NULL,  " +
                     "`secondsToAnswer` INT NULL,  " +
-                    "`secondsFullTime` INT NULL,  " +
+                    "`secondsTalk` INT NULL,  " +
                     "`call_id` VARCHAR(45) NULL,  " +
                     "`google_id` VARCHAR(45) NULL,  " +
                     "`utm` VARCHAR(600) NULL,  " +
@@ -160,7 +160,8 @@ public class MySqlStatisticDao {
         String calledFrom = call.getCalledFrom();
         Call.CallState callState = call.getCallState();
         int secondsToAnswer = call.getSecondsToAnswer();
-        int secondsFullTime = call.getSecondsFullTime();
+        int secondsTalk = call.getSecondsTalk();
+//        int secondsFullTime = call.getSecondsFullTime();
         String asteriskId = call.getAsteriskId();
         String googleId = call.getGoogleId();
         String utm = call.getUtm();
@@ -175,7 +176,7 @@ public class MySqlStatisticDao {
                 .append(callState).append("', '")
                 .append(secondsToAnswer)
                 .append("', '")
-                .append(secondsFullTime)
+                .append(secondsTalk)
                 .append("', '")
                 .append(asteriskId).append("',");
 

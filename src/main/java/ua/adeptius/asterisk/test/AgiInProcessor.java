@@ -12,10 +12,7 @@ import ua.adeptius.asterisk.monitor.AsteriskMonitor;
 import ua.adeptius.asterisk.telephony.DestinationType;
 import ua.adeptius.asterisk.telephony.ForwardType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
@@ -34,10 +31,10 @@ public class AgiInProcessor extends BaseAgiScript {
 
 //            dialToSip("2001036", 10, "slow");
 //            dialToSip("2001037", 10, "slow");
-            dialToGsm("0995306914", 10, "slow");
-            dialToGsm("0936518480", 10, "slow");
-
-
+//            dialToGsm("0995306914", 10, "slow");
+//            dialToGsm("0936518480", 10, "slow");
+            dialToSipGroup(Arrays.asList("2001036", "2001037"), 10, "slow");
+//            dialToGsmGroup(Arrays.asList("0995306914", "0936518480"), 10, "slow");
 //            String toNumber = addZero(request.getExtension());
 //            String fromNumber = addZero(request.getCallerIdNumber());
 //
@@ -267,6 +264,7 @@ public class AgiInProcessor extends BaseAgiScript {
     }
 
     private void dialToSip(String sip, int timeout, String melody) throws AgiException {
+        getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
         String command = "SIP/" + sip + "," + timeout + ",m(" + melody + ")";
         LOGGER.debug("Производится звонок на SIP {} с ожиданием {} секунд. Команда: {}", sip, timeout, command);
         setVariable("redirectedToSIP", sip);
@@ -281,6 +279,7 @@ public class AgiInProcessor extends BaseAgiScript {
 
 
     private void dialToSipGroup(List<String> sips, int timeout, String melody) throws AgiException {
+        getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
         LOGGER.debug("Производится звонок на группу SIP {} с ожиданием {} секунд, мелодией {}", sips, timeout, melody);
         if (sips.size() == 0) {
             LOGGER.debug("Список номеров в SIP группе пуст");
@@ -304,6 +303,7 @@ public class AgiInProcessor extends BaseAgiScript {
 
 
     private void dialToGsm(String number, int timeout, String melody) throws AgiException {
+        getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
         String command = "SIP/Intertelekom_main/" + number + "," + timeout + ",m(" + melody + ")";
         LOGGER.debug("Производится звонок на GSM {} с ожиданием {} секунд, мелодией: {}. Команда: {}", number, timeout, melody, command);
         setVariable("redirectedToGSM", number);
@@ -317,6 +317,7 @@ public class AgiInProcessor extends BaseAgiScript {
     }
 
     private void dialToGsmGroup(List<String> numbers, int timeout, String melody) throws AgiException {
+        getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
         LOGGER.debug("Производится звонок на группу GSM {} с ожиданием {} секунд, мелодией: {}", numbers, timeout, melody);
 
         if (numbers.size() == 0) {

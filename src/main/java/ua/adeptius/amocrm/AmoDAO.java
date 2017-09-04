@@ -198,37 +198,38 @@ public class AmoDAO {
 
 
     public static void addCallToNotes(AmoAccount amoAccount, Call call) throws Exception {
-        String amoLogin = amoAccount.getAmoLogin();
-        String login = amoAccount.getUser().getLogin();
-        int amoContactId = call.getAmoContactId();
+//        String amoLogin = amoAccount.getAmoLogin();
+//        String login = amoAccount.getUser().getLogin();
+//        int amoContactId = call.getAmoContactId();
+//
+//        LOGGER.debug("{}: Запрос добавления входящего звонка в аккаунт {}, id контакта {}", login, amoLogin, amoContactId);
+//
+//        String calledDate = call.getCalledDate();
+//        String asteriskId = call.getAsteriskId();
+//        String calledFrom = call.getCalledFrom();
+//        int secondsTalk = call.getSecondsTalk();
+//        String yearMonthDay = calledDate.substring(0, calledDate.indexOf(" "));
+//
+//        String textIfAnswered = "";
+//
+//        if (call.getCallState() == Call.CallState.ANSWER){
+//            textIfAnswered = "\\\"LINK\\\":\\\"https://cstat.nextel.com.ua:8443/tracking/history/record/"+ asteriskId +"/"+ yearMonthDay +"\\\"," +
+//                    "\\\"DURATION\\\": \\\""+ secondsTalk +"\\\",";
+//        }
+//
+//        String request = "{\"request\": {\"notes\": {\"add\": [{" +
+//                "\"element_id\": "+ amoContactId +"," +
+//                "\"element_type\": 1," + //1 - контакт 2-сделка 3-компания
+//                "\"note_type\": \"10\"," + //10 или 11, входящий или исходящий
+//                "\"text\": \"{\\\"UNIQ\\\": \\\""+ asteriskId +"\\\"," +
+//                 textIfAnswered +
+//                "\\\"PHONE\\\":\\\""+ calledFrom +"\\\"," +
+//                "\\\"call_status\\\": \\\"4\\\"," +
+//                "\\\"SRC\\\": \\\"nextel_widget\\\"}\"}]}}}";
+//
+//
+//        JSONObject jResponse = getJResponse(false, amoAccount, "api/v2/json/notes/set", request, null);
 
-        LOGGER.debug("{}: Запрос добавления входящего звонка в аккаунт {}, id контакта {}", login, amoLogin, amoContactId);
-
-        String calledDate = call.getCalledDate();
-        String asteriskId = call.getAsteriskId();
-        String calledFrom = call.getCalledFrom();
-        int secondsTalk = call.getSecondsTalk();
-        String yearMonthDay = calledDate.substring(0, calledDate.indexOf(" "));
-
-        String textIfAnswered = "";
-
-        if (call.getCallState() == Call.CallState.ANSWER){
-            textIfAnswered = "\\\"LINK\\\":\\\"https://cstat.nextel.com.ua:8443/tracking/history/record/"+ asteriskId +"/"+ yearMonthDay +"\\\"," +
-                    "\\\"DURATION\\\": \\\""+ secondsTalk +"\\\",";
-        }
-
-        String request = "{\"request\": {\"notes\": {\"add\": [{" +
-                "\"element_id\": "+ amoContactId +"," +
-                "\"element_type\": 1," + //1 - контакт 2-сделка 3-компания
-                "\"note_type\": \"10\"," + //10 или 11, входящий или исходящий
-                "\"text\": \"{\\\"UNIQ\\\": \\\""+ asteriskId +"\\\"," +
-                 textIfAnswered +
-                "\\\"PHONE\\\":\\\""+ calledFrom +"\\\"," +
-                "\\\"call_status\\\": \\\"4\\\"," +
-                "\\\"SRC\\\": \\\"nextel_widget\\\"}\"}]}}}";
-
-
-        JSONObject jResponse = getJResponse(false, amoAccount, "api/v2/json/notes/set", request, null);
 //        int serverTime = jResponse.getInt("server_time");
 //        int responseId = jResponse.getJSONObject("leads").getJSONArray("add").getJSONObject(0).getInt("id");
 //        return new IdPairTime(responseId, serverTime);

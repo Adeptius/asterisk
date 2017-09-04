@@ -1,6 +1,5 @@
 package ua.adeptius.amocrm.javax_web_socket;
 
-import org.asteriskjava.manager.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
@@ -80,10 +79,6 @@ public class WebSocket {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        if (session != null) {// Пользователь подключен в данный момент
-//        } else { // Пользователь не подключен
-//
-//        }
     }
 
 
@@ -119,7 +114,7 @@ public class WebSocket {
                     String workersNumber = amoAccount.getWorkersPhone(userId);
                     if (workersNumber != null) {
                         try {
-                            sendMessage(userId, new WsMessage(outgoingCall, callTo));
+                            sendMessage(userId, new WsMessage(outgoingCall, callTo));//todo перетестить
                             Main.monitor.sendCallToOutsideAction(workersNumber, callTo, "AMOCRM-C2C "+callTo);
                         } catch (Exception e) {
                             e.printStackTrace();

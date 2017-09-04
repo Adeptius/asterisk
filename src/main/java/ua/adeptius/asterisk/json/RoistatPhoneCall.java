@@ -70,13 +70,13 @@ public class RoistatPhoneCall {
         this.marker = call.getUtm();
 
 //        null or string     Номер заказа из CRM
-        int amoDealId = call.getAmoDealId();
-        if (amoDealId != 0) {
-            this.order_id = amoDealId;
-        }
+//        int amoDealId = call.getAmoDealId();//todo
+//        if (amoDealId != 0) {
+//            this.order_id = amoDealId;
+//        }
 
 //        Продолжительность звонка (в секундах)
-        this.duration = call.getSecondsFullTime(); // полное время звонка
+        this.duration = call.getSecondsToAnswer() + call.getSecondsTalk(); // полное время звонка
 
 
         String date = new SimpleDateFormat("yyyy-MM-dd").format(call.getCalledMillis());

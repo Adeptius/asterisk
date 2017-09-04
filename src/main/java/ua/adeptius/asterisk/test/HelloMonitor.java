@@ -149,44 +149,64 @@ public class HelloMonitor implements ManagerEventListener {
 
         if (event instanceof NewChannelEvent) {
             NewChannelEvent newChannelEvent = (NewChannelEvent) event;
+
+            if (chanelToShow == null) {
+                chanelToShow = newChannelEvent.getChannel();
+            }
+            if (!chanelToShow.equals(newChannelEvent.getChannel())) return;
+
             System.out.println(makePrettyLog(event));
-            AsteriskLogAnalyzer.analyze(event);
+
             return;
         }
 
+
+        if (chanelToShow == null) {
+            return;
+        }
+
+
         if (event instanceof HangupEvent) {
             HangupEvent hangupEvent = (HangupEvent) event;
+
+            if (!chanelToShow.equals(hangupEvent.getChannel())) return;
+
+
             System.out.println(makePrettyLog(event));
-            AsteriskLogAnalyzer.analyze(event);
+
             return;
         }
 
 
         if (event instanceof NewExtenEvent) {
             NewExtenEvent newExtenEvent = (NewExtenEvent) event;
-            if (
-                    newExtenEvent.getExtension().equals("recordcheck")
-                            || newExtenEvent.getContext().equals("sub-record-check")
-                            || newExtenEvent.getApplication().equals("Set")
-                            || newExtenEvent.getApplication().equals("GotoIf")
-                            || newExtenEvent.getApplication().equals("ExecIf")
-                            || newExtenEvent.getApplication().equals("GosubIf")
-                            || newExtenEvent.getApplication().equals("Macro")
-                            || newExtenEvent.getApplication().equals("MacroExit")
-                            || newExtenEvent.getApplication().equals("AGI")
-                            || newExtenEvent.getApplication().equals("NoOp")
-                            || newExtenEvent.getApplication().equals("Gosub")
-                    ) {
-                return;
-            }
+            if (!chanelToShow.equals(newExtenEvent.getChannel())) return;
+//            if (
+//                    newExtenEvent.getExtension().equals("recordcheck")
+//                            || newExtenEvent.getContext().equals("sub-record-check")
+//                            || newExtenEvent.getApplication().equals("Set")
+//                            || newExtenEvent.getApplication().equals("GotoIf")
+//                            || newExtenEvent.getApplication().equals("ExecIf")
+//                            || newExtenEvent.getApplication().equals("GosubIf")
+//                            || newExtenEvent.getApplication().equals("Macro")
+//                            || newExtenEvent.getApplication().equals("MacroExit")
+//                            || newExtenEvent.getApplication().equals("AGI")
+//                            || newExtenEvent.getApplication().equals("NoOp")
+//                            || newExtenEvent.getApplication().equals("Gosub")
+//                    ) {
+//                return;
+//            }
+
+
             System.out.println(makePrettyLog(event));
-            AsteriskLogAnalyzer.analyze(event);
+
             return;
         }
 
 
         if (event instanceof VarSetEvent) {
             VarSetEvent varSetEvent = (VarSetEvent) event;
+            if (!chanelToShow.equals(varSetEvent.getChannel())) return;
             List<String> variablesToSkip = new ArrayList<>();
             variablesToSkip.add("MACRO_DEPTH");
             variablesToSkip.add("NOW");
@@ -244,12 +264,11 @@ public class HelloMonitor implements ManagerEventListener {
 
             String variable = varSetEvent.getVariable();
             String value = varSetEvent.getValue();
-            if (value == null || value.equals("null") || variable.startsWith("RTPAUDIOQOS") || variablesToSkip.contains(variable)) {
-                return;
-            }
+//            if (value == null || value.equals("null") || variable.startsWith("RTPAUDIOQOS") || variablesToSkip.contains(variable)) {
+//                return;
+//            }
 
             System.out.println(makePrettyLog(event));
-            AsteriskLogAnalyzer.analyze(event);
         }
     }
 

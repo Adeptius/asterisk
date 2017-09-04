@@ -126,8 +126,8 @@ public class Scheduler{
      */
     @Scheduled(cron = "0 0 1 * * ?") // ежедневно в час ночи
     private void startClean(){
-        LOGGER.trace("Очистка карты number <-> Call");
-        CallProcessor.calls.clear();
+//        LOGGER.trace("Очистка карты number <-> Call");
+//        CallProcessor.calls.clear();
     }
 
 
@@ -163,7 +163,8 @@ public class Scheduler{
 
     @Scheduled(cron = "0 00 * * * ?") // в 0 минут каждого часа
     private void updatePhonesMapForCallProcessor(){
-        CallProcessor.updatePhonesHashMap();
+//        CallProcessor.updatePhonesHashMap();
+        AsteriskLogAnalyzer.updatePhonesHashMap();
     }
 
     @Scheduled(initialDelay = 1000 ,fixedDelay = 20000)

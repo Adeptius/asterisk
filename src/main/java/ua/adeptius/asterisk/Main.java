@@ -7,6 +7,7 @@ import org.asteriskjava.Cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
@@ -15,7 +16,7 @@ import ua.adeptius.asterisk.monitor.*;
 
 
 @Component
-//@EnableWebMvc
+@EnableWebMvc
 public class Main {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Main.class.getSimpleName());
@@ -103,7 +104,8 @@ public class Main {
         }
 
         LOGGER.info("Кеширование номеров и пользователей");
-        CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
+//        CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
+        AsteriskLogAnalyzer.updatePhonesHashMap();
 
         try {
             RulesConfigDAO.writeAllNeededScenarios();

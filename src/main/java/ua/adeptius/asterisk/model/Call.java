@@ -13,8 +13,7 @@ public class Call {
 
     // Нужно для опеределения кому принадлежит тот номер на который позвонил посетитель
     // а не на кого он на самом деле попал. Для трекинга
-
-    private String firstCall;
+//    private String firstCall;
 
     @JsonProperty
     private String calledFrom;
@@ -36,6 +35,7 @@ public class Call {
 
     @JsonProperty
     private String googleId;
+
     private User user;
 
     @JsonProperty
@@ -45,42 +45,59 @@ public class Call {
     private long calledMillis;
 
     @JsonProperty
-    private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
+//    private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
+    private int secondsToAnswer;
 
     @JsonProperty
-    private int secondsFullTime;
-    boolean callIsEnded;
-    private int amoDealId;
-    private int amoContactId;
-    private int lastOperationTime;
+    private int secondsTalk;
+
+//    @JsonProperty
+//    private int secondsFullTime;
+
+//    boolean callIsEnded;
+//    private int amoDealId;
+//    private int amoContactId;
+//    private int lastOperationTime;
     private OuterPhone outerPhone;
 
-    public int getCalculatedModifiedTime() { // AUTOINCREMENT
-        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference;
-        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
-            lastOperationTime++;
-            return lastOperationTime;
-        } else {
-            return currentTime;
-        }
+//    public int getCalculatedModifiedTime() { // AUTOINCREMENT
+//        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference;
+//        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
+//            lastOperationTime++;
+//            return lastOperationTime;
+//        } else {
+//            return currentTime;
+//        }
+//    }
+
+
+    public int getSecondsToAnswer() {
+        return secondsToAnswer;
     }
 
     private int timeDifference;
 
 
-    public void setLastOperationTime(int lastOperationTime) {
-        this.lastOperationTime = lastOperationTime;
-        timeDifference = lastOperationTime - ((int) new Date().getTime() / 1000);
+//    public void setLastOperationTime(int lastOperationTime) {
+//        this.lastOperationTime = lastOperationTime;
+//        timeDifference = lastOperationTime - ((int) new Date().getTime() / 1000);
+//    }
+
+//    public int getAmoDealId() {
+//        return amoDealId;
+//    }
+
+//    public void setAmoDealId(int amoDealId) {
+//        this.amoDealId = amoDealId;
+//    }
+
+    public int getSecondsTalk() {
+        return secondsTalk;
     }
 
-    public int getAmoDealId() {
-        return amoDealId;
+    public void setSecondsTalk(int secondsTalk) {
+        this.secondsTalk = secondsTalk;
     }
-
-    public void setAmoDealId(int amoDealId) {
-        this.amoDealId = amoDealId;
-    }
-
 
     public long getCalledMillis() {
         return calledMillis;
@@ -104,49 +121,49 @@ public class Call {
     /**
      * Возвращает true callProcessor'у что бы сообщить установилось ли значение впервые впервые
      */
-    public boolean setAnsweredDate(Date answeredDate) { // Задаётся в CallProcessor
-        if (secondsToAnswer == -1) { // защита, что бы данные вводились только 1 раз.
-            secondsToAnswer = (int) ((answeredDate.getTime() - getCalledMillis()) / 1000);
-            return true;
-        } else {
-            return false;
-        }
-    }
+//    public boolean setAnsweredDate(Date answeredDate) { // Задаётся в CallProcessor
+//        if (secondsToAnswer == -1) { // защита, что бы данные вводились только 1 раз.
+//            secondsToAnswer = (int) ((answeredDate.getTime() - getCalledMillis()) / 1000);
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
     public void setSecondsToAnswer(int secondsToAnswer) { // Задаётся при чтении с БД
         this.secondsToAnswer = secondsToAnswer;
     }
 
-    @JsonProperty
-    public int getSecondsToAnswer() {
-        return secondsToAnswer == -1 ? secondsFullTime : secondsToAnswer;
-    }
+//    @JsonProperty
+//    public int getSecondsToAnswer() {
+//        return secondsToAnswer == -1 ? secondsFullTime : secondsToAnswer;
+//    }
 
-    @JsonProperty
-    public int getSecondsTalk() { // Тут высчитывается время разговора
-        if (callState == CallState.ANSWER) {
-            return getSecondsFullTime() - getSecondsToAnswer();
-        } else {
-            return 0;
-        }
-    }
+//    @JsonProperty
+//    public int getSecondsTalk() { // Тут высчитывается время разговора
+//        if (callState == CallState.ANSWER) {
+//            return getSecondsFullTime() - getSecondsToAnswer();
+//        } else {
+//            return 0;
+//        }
+//    }
 
-    public void setEndedDate(Date endedDate) { // Задаётся в CallProcessor
-        secondsFullTime = (int) ((endedDate.getTime() - getCalledMillis()) / 1000);
-        callIsEnded = true;
-    }
+//    public void setEndedDate(Date endedDate) { // Задаётся в CallProcessor
+//        secondsFullTime = (int) ((endedDate.getTime() - getCalledMillis()) / 1000);
+//        callIsEnded = true;
+//    }
 
-    public boolean isCallIsEnded() { // Задаётся в CallProcessor
-        return callIsEnded;
-    }
+//    public boolean isCallIsEnded() { // Задаётся в CallProcessor
+//        return callIsEnded;
+//    }
 
-    public void setSecondsFullTime(int secondsFullTime) { // Задаётся при чтении с БД
-        this.secondsFullTime = secondsFullTime;
-    }
+//    public void setSecondsFullTime(int secondsFullTime) { // Задаётся при чтении с БД
+//        this.secondsFullTime = secondsFullTime;
+//    }
 
-    public int getSecondsFullTime() {
-        return secondsFullTime;
-    }
+//    public int getSecondsFullTime() {
+//        return secondsFullTime;
+//    }
 
     public enum CallState {
         ANSWER, // звонок был принят и обработан сотрудником
@@ -160,9 +177,9 @@ public class Call {
         IN, OUT
     }
 
-    public enum Service {
-        TRACKING, TELEPHONY
-    }
+//    public enum Service {
+//        TRACKING, TELEPHONY
+//    }
 
     public String getUtm() {
         return utm;
@@ -205,13 +222,13 @@ public class Call {
         this.asteriskId = asteriskId;
     }
 
-    public String getFirstCall() {
-        return firstCall;
-    }
+//    public String getFirstCall() {
+//        return firstCall;
+//    }
 
-    public void setFirstCall(String firstCall) {
-        this.firstCall = firstCall;
-    }
+//    public void setFirstCall(String firstCall) {
+//        this.firstCall = firstCall;
+//    }
 
     public CallState getCallState() {
         if (callState == null) {
@@ -220,15 +237,15 @@ public class Call {
         return callState;
     }
 
-    public boolean isStateWasAlreadySetted(){
-        return stateIsSetted;
-    }
+//    public boolean isStateWasAlreadySetted(){
+//        return stateIsSetted;
+//    }
 
-    private boolean stateIsSetted;
+//    private boolean stateIsSetted;
 
     public void setCallState(CallState callState) {
         this.callState = callState;
-        stateIsSetted = true;
+//        stateIsSetted = true;
     }
 
     public OuterPhone getOuterPhone() {
@@ -255,13 +272,13 @@ public class Call {
         this.user = user;
     }
 
-    public int getAmoContactId() {
-        return amoContactId;
-    }
+//    public int getAmoContactId() {
+//        return amoContactId;
+//    }
 
-    public void setAmoContactId(int amoContactId) {
-        this.amoContactId = amoContactId;
-    }
+//    public void setAmoContactId(int amoContactId) {
+//        this.amoContactId = amoContactId;
+//    }
 
     public static String addZero(String source) {
         try {
@@ -277,22 +294,19 @@ public class Call {
     @Override
     public String toString() {
         return "Call{" +
-                "firstCall='" + firstCall + '\'' +
-                ", calledFrom='" + calledFrom + '\'' +
-                ", calledTo='" + calledTo + '\'' +
-                ", callState=" + callState +
-                ", direction=" + direction +
-                ", asteriskId='" + asteriskId + '\'' +
-                ", utm='" + utm + '\'' +
-                ", googleId='" + googleId + '\'' +
-                ", user=" + user.getLogin() +
-                ", calledDate='" + calledDate + '\'' +
-                ", calledMillis=" + calledMillis +
-                ", secondsToAnswer=" + secondsToAnswer +
-                ", secondsFullTime=" + secondsFullTime +
-                ", amoDealId=" + amoDealId +
-                ", lastOperationTime=" + lastOperationTime +
-                ", outerPhone=" + outerPhone +
-                '}';
+//                "\nfirstCall='" + firstCall + '\'' +
+                "\ncalledFrom='" + calledFrom + '\'' +
+                "\ncalledTo='" + calledTo + '\'' +
+                "\ncallState=" + callState +
+                "\ndirection=" + direction +
+                "\nasteriskId='" + asteriskId + '\'' +
+                "\nuser=" + user.getLogin() +
+                "\ncalledDate='" + calledDate + '\'' +
+                "\ncalledMillis=" + calledMillis +
+                "\nsecondsTalk=" + secondsTalk +
+                "\nsecondsToAnswer=" + secondsToAnswer +
+//                "\nsecondsFullTime=" + secondsFullTime +
+                "\nouterPhone=" + outerPhone +
+                "\n}";
     }
 }
