@@ -378,7 +378,7 @@ public class AmoDAO {
             if (errorCode == 101) {
                 throw new AmoAccountNotFoundException();
             } else if (errorCode == 110) {
-                throw new AmoWrongLoginOrApiKeyExeption();
+                throw new AmoWrongLoginOrApiKeyException();
             } else if (errorCode == 244) {
                 throw new AmoCantCreateDealException();
             } else if (errorCode == 402) {

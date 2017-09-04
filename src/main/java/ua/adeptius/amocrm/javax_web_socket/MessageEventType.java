@@ -8,5 +8,4 @@ public enum MessageEventType {
     outgoingCall,
     copySession,
     wrongToNumber
-
 }

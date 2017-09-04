@@ -20,15 +20,15 @@ import static ua.adeptius.asterisk.model.Call.Direction.IN;
 
 @SuppressWarnings("Duplicates")
 public class CallProcessor {
-//
-//    private static Logger LOGGER = LoggerFactory.getLogger(CallProcessor.class.getSimpleName());
-//
-//    //    public static HashMap<String, Call> chanelsAndCalls = new HashMap<>();
-//    public static HashMap<String, Call> calls = new HashMap<>();
-//    public static HashMap<String, User> phonesAndUsers = new HashMap<>();
-//
-//
-//    public static void processEvent(ManagerEvent event, String id) {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(CallProcessor.class.getSimpleName());
+
+    //    public static HashMap<String, Call> chanelsAndCalls = new HashMap<>();
+    public static HashMap<String, Call> calls = new HashMap<>();
+    public static HashMap<String, User> phonesAndUsers = new HashMap<>();
+
+
+    public static void processEvent(ManagerEvent event, String id) {
 //
 //        /**
 //         * Только NewChannelEvent означает что это новый звонок
@@ -171,82 +171,18 @@ public class CallProcessor {
 //                LOGGER.info("Завершен разговор: {}", call);
 //            }
 //        }
-//    }
-//
-//    /**
-//     * Выводит на экран размер мапы айдишников и звонков.
-//     * Нужен для дебага, если там скопилось много айдишников, что бы понять что там именно.
-//     */
-//    private static void printMap() {
-//        System.out.println("-----СОДЕРЖИМОЕ МАПЫ-----");
-//        calls.forEach((s, newCall) -> System.out.println("id " + s + " call: " + newCall.getCalledFrom() + "->" + newCall.getCalledTo()));
-//    }
-//
-//
-//    private static String makePrettyLog(ManagerEvent event) {
-//        String s = event.toString();
-//        s = s.substring(31);
-//        if (s.contains("timestamp=null,")) {
-//            s = s.replaceAll("timestamp=null,", "");
-//        }
-//        if (s.contains("sequencenumber=null,")) {
-//            s = s.replaceAll("sequencenumber=null,", "");
-//        }
-//        if (s.contains("server=null,")) {
-//            s = s.replaceAll("server=null,", "");
-//        }
-//        if (s.contains("actionid=null,")) {
-//            s = s.replaceAll("actionid=null,", "");
-//        }
-//        if (s.contains("connectedlinenum=null,")) {
-//            s = s.replaceAll("connectedlinenum=null,", "");
-//        }
-//        if (s.contains("accountcode=null,")) {
-//            s = s.replaceAll("accountcode=null,", "");
-//        }
-//        if (s.contains("connectedlinename=null,")) {
-//            s = s.replaceAll("connectedlinename=null,", "");
-//        }
-//        if (s.contains("calleridname=null,")) {
-//            s = s.replaceAll("calleridname=null,", "");
-//        }
-//        s = removeRegexFromString(s, "dateReceived='.*2017',");
-//        s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
-//        s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
-//        s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
-//        return s;
-//    }
-//
-//
-//    private static String removeRegexFromString(String log, String regex) {
-//        Matcher regexMatcher = Pattern.compile(regex).matcher(log);
-//        if (regexMatcher.find()) {
-//            log = log.replaceAll(regexMatcher.group(), "");
-//        }
-//        return log;
-//    }
-//
-//
-//    public static String addZero(String source) {
-//        try {
-//            if (source.length() == 9 && !source.startsWith("0")) {
-//                source = "0" + source;
-//            }
-//        } catch (Exception e) {
-////            System.out.println("Ошибка добавления нолика. Пришло " + source);
-//        }
-//        return source;
-//    }
-//
-//    public static void updatePhonesHashMap() {
-//        LOGGER.trace("Обновление карты Number <-> User");
-//        HashMap<String, User> newCache = new HashMap<>();
-//        for (User user : UserContainer.getUsers()) {
-//            List<String> numbers = new ArrayList<>();
-//            numbers.addAll(user.getOuterPhones().stream().map(OuterPhone::getNumber).collect(Collectors.toList()));
-//            numbers.addAll(user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList()));
-//            numbers.forEach(s -> newCache.put(s, user));
-//        }
-//        phonesAndUsers = newCache;
-//    }
+    }
+
+
+    public static void updatePhonesHashMap() {
+        LOGGER.trace("Обновление карты Number <-> User");
+        HashMap<String, User> newCache = new HashMap<>();
+        for (User user : UserContainer.getUsers()) {
+            List<String> numbers = new ArrayList<>();
+            numbers.addAll(user.getOuterPhones().stream().map(OuterPhone::getNumber).collect(Collectors.toList()));
+            numbers.addAll(user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList()));
+            numbers.forEach(s -> newCache.put(s, user));
+        }
+        phonesAndUsers = newCache;
+    }
 }

@@ -14,9 +14,11 @@ public class JsonAmoContact {
     private int id = -1;
     private String name = "";
     private int last_modified = -1;
-//    private HashMap<Integer, String> tags = new HashMap<>();
     private ArrayList<String> linked_leads_id = new ArrayList<>();
+    private String responsible_user_id;
+
 //    private ArrayList<CustomField> customFields = new ArrayList<>();
+    //    private HashMap<Integer, String> tags = new HashMap<>();
 
 
     public JsonAmoContact(String json) {
@@ -25,6 +27,7 @@ public class JsonAmoContact {
         id = jContact.getInt("id");
         name = jContact.getString("name");
         last_modified = jContact.getInt("last_modified");
+        responsible_user_id = ""+jContact.getInt("responsible_user_id");
 
 //        JSONArray jTags = jContact.getJSONArray("tags");
 //        for (int i = 0; i < jTags.length(); i++) {
@@ -63,38 +66,38 @@ public class JsonAmoContact {
 //    }
 
 
-    public static class CustomField {
-        public CustomField(String id, String name, String code, HashMap<String, String> values) {
-            this.id = id;
-            this.name = name;
-            this.code = code;
-            this.values = values;
-        }
-
-        public CustomField(String id, String name, String code, String phoneEnumId, String contactNumber) {
-            this.id = id;
-            this.name = name;
-            this.code = code;
-            HashMap<String, String> values = new HashMap<>();
-            values.put(phoneEnumId, contactNumber);
-            this.values = values;
-        }
-
-        String id;
-        String name;
-        String code;
-        HashMap<String, String> values;
-
-        @Override
-        public String toString() {
-            return "CustomField{" +
-                    "id='" + id + '\'' +
-                    ", name='" + name + '\'' +
-                    ", code='" + code + '\'' +
-                    ", values=" + values +
-                    '}';
-        }
-    }
+//    public static class CustomField {
+//        public CustomField(String id, String name, String code, HashMap<String, String> values) {
+//            this.id = id;
+//            this.name = name;
+//            this.code = code;
+//            this.values = values;
+//        }
+//
+//        public CustomField(String id, String name, String code, String phoneEnumId, String contactNumber) {
+//            this.id = id;
+//            this.name = name;
+//            this.code = code;
+//            HashMap<String, String> values = new HashMap<>();
+//            values.put(phoneEnumId, contactNumber);
+//            this.values = values;
+//        }
+//
+//        String id;
+//        String name;
+//        String code;
+//        HashMap<String, String> values;
+//
+//        @Override
+//        public String toString() {
+//            return "CustomField{" +
+//                    "id='" + id + '\'' +
+//                    ", name='" + name + '\'' +
+//                    ", code='" + code + '\'' +
+//                    ", values=" + values +
+//                    '}';
+//        }
+//    }
 
 
     public int getId() {
@@ -113,13 +116,21 @@ public class JsonAmoContact {
         this.name = name;
     }
 
-    public int getLast_modified() {
-        return last_modified;
+    public String getResponsible_user_id() {
+        return responsible_user_id;
     }
 
-    public void setLast_modified(int last_modified) {
-        this.last_modified = last_modified;
+    public void setResponsible_user_id(String responsible_user_id) {
+        this.responsible_user_id = responsible_user_id;
     }
+
+    //    public int getLast_modified() {
+//        return last_modified;
+//    }
+
+//    public void setLast_modified(int last_modified) {
+//        this.last_modified = last_modified;
+//    }
 
 //    public HashMap<Integer, String> getTags() {
 //        return tags;
@@ -142,20 +153,20 @@ public class JsonAmoContact {
         return linked_leads_id;
     }
 
-    @Nullable
-    public String getLinked_leads_idStringed() {
-
-        String leadsInOneString = "";
-        for (String s : linked_leads_id) {
-            leadsInOneString += "," + s;
-        }
-        if (leadsInOneString.length()>1){
-            leadsInOneString = leadsInOneString.substring(1);
-        }else {
-            return null;
-        }
-        return leadsInOneString;
-    }
+//    @Nullable
+//    public String getLinked_leads_idStringed() {
+//
+//        String leadsInOneString = "";
+//        for (String s : linked_leads_id) {
+//            leadsInOneString += "," + s;
+//        }
+//        if (leadsInOneString.length()>1){
+//            leadsInOneString = leadsInOneString.substring(1);
+//        }else {
+//            return null;
+//        }
+//        return leadsInOneString;
+//    }
 
     @Deprecated
     public void setLinked_leads_id(ArrayList<String> linked_leads_id) {
@@ -182,7 +193,7 @@ public class JsonAmoContact {
             sb.append("\"id\":").append(id).append(",");
         }
         sb.append("\"name\":\"").append(name).append("\",");
-//        sb.append("\"responsible_user_id\":null,");
+        sb.append("\"responsible_user_id\":").append(responsible_user_id).append(",");
         if (last_modified == -1) last_modified = (int) (new Date().getTime() / 1000);
         sb.append("\"last_modified\":").append(last_modified).append(",");
 

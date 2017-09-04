@@ -56,7 +56,7 @@ public class HibernateDao {
     }
 
     public void update(User user) {
-        LOGGER.info("Обновление пользователя {}", user.getLogin());
+        LOGGER.info("{}: Обновление пользователя...", user.getLogin());
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 

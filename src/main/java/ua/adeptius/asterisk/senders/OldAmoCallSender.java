@@ -9,19 +9,13 @@ import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyException;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.asterisk.controllers.HibernateController;
-import ua.adeptius.asterisk.model.AmoAccount;
-import ua.adeptius.asterisk.model.Call;
-import ua.adeptius.asterisk.model.User;
-
+import ua.adeptius.asterisk.model.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
 
-import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.answer;
-import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.dial;
+public class OldAmoCallSender extends Thread {
 
-@SuppressWarnings("Duplicates")
-public class AmoCallSender extends Thread {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(AmoCallSender.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(OldAmoCallSender.class.getSimpleName());
     private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
 
 
@@ -33,7 +27,7 @@ public class AmoCallSender extends Thread {
         }
     }
 
-    public AmoCallSender() {
+    public OldAmoCallSender() {
         setName("AmoCallSender");
         setDaemon(true);
         start();

@@ -1,7 +1,11 @@
 package ua.adeptius.asterisk.utils;
 
 
+import org.asteriskjava.manager.event.ManagerEvent;
 import ua.adeptius.asterisk.json.Message;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MyStringUtils {
 
@@ -60,4 +64,61 @@ public class MyStringUtils {
         }
         throw new IllegalArgumentException();
     }
+
+    public static String addZero(String source) {
+        try {
+            if (source.length() == 9 && !source.startsWith("0")) {
+                source = "0" + source;
+            }
+        } catch (Exception e) {
+//            System.out.println("Ошибка добавления нолика. Пришло " + source);
+        }
+        return source;
+    }
+
+
+    private static String makePrettyLog(ManagerEvent event) {
+        String s = event.toString();
+        s = s.substring(31);
+        if (s.contains("timestamp=null,")) {
+            s = s.replaceAll("timestamp=null,", "");
+        }
+        if (s.contains("sequencenumber=null,")) {
+            s = s.replaceAll("sequencenumber=null,", "");
+        }
+        if (s.contains("server=null,")) {
+            s = s.replaceAll("server=null,", "");
+        }
+        if (s.contains("actionid=null,")) {
+            s = s.replaceAll("actionid=null,", "");
+        }
+        if (s.contains("connectedlinenum=null,")) {
+            s = s.replaceAll("connectedlinenum=null,", "");
+        }
+        if (s.contains("accountcode=null,")) {
+            s = s.replaceAll("accountcode=null,", "");
+        }
+        if (s.contains("connectedlinename=null,")) {
+            s = s.replaceAll("connectedlinename=null,", "");
+        }
+        if (s.contains("calleridname=null,")) {
+            s = s.replaceAll("calleridname=null,", "");
+        }
+        s = removeRegexFromString(s, "dateReceived='.*2017',");
+        s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
+        s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
+        s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
+        return s;
+    }
+
+
+    private static String removeRegexFromString(String log, String regex) {
+        Matcher regexMatcher = Pattern.compile(regex).matcher(log);
+        if (regexMatcher.find()) {
+            log = log.replaceAll(regexMatcher.group(), "");
+        }
+        return log;
+    }
+
+
 }

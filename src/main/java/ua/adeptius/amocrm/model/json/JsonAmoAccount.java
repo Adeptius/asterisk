@@ -18,8 +18,12 @@ public class JsonAmoAccount {
     HashMap<String, String> usersIdAndName = new HashMap<>();
     HashMap<String, String> usersNameAndId = new HashMap<>();
 
+    private String current_user_id;
+
     public JsonAmoAccount(String json) {
         JSONObject jAccount = new JSONObject(json);
+
+        current_user_id = "" + jAccount.getInt("current_user");
 
 
         // Получаем этапы сделок
@@ -86,6 +90,10 @@ public class JsonAmoAccount {
         return phoneId;
     }
 
+    public String getCurrent_user_id() {
+        return current_user_id;
+    }
+
     public HashMap<String, String> getUsersIdAndName() {
         return usersIdAndName;
     }
@@ -99,6 +107,7 @@ public class JsonAmoAccount {
         return "JsonAmoAccount{" +
                 "leadStatuses=" + leadStatuses +
                 ", phoneEnumId='" + phoneEnumId + '\'' +
+                ", current_user_id='" + current_user_id + '\'' +
                 ", phoneId='" + phoneId + '\'' +
                 ", usersIdAndName=" + usersIdAndName +
                 ", usersNameAndId=" + usersNameAndId +

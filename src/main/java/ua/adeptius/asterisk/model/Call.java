@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class Call {
@@ -280,33 +281,20 @@ public class Call {
 //        this.amoContactId = amoContactId;
 //    }
 
-    public static String addZero(String source) {
-        try {
-            if (source.length() == 9 && !source.startsWith("0")) {
-                source = "0" + source;
-            }
-        } catch (Exception e) {
-//            System.out.println("Ошибка добавления нолика. Пришло " + source);
-        }
-        return source;
-    }
-
     @Override
     public String toString() {
         return "Call{" +
-//                "\nfirstCall='" + firstCall + '\'' +
-                "\ncalledFrom='" + calledFrom + '\'' +
-                "\ncalledTo='" + calledTo + '\'' +
-                "\ncallState=" + callState +
-                "\ndirection=" + direction +
-                "\nasteriskId='" + asteriskId + '\'' +
-                "\nuser=" + user.getLogin() +
-                "\ncalledDate='" + calledDate + '\'' +
-                "\ncalledMillis=" + calledMillis +
-                "\nsecondsTalk=" + secondsTalk +
-                "\nsecondsToAnswer=" + secondsToAnswer +
-//                "\nsecondsFullTime=" + secondsFullTime +
-                "\nouterPhone=" + outerPhone +
-                "\n}";
+                "calledFrom='" + calledFrom + '\'' +
+                ", calledTo='" + calledTo + '\'' +
+                ", callState=" + callState +
+                ", direction=" + direction +
+                ", asteriskId='" + asteriskId + '\'' +
+                ", user=" + user.getLogin() +
+                ", calledDate='" + calledDate + '\'' +
+                ", calledMillis=" + calledMillis +
+                ", secondsTalk=" + secondsTalk +
+                ", secondsToAnswer=" + secondsToAnswer +
+                ", outerPhone=" + outerPhone +
+                "}";
     }
 }

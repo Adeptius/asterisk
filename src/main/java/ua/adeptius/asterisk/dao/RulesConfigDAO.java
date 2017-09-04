@@ -8,7 +8,7 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.Rule;
 import ua.adeptius.asterisk.model.Scenario;
-import ua.adeptius.asterisk.test.AgiInProcessor;
+import ua.adeptius.asterisk.monitor.AgiInProcessor;
 
 import java.io.BufferedWriter;
 import java.io.File;

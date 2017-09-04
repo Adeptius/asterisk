@@ -70,16 +70,7 @@ public class WebSocket {
         LOGGER.debug("{}: пользователь {} ошибка соединения. Сессий: {}", amoDomain, userId, usersAndSessions.get(userId).size());
     }
 
-    public static void sendMessage(String userId, WsMessage wsMessage) {
-        Set<Session> sessions = usersAndSessions.get(userId);
-        try {
-            for (Session session : sessions) {
-                session.getBasicRemote().sendObject(wsMessage);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
 
     private void processMessage(Session session, WsMessage wsMessage, String amoDomain, String userId) {
@@ -122,6 +113,17 @@ public class WebSocket {
                     }
                 }
             }
+        }
+    }
+
+    public static void sendMessage(String userId, WsMessage wsMessage) {
+        Set<Session> sessions = usersAndSessions.get(userId);
+        try {
+            for (Session session : sessions) {
+                session.getBasicRemote().sendObject(wsMessage);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -55,25 +55,15 @@ public class AmoAccount implements Serializable {
     @Column(name = "phoneEnumId")
     private String phoneEnumId;
 
+    @Column(name = "apiUserId")
+    private String apiUserId;
+
     @Column(name = "leadId")
-    private int leadId;
+    private int leadId;//todo хрень
 
     @ManyToOne
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;
-
-
-//    public void addBinding(@Nonnull String worker, @Nonnull String phone) {
-//        AmoPhoneBinding binding = new AmoPhoneBinding();
-//        binding.setWorker(worker);
-//        binding.setPhone(phone);
-//        phoneBindings.add(binding);
-//    }
-
-
-//    public void setPhoneBindings(Set<AmoPhoneBinding> phoneBindings) {
-//        this.phoneBindings = phoneBindings;
-//    }
 
     @Nullable
     public String getWorkersPhone(String workerId){
@@ -82,14 +72,6 @@ public class AmoAccount implements Serializable {
             return null;
         }
         return operatorLocation.getAmoUserIdAndInnerNumber().get(workerId);
-
-
-//        for (AmoPhoneBinding phoneBinding : phoneBindings) {
-//            if (phoneBinding.getWorker().equals(workerId)){
-//                return phoneBinding.getPhone();
-//            }
-//        }
-//        return null;
     }
 
     @Nullable
@@ -99,17 +81,7 @@ public class AmoAccount implements Serializable {
             return null;
         }
         return operatorLocation.getInnerNumberAndAmoUserId().get(phone);
-//        for (AmoPhoneBinding phoneBinding : phoneBindings) {
-//            if (phoneBinding.getPhone().equals(phone)){
-//                return phoneBinding.getWorker();
-//            }
-//        }
-//        return null;
     }
-
-//    public Set<AmoPhoneBinding> getPhoneBindings() {
-//        return phoneBindings;
-//    }
 
     public int getLeadId() {
         return leadId;
@@ -125,6 +97,14 @@ public class AmoAccount implements Serializable {
             nextelLogin = user.getLogin();
         }
         this.user = user;
+    }
+
+    public String getApiUserId() {
+        return apiUserId;
+    }
+
+    public void setApiUserId(String apiUserId) {
+        this.apiUserId = apiUserId;
     }
 
     @Nonnull
@@ -168,14 +148,6 @@ public class AmoAccount implements Serializable {
         this.phoneEnumId = phoneEnumId;
     }
 
-//    public Set<AmoOperatorLocation> getOperatorLocations() {
-//        return operatorLocations;
-//    }
-
-//    public void setOperatorLocations(Set<AmoOperatorLocation> operatorLocations) {
-//        this.operatorLocations = operatorLocations;
-//    }
-
     @Override
     public String toString() {
         return "AmoAccount{" +
@@ -188,7 +160,6 @@ public class AmoAccount implements Serializable {
                 ", phoneEnumId='" + phoneEnumId + '\'' +
                 ", leadId=" + leadId +
                 ", user=" + user.getLogin() +
-//                ", operatorLocations=" + operatorLocations +
                 '}';
     }
 }

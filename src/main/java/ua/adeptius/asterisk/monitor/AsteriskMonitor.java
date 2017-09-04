@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ua.adeptius.asterisk.model.Call.Direction.IN;
-import static ua.adeptius.asterisk.monitor.AsteriskLogAnalyzer.addZero;
+import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
+
 
 @SuppressWarnings("Duplicates")
 public class AsteriskMonitor implements ManagerEventListener {
@@ -132,12 +132,12 @@ public class AsteriskMonitor implements ManagerEventListener {
         try {
             if (event instanceof NewChannelEvent) {
                 NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-                String from = addZero(newChannelEvent.getCallerIdNum());
-                String to = addZero(newChannelEvent.getExten());
-                if (!AsteriskLogAnalyzer.phonesAndUsers.containsKey(from)
-                        && !AsteriskLogAnalyzer.phonesAndUsers.containsKey(to)) {
-                    return; // фильтр блокирующий цепочки у которых нет связи с пользователями
-                }
+//                String from = addZero(newChannelEvent.getCallerIdNum());
+//                String to = addZero(newChannelEvent.getExten());
+//                if (!AsteriskLogAnalyzer.phonesAndUsers.containsKey(from)
+//                        && !AsteriskLogAnalyzer.phonesAndUsers.containsKey(to)) {
+//                    return; // фильтр блокирующий цепочки у которых нет связи с пользователями
+//                }
 
                 if (newChannelEvent.getExten().equals("s")) {
                     return; // Сомнительно блокировать.
@@ -146,6 +146,7 @@ public class AsteriskMonitor implements ManagerEventListener {
 
 //                System.out.println(makePrettyLog(event));
                 AsteriskLogAnalyzer.analyze(event);
+//                CallProcessor.processEvent(newChannelEvent, newChannelEvent.getUniqueId());
                 return;
             }
 
@@ -178,6 +179,7 @@ public class AsteriskMonitor implements ManagerEventListener {
 
 //                System.out.println(makePrettyLog(event));
                 AsteriskLogAnalyzer.analyze(event);
+//                CallProcessor.processEvent(newExtenEvent, newExtenEvent.getUniqueId());
                 return;
             }
 
@@ -196,61 +198,19 @@ public class AsteriskMonitor implements ManagerEventListener {
 
 //                System.out.println(makePrettyLog(event));
                 AsteriskLogAnalyzer.analyze(event);
+//                CallProcessor.processEvent(varSetEvent, varSetEvent.getUniqueId());
                 return;
             }
 
             if (event instanceof HangupEvent) {
+                HangupEvent hangupEvent = (HangupEvent) event;
 //                System.out.println(makePrettyLog(event));
                 AsteriskLogAnalyzer.analyze(event);
+//                CallProcessor.processEvent(hangupEvent, hangupEvent.getUniqueId());
             }
         } catch (Exception e){
             e.printStackTrace();
         }
-    }
-
-
-    public static String makePrettyLog(ManagerEvent event) {
-        String s = event.toString();
-        s = s.substring(31);
-        if (s.contains("timestamp=null,")) {
-            s = s.replaceAll("timestamp=null,", "");
-        }
-        if (s.contains("sequencenumber=null,")) {
-            s = s.replaceAll("sequencenumber=null,", "");
-        }
-        if (s.contains("server=null,")) {
-            s = s.replaceAll("server=null,", "");
-        }
-        if (s.contains("actionid=null,")) {
-            s = s.replaceAll("actionid=null,", "");
-        }
-        if (s.contains("connectedlinenum=null,")) {
-            s = s.replaceAll("connectedlinenum=null,", "");
-        }
-        if (s.contains("accountcode=null,")) {
-            s = s.replaceAll("accountcode=null,", "");
-        }
-        if (s.contains("connectedlinename=null,")) {
-            s = s.replaceAll("connectedlinename=null,", "");
-        }
-        if (s.contains("calleridname=null,")) {
-            s = s.replaceAll("calleridname=null,", "");
-        }
-        s = removeRegexFromString(s, "dateReceived='.*2017',");
-        s = removeRegexFromString(s, "systemHashcode=\\d{8,10}");
-        s = removeRegexFromString(s, "channel='SIP\\/\\d*-[\\d|\\w]*',");
-        s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
-        s = removeRegexFromString(s, "privilege='\\w*,\\w*',");
-        s = removeRegexFromString(s, "priority='\\d*',");
-        return s;
-    }
-
-    private static String removeRegexFromString(String log, String regex) {
-        Matcher regexMatcher = Pattern.compile(regex).matcher(log);
-        if (regexMatcher.find()) {
-            log = log.replaceAll(regexMatcher.group(), "");
-        }
-        return log;
     }
 
 

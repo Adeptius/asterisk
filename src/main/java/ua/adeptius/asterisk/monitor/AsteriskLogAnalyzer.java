@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.model.Call.CallState.*;
 import static ua.adeptius.asterisk.model.Call.Direction.IN;
+import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 public class AsteriskLogAnalyzer {
 
@@ -79,11 +80,11 @@ public class AsteriskLogAnalyzer {
      * @param list
      */
     private static void makeCallObject(List<ManagerEvent> list){
-        System.err.println("Приступаю к сборке обьекта Call.");
-        for (ManagerEvent event : list) {
-            System.err.println(AsteriskMonitor.makePrettyLog(event));
-        }
-        System.err.println("------------------");
+//        System.err.println("Приступаю к сборке обьекта Call.");
+//        for (ManagerEvent event : list) {
+//            System.err.println(AsteriskMonitor.makePrettyLog(event));
+//        }
+//        System.err.println("------------------");
 
         Call call = new Call();
         for (ManagerEvent event : list) {
@@ -186,19 +187,7 @@ public class AsteriskLogAnalyzer {
             }
         }
 //        System.out.println(call);
-        MainController.onNewCall(call);
-    }
-
-
-    public static String addZero(String source) {
-        try {
-            if (source.length() == 9 && !source.startsWith("0")) {
-                source = "0" + source;
-            }
-        } catch (Exception e) {
-//            System.out.println("Ошибка добавления нолика. Пришло " + source);
-        }
-        return source;
+//        MainController.onNewCall(call);
     }
 
     public static void updatePhonesHashMap() {

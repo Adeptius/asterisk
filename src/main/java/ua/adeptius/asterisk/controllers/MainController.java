@@ -8,11 +8,11 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.senders.AmoCallSender;
+import ua.adeptius.asterisk.senders.OldAmoCallSender;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @SuppressWarnings("Duplicates")
@@ -21,6 +21,7 @@ public class MainController {
     private static Logger LOGGER = LoggerFactory.getLogger(MainController.class.getSimpleName());
 
     private static RoistatCallSender roistatCallSender = new RoistatCallSender();
+    private static OldAmoCallSender oldAmoCallSender = new OldAmoCallSender();
     private static AmoCallSender amoCallSender = new AmoCallSender();
     private static GoogleAnalitycsCallSender googleAnalitycsCallSender = new GoogleAnalitycsCallSender();
 

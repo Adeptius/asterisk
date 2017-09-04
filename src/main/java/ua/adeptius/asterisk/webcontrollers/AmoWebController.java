@@ -109,7 +109,7 @@ public class AmoWebController {
             return new Message(Message.Status.Success, "Check complete. It works!");
         } catch (AmoAccountNotFoundException e) {
             return new Message(Error, "Amo account not found");
-        } catch (AmoWrongLoginOrApiKeyExeption e) {
+        } catch (AmoWrongLoginOrApiKeyException e) {
             return new Message(Error, "Wrong login or api key");
         } catch (AmoCantCreateDealException e) {
             return new Message(Error, "User have not enough rights for create contacts and deals");
