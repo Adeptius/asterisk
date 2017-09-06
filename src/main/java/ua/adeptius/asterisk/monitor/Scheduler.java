@@ -164,7 +164,8 @@ public class Scheduler{
     @Scheduled(cron = "0 00 * * * ?") // в 0 минут каждого часа
     private void updatePhonesMapForCallProcessor(){
 //        CallProcessor.updatePhonesHashMap();
-        AsteriskLogAnalyzer.updatePhonesHashMap();
+//        AsteriskLogAnalyzer.updatePhonesHashMap();
+        CallProcessor.updatePhonesHashMap();
     }
 
     @Scheduled(initialDelay = 1000 ,fixedDelay = 20000)

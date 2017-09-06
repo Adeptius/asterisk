@@ -8,21 +8,17 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.senders.AmoCallSender;
-import ua.adeptius.asterisk.senders.OldAmoCallSender;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
 
 import java.util.*;
 
 
-@SuppressWarnings("Duplicates")
 public class MainController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(MainController.class.getSimpleName());
 
     private static RoistatCallSender roistatCallSender = new RoistatCallSender();
-    private static OldAmoCallSender oldAmoCallSender = new OldAmoCallSender();
-    private static AmoCallSender amoCallSender = new AmoCallSender();
     private static GoogleAnalitycsCallSender googleAnalitycsCallSender = new GoogleAnalitycsCallSender();
 
     public static String getFreeNumberFromSite(User user, Site site, String googleId, String ip, String pageRequest) throws NoSuchElementException {

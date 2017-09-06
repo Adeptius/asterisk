@@ -105,7 +105,10 @@ public class Main {
 
         LOGGER.info("Кеширование номеров и пользователей");
 //        CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
-        AsteriskLogAnalyzer.updatePhonesHashMap();
+//        AsteriskLogAnalyzer.updatePhonesHashMap();
+        CallProcessor.updatePhonesHashMap();
+
+
 
         try {
             RulesConfigDAO.writeAllNeededScenarios();

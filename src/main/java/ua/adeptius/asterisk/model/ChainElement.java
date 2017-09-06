@@ -59,10 +59,6 @@ public class ChainElement {
     @Column(name = "awaitingTime")
     private int awaitingTime;
 
-    @JsonProperty
-    @Column(name = "melody")
-    private String melody;
-
     @ManyToOne
     @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
     private User user;
@@ -208,14 +204,6 @@ public class ChainElement {
 
     public void setAwaitingTime(int awaitingTime) {
         this.awaitingTime = awaitingTime;
-    }
-
-    public String getMelody() {
-        return melody;
-    }
-
-    public void setMelody(String melody) {
-        this.melody = melody;
     }
 
     public User getUser() {

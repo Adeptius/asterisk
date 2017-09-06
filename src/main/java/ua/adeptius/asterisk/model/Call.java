@@ -12,10 +12,6 @@ import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class Call {
 
-    // Нужно для опеределения кому принадлежит тот номер на который позвонил посетитель
-    // а не на кого он на самом деле попал. Для трекинга
-//    private String firstCall;
-
     @JsonProperty
     private String calledFrom;
 
@@ -47,7 +43,7 @@ public class Call {
 
     @JsonProperty
 //    private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
-    private int secondsToAnswer;
+    private int secondsFullTime;
 
     @JsonProperty
     private int secondsTalk;
@@ -56,12 +52,29 @@ public class Call {
 //    private int secondsFullTime;
 
 //    boolean callIsEnded;
-//    private int amoDealId;
-//    private int amoContactId;
-//    private int lastOperationTime;
+    private int amoDealId;
+    private int amoContactId;
+    private int lastOperationTime;
     private OuterPhone outerPhone;
+    private CallPhase callPhase;
 
-//    public int getCalculatedModifiedTime() { // AUTOINCREMENT
+
+    public enum CallPhase{
+        NEW_CALL,
+        REDIRECTED,
+        ANSWERED,
+        ENDED
+    }
+
+    public CallPhase getCallPhase() {
+        return callPhase;
+    }
+
+    public void setCallPhase(CallPhase callPhase) {
+        this.callPhase = callPhase;
+    }
+
+    //    public int getCalculatedModifiedTime() { // AUTOINCREMENT
 //        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference;
 //        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
 //            lastOperationTime++;
@@ -72,25 +85,29 @@ public class Call {
 //    }
 
 
-    public int getSecondsToAnswer() {
-        return secondsToAnswer;
+//    private int timeDifference;
+
+
+    public int getSecondsFullTime() {
+        return secondsFullTime;
     }
 
-    private int timeDifference;
+    public void setSecondsFullTime(int secondsFullTime) {
+        this.secondsFullTime = secondsFullTime;
+    }
 
-
-//    public void setLastOperationTime(int lastOperationTime) {
-//        this.lastOperationTime = lastOperationTime;
+    public void setLastOperationTime(int lastOperationTime) {
+        this.lastOperationTime = lastOperationTime;
 //        timeDifference = lastOperationTime - ((int) new Date().getTime() / 1000);
-//    }
+    }
 
-//    public int getAmoDealId() {
-//        return amoDealId;
-//    }
+    public int getAmoDealId() {
+        return amoDealId;
+    }
 
-//    public void setAmoDealId(int amoDealId) {
-//        this.amoDealId = amoDealId;
-//    }
+    public void setAmoDealId(int amoDealId) {
+        this.amoDealId = amoDealId;
+    }
 
     public int getSecondsTalk() {
         return secondsTalk;
@@ -131,9 +148,6 @@ public class Call {
 //        }
 //    }
 
-    public void setSecondsToAnswer(int secondsToAnswer) { // Задаётся при чтении с БД
-        this.secondsToAnswer = secondsToAnswer;
-    }
 
 //    @JsonProperty
 //    public int getSecondsToAnswer() {
@@ -277,24 +291,24 @@ public class Call {
 //        return amoContactId;
 //    }
 
-//    public void setAmoContactId(int amoContactId) {
-//        this.amoContactId = amoContactId;
-//    }
+    public void setAmoContactId(int amoContactId) {
+        this.amoContactId = amoContactId;
+    }
 
     @Override
     public String toString() {
         return "Call{" +
-                "calledFrom='" + calledFrom + '\'' +
-                ", calledTo='" + calledTo + '\'' +
-                ", callState=" + callState +
-                ", direction=" + direction +
-                ", asteriskId='" + asteriskId + '\'' +
-                ", user=" + user.getLogin() +
-                ", calledDate='" + calledDate + '\'' +
-                ", calledMillis=" + calledMillis +
-                ", secondsTalk=" + secondsTalk +
-                ", secondsToAnswer=" + secondsToAnswer +
-                ", outerPhone=" + outerPhone +
-                "}";
+                "\ncalledFrom='" + calledFrom + '\'' +
+                "\ncalledTo='" + calledTo + '\'' +
+                "\ncallState=" + callState +
+                "\ndirection=" + direction +
+                "\nasteriskId='" + asteriskId + '\'' +
+                "\nuser=" + user.getLogin() +
+                "\ncalledDate='" + calledDate + '\'' +
+                "\ncalledMillis=" + calledMillis +
+                "\nsecondsTalk=" + secondsTalk +
+                "\nsecondsFullTime=" + secondsFullTime +
+                "\nouterPhone=" + outerPhone +
+                "\n}";
     }
 }

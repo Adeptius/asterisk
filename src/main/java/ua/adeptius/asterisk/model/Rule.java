@@ -67,8 +67,16 @@ public class Rule {
         }
         setDays(jDays);
 
+        String jMelody = jsonRule.getMelody();
+        if (jMelody == null) {
+            throw new JsonParseException(name + ": melody not set: " + jMelody);
+        }
+        melody = jsonRule.getMelody();
+
         greeting = jsonRule.getGreeting();
         message = jsonRule.getMessage();
+
+
 
 
         chain = new HashMap<>();
@@ -106,12 +114,6 @@ public class Rule {
             }
             element.setAwaitingTime(jAwaitingTime);
 
-            String jMelody = jElement.getMelody();
-            if (jMelody == null) {
-                throw new JsonParseException(name + ": melody not set: " + jMelody);
-            }
-            element.setMelody(jMelody);
-
             chain.put(number, element);
         }
     }
@@ -148,6 +150,10 @@ public class Rule {
     @JsonProperty
     @Column(name = "days")
     private String days;
+
+    @JsonProperty
+    @Column(name = "melody")
+    private String melody;
 
     @JsonProperty
     @Column(name = "greeting")
@@ -205,7 +211,6 @@ public class Rule {
         DestinationType destinationType = firstElement.getDestinationType();
         ForwardType forwardType = firstElement.getForwardType();
         int awaitingTime = firstElement.getAwaitingTime();
-        String melody = firstElement.getMelody();
 
         if (destinationType == SIP) {
             if (forwardType == TO_ALL) {
@@ -427,6 +432,14 @@ public class Rule {
 
     public void setType(RuleType type) {
         this.type = type;
+    }
+
+    public String getMelody() {
+        return melody;
+    }
+
+    public void setMelody(String melody) {
+        this.melody = melody;
     }
 
     public void setUser(User user) {

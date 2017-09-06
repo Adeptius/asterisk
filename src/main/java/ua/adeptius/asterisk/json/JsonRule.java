@@ -13,6 +13,15 @@ public class JsonRule {
     HashMap<Integer, JsonChainElement> chain;
     private Integer greeting;
     private Integer message;
+    private String melody;
+
+    public String getMelody() {
+        return melody;
+    }
+
+    public void setMelody(String melody) {
+        this.melody = melody;
+    }
 
     public Integer getGreeting() {
         return greeting;

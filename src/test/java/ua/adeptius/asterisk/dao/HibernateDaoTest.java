@@ -261,6 +261,7 @@ public class HibernateDaoTest {
         rule.setStartHour(0);
         rule.setEndHour(24);
         rule.setType(RuleType.DEFAULT);
+        rule.setMelody("none");
         scenario.addRule(rule);
         return rule;
     }
@@ -271,7 +272,6 @@ public class HibernateDaoTest {
         chainElement.setDestinationType(SIP);
         chainElement.setForwardType(TO_ALL);
         chainElement.setPosition(position);
-        chainElement.setMelody("none");
         rule.addChainElement(chainElement);
         return chainElement;
     }

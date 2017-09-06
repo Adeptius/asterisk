@@ -118,6 +118,10 @@ public class WebSocket {
 
     public static void sendMessage(String userId, WsMessage wsMessage) {
         Set<Session> sessions = usersAndSessions.get(userId);
+        if (sessions == null) {
+            LOGGER.debug("Виджет пользователя {} не подключен к серверу", userId);
+            return;
+        }
         try {
             for (Session session : sessions) {
                 session.getBasicRemote().sendObject(wsMessage);

@@ -16,7 +16,6 @@ public class JsonChainElement {
     private String forwardType;
     private String destinationType;
     private Integer awaitingTime;
-    private String melody;
     private Integer position;
 
     public Integer getPosition() {
@@ -50,15 +49,6 @@ public class JsonChainElement {
     public void setAwaitingTime(Integer awaitingTime) {
         this.awaitingTime = awaitingTime;
     }
-
-    public String getMelody() {
-        return melody;
-    }
-
-    public void setMelody(String melody) {
-        this.melody = melody;
-    }
-
 
     public List<String> getToList() {
         return toList;

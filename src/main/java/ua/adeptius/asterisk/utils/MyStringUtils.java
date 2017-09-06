@@ -77,7 +77,7 @@ public class MyStringUtils {
     }
 
 
-    private static String makePrettyLog(ManagerEvent event) {
+    public static String makePrettyLog(ManagerEvent event) {
         String s = event.toString();
         s = s.substring(31);
         if (s.contains("timestamp=null,")) {

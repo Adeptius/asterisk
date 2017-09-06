@@ -76,7 +76,7 @@ public class RoistatPhoneCall {
 //        }
 
 //        Продолжительность звонка (в секундах)
-        this.duration = call.getSecondsToAnswer() + call.getSecondsTalk(); // полное время звонка
+        this.duration = call.getSecondsFullTime(); // полное время звонка
 
 
         String date = new SimpleDateFormat("yyyy-MM-dd").format(call.getCalledMillis());

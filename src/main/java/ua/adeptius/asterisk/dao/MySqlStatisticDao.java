@@ -99,7 +99,7 @@ public class MySqlStatisticDao {
                 call.setCalledFrom(set.getString("calledFrom"));
                 call.setCalledTo(set.getString("calledTo"));
                 call.setCallState(Call.CallState.valueOf(set.getString("callState")));
-                call.setSecondsToAnswer(set.getInt("secondsToAnswer"));
+                call.setSecondsFullTime(set.getInt("secondsFullTime"));
                 call.setSecondsTalk(set.getInt("secondsTalk"));
                 call.setAsteriskId(set.getString("call_id"));
                 call.setGoogleId(set.getString("google_id"));
@@ -131,17 +131,18 @@ public class MySqlStatisticDao {
         for (String s : tablesToCreate) {
             LOGGER.trace("Создание таблицы {}", s);
             String sql = "CREATE TABLE `" + s + "` (  " +
+                    "`id` INT NOT NULL AUTO_INCREMENT,  " +
                     "`calledDate` VARCHAR(20) NOT NULL,  " +
                     "`direction` VARCHAR(3) NOT NULL,  " +
                     "`calledFrom` VARCHAR(45) NULL,  " +
                     "`calledTo` VARCHAR(45) NULL,  " +
                     "`callState` VARCHAR(15) NOT NULL,  " +
-                    "`secondsToAnswer` INT NULL,  " +
+                    "`secondsFullTime` INT NULL,  " +
                     "`secondsTalk` INT NULL,  " +
                     "`call_id` VARCHAR(45) NULL,  " +
                     "`google_id` VARCHAR(45) NULL,  " +
                     "`utm` VARCHAR(600) NULL,  " +
-                    "PRIMARY KEY (`calledDate`));";
+                    "PRIMARY KEY (`id`));";
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
@@ -159,25 +160,23 @@ public class MySqlStatisticDao {
         Call.Direction direction = call.getDirection();
         String calledFrom = call.getCalledFrom();
         Call.CallState callState = call.getCallState();
-        int secondsToAnswer = call.getSecondsToAnswer();
         int secondsTalk = call.getSecondsTalk();
-//        int secondsFullTime = call.getSecondsFullTime();
+        int secondsFullTime = call.getSecondsFullTime();
         String asteriskId = call.getAsteriskId();
         String googleId = call.getGoogleId();
         String utm = call.getUtm();
 
         LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", login, calledFrom, calledTo);
         StringBuilder sb = new StringBuilder(28);
-        sb.append("INSERT INTO `").append(login).append("` VALUES ('")
+        sb.append("INSERT INTO `").append(login)
+                .append("` (`calledDate`, `direction`, `calledFrom`, `calledTo`, `callState`, `secondsFullTime`, `secondsTalk`, `call_id`, `google_id`, `utm`) VALUES ('")
                 .append(calledDate).append("', '")
                 .append(direction).append("', '")
                 .append(calledFrom).append("', '")
                 .append(calledTo).append("', '")
                 .append(callState).append("', '")
-                .append(secondsToAnswer)
-                .append("', '")
-                .append(secondsTalk)
-                .append("', '")
+                .append(secondsFullTime).append("', '")
+                .append(secondsTalk).append("', '")
                 .append(asteriskId).append("',");
 
         if (googleId != null){

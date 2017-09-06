@@ -109,22 +109,22 @@ public class AsteriskMonitor implements ManagerEventListener {
         return sipsFree;
     }
 
-    public static void setSipsFree(HashMap<String, Boolean> sipsFree) {
-        AsteriskMonitor.sipsFree = sipsFree;
-    }
+//    public static void setSipsFree(HashMap<String, Boolean> sipsFree) {
+//        AsteriskMonitor.sipsFree = sipsFree;
+//    }
 
     public static HashMap<String, Boolean> getSipsFreeOrRinging() {
         return sipsFreeOrRinging;
     }
 
-    public static void setSipsFreeOrRinging(HashMap<String, Boolean> sipsFreeOrRinging) {
-        AsteriskMonitor.sipsFreeOrRinging = sipsFreeOrRinging;
-    }
+//    public static void setSipsFreeOrRinging(HashMap<String, Boolean> sipsFreeOrRinging) {
+//        AsteriskMonitor.sipsFreeOrRinging = sipsFreeOrRinging;
+//    }
 
     /**
      * 1 Мониторинг логов астериска
      * 2 Первичная фильтрация от ненужных элементов
-     * 3 Передача информативных логов в анализатор
+     * 3 Передача информативных логов в call processor
      *
      * @see AsteriskLogAnalyzer
      */
@@ -132,21 +132,13 @@ public class AsteriskMonitor implements ManagerEventListener {
         try {
             if (event instanceof NewChannelEvent) {
                 NewChannelEvent newChannelEvent = (NewChannelEvent) event;
-//                String from = addZero(newChannelEvent.getCallerIdNum());
-//                String to = addZero(newChannelEvent.getExten());
-//                if (!AsteriskLogAnalyzer.phonesAndUsers.containsKey(from)
-//                        && !AsteriskLogAnalyzer.phonesAndUsers.containsKey(to)) {
-//                    return; // фильтр блокирующий цепочки у которых нет связи с пользователями
-//                }
 
                 if (newChannelEvent.getExten().equals("s")) {
                     return; // Сомнительно блокировать.
                     // это фильтрует вторую цепочку логов при звонке с сип на сип
                 }
 
-//                System.out.println(makePrettyLog(event));
-                AsteriskLogAnalyzer.analyze(event);
-//                CallProcessor.processEvent(newChannelEvent, newChannelEvent.getUniqueId());
+                CallProcessor.processEvent(newChannelEvent, newChannelEvent.getUniqueId());
                 return;
             }
 
@@ -177,9 +169,7 @@ public class AsteriskMonitor implements ManagerEventListener {
                     }
                 }
 
-//                System.out.println(makePrettyLog(event));
-                AsteriskLogAnalyzer.analyze(event);
-//                CallProcessor.processEvent(newExtenEvent, newExtenEvent.getUniqueId());
+                CallProcessor.processEvent(newExtenEvent, newExtenEvent.getUniqueId());
                 return;
             }
 
@@ -196,17 +186,13 @@ public class AsteriskMonitor implements ManagerEventListener {
                     return;
                 }
 
-//                System.out.println(makePrettyLog(event));
-                AsteriskLogAnalyzer.analyze(event);
-//                CallProcessor.processEvent(varSetEvent, varSetEvent.getUniqueId());
+                CallProcessor.processEvent(varSetEvent, varSetEvent.getUniqueId());
                 return;
             }
 
             if (event instanceof HangupEvent) {
                 HangupEvent hangupEvent = (HangupEvent) event;
-//                System.out.println(makePrettyLog(event));
-                AsteriskLogAnalyzer.analyze(event);
-//                CallProcessor.processEvent(hangupEvent, hangupEvent.getUniqueId());
+                CallProcessor.processEvent(hangupEvent, hangupEvent.getUniqueId());
             }
         } catch (Exception e){
             e.printStackTrace();

@@ -4,7 +4,10 @@ import org.asteriskjava.Cli;
 import org.asteriskjava.fastagi.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.AmoMultiThreadController;
+import ua.adeptius.amocrm.model.json.JsonAmoContact;
+import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.DestinationType;
 import ua.adeptius.asterisk.telephony.ForwardType;
@@ -24,6 +27,7 @@ public class AgiInProcessor extends BaseAgiScript {
 
     private static HashMap<String, Rule> phoneNumbersAndRules = new HashMap<>();
     private static Random random = new Random();
+    private static ThreadLocal<String> threadLocalMelody = new ThreadLocal<>();
 
 
     public void service(AgiRequest request, AgiChannel channel) {
@@ -38,7 +42,7 @@ public class AgiInProcessor extends BaseAgiScript {
 //            dialToGsmGroup(Arrays.asList("0995306914", "0936518480"), 10, "slow");
             String toNumber = addZero(request.getExtension());
             String fromNumber = addZero(request.getCallerIdNumber());
-
+//
             Rule rule = phoneNumbersAndRules.get(toNumber);
             if (rule == null) {
                 LOGGER.debug("Правило по номеру {} не найдено", toNumber);
@@ -46,6 +50,7 @@ public class AgiInProcessor extends BaseAgiScript {
             }
 
             User user = rule.getUser();
+            threadLocalMelody.set(rule.getMelody());
             String username = user.getLogin();
             LOGGER.debug("{}: Поступил звонок с {} на номер {}", username, fromNumber, toNumber);
 
@@ -55,31 +60,28 @@ public class AgiInProcessor extends BaseAgiScript {
                 return;
             }
 
-            UserMelody greetingMelody = rule.getGreetingMelody();
-            if (greetingMelody != null) { //если пользователь установил какое-то приветствие
-                answer();
-                playMelody(greetingMelody, username);
-            }
+            // Приветствие
+//            UserMelody greetingMelody = rule.getGreetingMelody();
+//            if (greetingMelody != null) {
+//                answer();
+//                playMelody(greetingMelody, username);
+//            }
 
-            AmoMultiThreadController.setThreadLocalAsteriskId(request.getUniqueId());
-            AmoMultiThreadController.setThreadLocalFromNumber(fromNumber);
-            AmoMultiThreadController.setAmoAccount(user);
+//            AmoMultiThreadController.setThreadLocalAsteriskId(request.getUniqueId());
+//            AmoMultiThreadController.setThreadLocalFromNumber(fromNumber);
+//            AmoMultiThreadController.setAmoAccount(user);
 
-            AmoMultiThreadController.createOrFindDeal(fromNumber);
+//            AmoMultiThreadController.createOrFindDeal(fromNumber);
 
 
-            try {
-                String melody = chain.get(0).getMelody();
-                String responsibleOperatorNumber = AmoMultiThreadController.getResponsibleUserPhone(fromNumber);
-                if (responsibleOperatorNumber != null) {
-                    LOGGER.debug("{}: найден номер телефона ответственного сотрудника: {}", user.getLogin(), responsibleOperatorNumber);
-                    autodetectTypeAndDialToNumber(responsibleOperatorNumber,melody);
-                }
-            }catch (AgiException ae){
-                throw ae;
-            } catch (Exception e) {
-                e.printStackTrace();//вообще ignored но для первичного дебага так будет
-            }
+//            try {
+//                checkAmoResponsibleUser(user, fromNumber);
+//
+//            }catch (AgiException ae){
+//                throw ae;
+//            } catch (Exception e) {
+//                e.printStackTrace();//вообще ignored но для первичного дебага так будет
+//            }
 
 
             for (int i = 0; i < chain.size(); i++) {
@@ -103,6 +105,7 @@ public class AgiInProcessor extends BaseAgiScript {
                 }
             }
 
+            // Прощание
             UserMelody messageMelody = rule.getMessageMelody();
             if (messageMelody != null) { //если пользователь установил какое-то сообщение
                 playMelody(messageMelody, username);
@@ -119,6 +122,39 @@ public class AgiInProcessor extends BaseAgiScript {
             hangup();
         } catch (AgiException ignored) {
         }
+    }
+
+    private void checkAmoResponsibleUser(User user, String fromNumber) throws Exception {
+        AmoAccount amoAccount = user.getAmoAccount();
+        if (amoAccount == null) {
+            LOGGER.debug("{}: амо аккаунт отсутствует. Ответственного пользователя не ищем", user.getLogin());
+            return;
+        }
+
+        LOGGER.debug("{}: ищем контакт по номеру {}", user.getLogin(), fromNumber);
+        JsonAmoContact contactByNumber = AmoDAO.getContactIdByPhoneNumber(amoAccount, fromNumber);
+        if (contactByNumber == null) {
+            LOGGER.debug("{}: контакт по телефону {} не найден в AMO", user.getLogin(), fromNumber);
+            return;
+        }
+
+//        JsonAmoDeal contactsLatestActiveDial = AmoDAO.getContactsLatestActiveDial(amoAccount, contactByNumber);
+//        if (contactsLatestActiveDial == null) {
+//            LOGGER.debug("{}: активных сделок не найдено по контакту {}", user.getLogin(), contactByNumber);
+//            return;
+//        }
+
+        String responsibleUserId = contactByNumber.getResponsible_user_id();
+        LOGGER.debug("{}: найдена сделка по телефону {}. Ответственный пользователь: {}", user.getLogin(), fromNumber, responsibleUserId);
+
+        HashMap<String, String> amoUserIdAndInnerNumber = user.getOperatorLocation().getAmoUserIdAndInnerNumber();
+        String responsibleOperatorNumber = amoUserIdAndInnerNumber.get(responsibleUserId);
+        if (responsibleOperatorNumber == null) {
+            LOGGER.debug("{}: номер телефона ответственного сотрудника не найден", user.getLogin());
+        }
+        LOGGER.debug("{}: найден номер телефона ответственного сотрудника: {}", user.getLogin(), responsibleOperatorNumber);
+
+        autodetectTypeAndDialToNumber(responsibleOperatorNumber);
     }
 
 
@@ -147,7 +183,6 @@ public class AgiInProcessor extends BaseAgiScript {
         List<String> toList = element.getToList();
         int awaitingTime = element.getAwaitingTime();
         DestinationType destinationType = element.getDestinationType();
-        String melody = element.getMelody();
 
 
         if (destinationType == SIP) {
@@ -161,11 +196,11 @@ public class AgiInProcessor extends BaseAgiScript {
                 }
             }
             // Список свободных операторов составлен. Теперь всем им звоним одновременно
-            dialToSipGroup(callList, awaitingTime, melody);
+            dialToSipGroup(callList, awaitingTime);
 
         } else if (destinationType == GSM) {
             // Звоним на все GSMы
-            dialToGsmGroup(toList, awaitingTime, melody);
+            dialToGsmGroup(toList, awaitingTime);
         }
     }
 
@@ -173,7 +208,6 @@ public class AgiInProcessor extends BaseAgiScript {
         List<String> toList = element.getToList();
         int awaitingTime = element.getAwaitingTime();
         DestinationType destinationType = element.getDestinationType();
-        String melody = element.getMelody();
 
         for (String operatorNumber : toList) {
             if (destinationType == SIP) {
@@ -181,14 +215,14 @@ public class AgiInProcessor extends BaseAgiScript {
 
                 boolean operatorIsFree = sipsState.get(operatorNumber);
                 if (operatorIsFree) {// оператор свободен
-                    dialToSip(operatorNumber, awaitingTime, melody);
+                    dialToSip(operatorNumber, awaitingTime);
                 } else {// оператор занят. Ищем следующего
                     continue;
                 }
 
             } else if (destinationType == GSM) {
 
-                dialToGsm(operatorNumber, awaitingTime, melody);
+                dialToGsm(operatorNumber, awaitingTime);
             }
         }
     }
@@ -198,7 +232,6 @@ public class AgiInProcessor extends BaseAgiScript {
         int awaitingTime = element.getAwaitingTime();
 //        int awaitingTime = 600; //todo
         DestinationType destinationType = element.getDestinationType();
-        String melody = element.getMelody();
 
 
         if (destinationType == SIP) {
@@ -216,13 +249,13 @@ public class AgiInProcessor extends BaseAgiScript {
             if (numbersOfFreeOperators != 0) { //если свободные операторы есть
                 int randomInt = random.nextInt(numbersOfFreeOperators);
                 String choosenOperator = callList.get(randomInt);
-                dialToSip(choosenOperator, awaitingTime, melody);
+                dialToSip(choosenOperator, awaitingTime);
             }
         } else if (destinationType == GSM) {
             int numbersOfFreeOperators = toList.size();
             int randomInt = random.nextInt(numbersOfFreeOperators);
             String choosenOperator = toList.get(randomInt);
-            dialToGsm(choosenOperator, awaitingTime, melody);
+            dialToGsm(choosenOperator, awaitingTime);
         }
     }
 
@@ -231,12 +264,12 @@ public class AgiInProcessor extends BaseAgiScript {
      * Звонки на номера или группы
      */
 
-    private void dialToSip(String sip, int timeout, String melody) throws AgiException {
+    private void dialToSip(String sip, int timeout) throws AgiException {
         getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
-        String command = "SIP/" + sip + "," + timeout + ",m(" + melody + ")";
+        String command = "SIP/" + sip + "," + timeout + ",m(" + threadLocalMelody.get() + ")";
         LOGGER.debug("Производится звонок на SIP {} с ожиданием {} секунд. Команда: {}", sip, timeout, command);
         setVariable("redirectedToSIP", sip);
-        AmoMultiThreadController.sendWsMessageCallingToNumber(sip);
+//        AmoMultiThreadController.sendWsMessageCallingToNumber(sip);
         int responseCode = exec("DIAL", command);
         if (responseCode == -1) {
             LOGGER.debug("SIP {}: разговор состоялся. Завершаем вызов: Hangup", sip);
@@ -246,12 +279,12 @@ public class AgiInProcessor extends BaseAgiScript {
         }
     }
 
-    private void dialToGsm(String number, int timeout, String melody) throws AgiException {
+    private void dialToGsm(String number, int timeout) throws AgiException {
         getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
-        String command = "SIP/Intertelekom_main/" + number + "," + timeout + ",m(" + melody + ")";
-        LOGGER.debug("Производится звонок на GSM {} с ожиданием {} секунд, мелодией: {}. Команда: {}", number, timeout, melody, command);
+        String command = "SIP/Intertelekom_main/" + number + "," + timeout + ",m(" + threadLocalMelody.get() + ")";
+        LOGGER.debug("Производится звонок на GSM {} с ожиданием {} секунд. Команда: {}", number, timeout, command);
         setVariable("redirectedToGSM", number);
-        AmoMultiThreadController.sendWsMessageCallingToNumber(number);
+//        AmoMultiThreadController.sendWsMessageCallingToNumber(number);
         int responseCode = exec("DIAL", command);
         if (responseCode == -1) {
             LOGGER.debug("GSM {}: разговор состоялся. Завершаем вызов: Hangup", number);
@@ -261,24 +294,23 @@ public class AgiInProcessor extends BaseAgiScript {
         }
     }
 
-    private void autodetectTypeAndDialToNumber(String number, String melody) throws AgiException {
+    private void autodetectTypeAndDialToNumber(String number) throws AgiException {
         if (number.length() == 7 && number.startsWith("2")) {//оператор на сипке сидит
             HashMap<String, Boolean> sipsState = AsteriskMonitor.getSipsFree();
             boolean operatorIsFree = sipsState.get(number);
-            if (!operatorIsFree) { // ответственный оператор занят.
+            if (!operatorIsFree) { // оператор занят.
                 return;
             }
-            dialToSip(number, 10, melody);
+            dialToSip(number, 10);
         } else {
-            dialToGsm(number, 13, melody);
+            dialToGsm(number, 13);
         }
     }
 
 
-
-    private void dialToSipGroup(List<String> sips, int timeout, String melody) throws AgiException {
+    private void dialToSipGroup(List<String> sips, int timeout) throws AgiException {
         getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
-        LOGGER.debug("Производится звонок на группу SIP {} с ожиданием {} секунд, мелодией {}", sips, timeout, melody);
+        LOGGER.debug("Производится звонок на группу SIP {} с ожиданием {} секунд", sips, timeout);
         if (sips.size() == 0) {
             LOGGER.debug("Список номеров в SIP группе пуст");
             return;
@@ -289,22 +321,22 @@ public class AgiInProcessor extends BaseAgiScript {
             result += "&SIP/" + number;
         }
         result = result.substring(1);
-        result = result + "," + timeout + ",m(" + melody + ")";
+        result = result + "," + timeout + ",m(" + threadLocalMelody.get() + ")";
         setVariable("redirectedToSIPGroup", sips.toString());
-        AmoMultiThreadController.sendWsMessageCallingToNumber(sips);
+//        AmoMultiThreadController.sendWsMessageCallingToNumber(sips);
         int responseCode = exec("DIAL", result);
         LOGGER.debug("SIPS {}: {}", sips, getStringedCode(responseCode));
         if (responseCode == -1) {
             LOGGER.debug("SIP {}: разговор состоялся. Завершаем вызов: Hangup", sips);
             hangup();
-        }else if (responseCode == 0){
+        } else if (responseCode == 0) {
             LOGGER.debug("SIP {}: Никто не ответил.", sips);
         }
     }
 
-    private void dialToGsmGroup(List<String> numbers, int timeout, String melody) throws AgiException {
+    private void dialToGsmGroup(List<String> numbers, int timeout) throws AgiException {
         getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
-        LOGGER.debug("Производится звонок на группу GSM {} с ожиданием {} секунд, мелодией: {}", numbers, timeout, melody);
+        LOGGER.debug("Производится звонок на группу GSM {} с ожиданием {} секунд", numbers, timeout);
 
         if (numbers.size() == 0) {
             LOGGER.debug("Список номеров в GSM группе пуст");
@@ -316,10 +348,10 @@ public class AgiInProcessor extends BaseAgiScript {
             result += "&SIP/Intertelekom_main/" + number;
         }
         result = result.substring(1);
-        result = result + "," + timeout + ",m(" + melody + ")";
+        result = result + "," + timeout + ",m(" + threadLocalMelody.get() + ")";
 
         setVariable("redirectedToGSMGroup", numbers.toString());
-        AmoMultiThreadController.sendWsMessageCallingToNumber(numbers);
+//        AmoMultiThreadController.sendWsMessageCallingToNumber(numbers);
         int responseCode = exec("DIAL", result);
         LOGGER.debug("GSM {}: {}", numbers, getStringedCode(responseCode));
         if (responseCode == -1) {

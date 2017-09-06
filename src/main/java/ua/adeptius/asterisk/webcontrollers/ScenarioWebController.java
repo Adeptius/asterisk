@@ -159,6 +159,8 @@ public class ScenarioWebController {
             }
         }
 
+
+
         // создаём мапу айдишников мелодий и обьектов мелодий для удобной и быстрой валидации
         HashMap<Integer, UserMelody> userMelodyIdAndMelody = new HashMap<>();
         user.getUserMelodies().forEach(melody -> userMelodyIdAndMelody.put(melody.getId(), melody));
@@ -202,6 +204,17 @@ public class ScenarioWebController {
                 if (userMelody == null) {
                     return new Message(Error, name + ": message " + message + " not exists");
                 }
+            }
+
+            try {
+                List<String> melodiesFromCache = getMelodiesFromCache();
+                String melody = rule.getMelody();
+                if (!melodiesFromCache.contains(melody)) {
+                    return new Message(Error, name + ": Melody '" + melody + "' does not exist");
+                }
+            } catch (Exception e) {
+                LOGGER.error("Ошибка загрузки мелодий из кэша");
+                return new Message(Error, "Internal error");
             }
 
 
@@ -248,20 +261,7 @@ public class ScenarioWebController {
                 if (element.getAwaitingTime() < 1) {
                     return new Message(Error, name + ": Awaiting time must be higher than 0");
                 }
-
-
-                try {
-                    List<String> melodiesFromCache = getMelodiesFromCache();
-                    String melody = element.getMelody();
-                    if (!melodiesFromCache.contains(melody)) {
-                        return new Message(Error, name + ": Melody '" + melody + "' does not exist");
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Ошибка загрузки мелодий из кэша");
-                    return new Message(Error, "Internal error");
-                }
             }
-
         }
         if (defaultRulesCount != 1) {
             return new Message(Error, "Scenario must contains one default rule.");
