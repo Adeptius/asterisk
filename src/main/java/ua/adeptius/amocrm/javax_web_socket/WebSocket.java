@@ -6,6 +6,7 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.senders.AmoWSMessageSender;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.websocket.*;
@@ -105,11 +106,14 @@ public class WebSocket {
                     String workersNumber = amoAccount.getWorkersPhone(userId);
                     if (workersNumber != null) {
                         try {
-                            sendMessage(userId, new WsMessage(outgoingCall, callTo));//todo перетестить
+                            sendMessage(userId, new WsMessage(outgoingCall, callTo));
+                            AmoWSMessageSender.sendWsMessageOutgoingCall(workersNumber, callTo);
                             Main.monitor.sendCallToOutsideAction(workersNumber, callTo, "AMOCRM-C2C "+callTo);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+                    }else {
+                        sendMessage(userId, new WsMessage(noOperatorNumber));
                     }
                 }
             }

@@ -82,7 +82,7 @@ public class User {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "login", referencedColumnName = "login")
-    private Set<UserMelody> userMelodies;
+    private Set<UserAudio> userAudio;
 
     @JsonProperty
     @Transient
@@ -338,23 +338,21 @@ public class User {
     }
 
     /**
-     * User Melodies
+     * User Audio
      */
-    public Set<UserMelody> getUserMelodies() {
-        return Collections.unmodifiableSet(userMelodies);
+    public Set<UserAudio> getUserAudio() {
+        return Collections.unmodifiableSet(userAudio);
     }
 
-    public void addMelody(UserMelody melody){
-        userMelodies.add(melody);
+    public void addMelody(UserAudio melody){
+        userAudio.add(melody);
     }
 
-    public void removeMelody(UserMelody melody){
-        userMelodies.remove(melody);
+    public void removeMelody(UserAudio melody){
+        userAudio.remove(melody);
     }
 
-    public static void setLOGGER(Logger LOGGER) {
-        User.LOGGER = LOGGER;
-    }
+
 
     public String getLogin() {
         return login;
@@ -403,6 +401,7 @@ public class User {
                 ", amoOperatorLocations=" + amoOperatorLocations +
                 ", rules=" + rules +
                 ", scenarios=" + scenarios +
+                ", userAudio=" + getUserAudio() +
                 ", outerPhonesCache=" + outerPhonesCache +
                 ", innerPhonesCache=" + innerPhonesCache +
                 '}';

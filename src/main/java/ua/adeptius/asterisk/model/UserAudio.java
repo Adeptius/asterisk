@@ -10,9 +10,9 @@ import javax.persistence.*;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @Entity
-@Table(name = "user_melodies", schema = "calltrackdb")
+@Table(name = "user_audio", schema = "calltrackdb")
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
-public class UserMelody {
+public class UserAudio {
 
     @JsonProperty
     @Id
@@ -65,7 +65,7 @@ public class UserMelody {
 
     @Override
     public String toString() {
-        return "UserMelody{" +
+        return "UserAudio{" +
                 "id=" + id +
                 ", login='" + login + '\'' +
                 ", name='" + name + '\'' +

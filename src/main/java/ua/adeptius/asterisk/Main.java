@@ -16,7 +16,7 @@ import ua.adeptius.asterisk.monitor.*;
 
 
 @Component
-@EnableWebMvc
+//@EnableWebMvc
 public class Main {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Main.class.getSimpleName());
@@ -116,7 +116,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        new Cli().start();
+        new Cli().start(); // Запуск AGI интерфейса астериска
 
         if (startedOnWindows) {
             try {

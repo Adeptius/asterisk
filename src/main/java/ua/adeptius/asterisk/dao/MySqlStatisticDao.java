@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,7 +98,7 @@ public class MySqlStatisticDao {
                 call.setCalledDate(set.getString("calledDate"));
                 call.setDirection(Call.Direction.valueOf(set.getString("direction")));
                 call.setCalledFrom(set.getString("calledFrom"));
-                call.setCalledTo(set.getString("calledTo"));
+                call.setCalledTo(Arrays.asList(set.getString("calledTo")));
                 call.setCallState(Call.CallState.valueOf(set.getString("callState")));
                 call.setSecondsFullTime(set.getInt("secondsFullTime"));
                 call.setSecondsTalk(set.getInt("secondsTalk"));
@@ -154,7 +155,7 @@ public class MySqlStatisticDao {
     }
 
     public static void saveCall(Call call) {
-        String calledTo = call.getCalledTo();
+        String calledTo = call.getCalledTo().get(0);
         String login = call.getUser().getLogin();
         String calledDate = call.getCalledDate();
         Call.Direction direction = call.getDirection();

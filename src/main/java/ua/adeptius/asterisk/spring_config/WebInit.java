@@ -4,9 +4,7 @@ package ua.adeptius.asterisk.spring_config;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-import javax.servlet.Filter;
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.ServletRegistration;
+import javax.servlet.*;
 import java.io.File;
 
 public class WebInit extends AbstractAnnotationConfigDispatcherServletInitializer {

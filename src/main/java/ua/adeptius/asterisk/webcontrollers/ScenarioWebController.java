@@ -162,8 +162,8 @@ public class ScenarioWebController {
 
 
         // создаём мапу айдишников мелодий и обьектов мелодий для удобной и быстрой валидации
-        HashMap<Integer, UserMelody> userMelodyIdAndMelody = new HashMap<>();
-        user.getUserMelodies().forEach(melody -> userMelodyIdAndMelody.put(melody.getId(), melody));
+        HashMap<Integer, UserAudio> userMelodyIdAndMelody = new HashMap<>();
+        user.getUserAudio().forEach(melody -> userMelodyIdAndMelody.put(melody.getId(), melody));
 
         // создали inScenario и rules. теперь валидация
         for (Rule rule : rules) {
@@ -192,16 +192,16 @@ public class ScenarioWebController {
 
             Integer greeting = rule.getGreetingId();
             if (greeting != null) {
-                UserMelody userMelody = userMelodyIdAndMelody.get(greeting);
-                if (userMelody == null) {
+                UserAudio userAudio = userMelodyIdAndMelody.get(greeting);
+                if (userAudio == null) {
                     return new Message(Error, name + ": greeting " + greeting + " not exists");
                 }
             }
 
             Integer message = rule.getMessageId();
             if (message != null) {
-                UserMelody userMelody = userMelodyIdAndMelody.get(message);
-                if (userMelody == null) {
+                UserAudio userAudio = userMelodyIdAndMelody.get(message);
+                if (userAudio == null) {
                     return new Message(Error, name + ": message " + message + " not exists");
                 }
             }

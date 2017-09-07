@@ -8,17 +8,7 @@ define(['jquery'], function ($) {
         // var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
         var ws;
 
-        $.fn.shake = function (intShakes, intDistance, intDuration) {
-            this.each(function () {
-                $(this).css("position", "relative");
-                for (var x = 1; x <= intShakes; x++) {
-                    $(this).animate({top: (intDistance * -1)}, (((intDuration / intShakes) / 4)))
-                        .animate({top: intDistance}, ((intDuration / intShakes) / 2))
-                        .animate({top: 0}, (((intDuration / intShakes) / 4)));
-                }
-            });
-            return this;
-        };
+
 
         this.callbacks = {
             render: function () {// Это не понадобится
@@ -26,6 +16,20 @@ define(['jquery'], function ($) {
                 return true;
             },
             init: function () {
+                //https://elrumordelaluz.github.io/csshake/
+                $('head').append('<link rel="stylesheet" type="text/css" href="https://adeptius.pp.ua:8443/tracking/csshake.min.css">');
+                $('head').append('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>');
+
+                //тестовая проверка уведомления звонка
+                // repeatedFunction();
+                // function repeatedFunction() {
+                //     var body = '<p><a  href="/contacts/detail/' + 4898551 + '">Владимир</a>';
+                //     body += ', <a  href="/companies/detail/' + 5141071 + '">Крутая компания</a></p>';
+                //     body += '<p><a  href="/leads/detail/' + 1976961 + '">Сделка года</a></p>';
+                //     showNotification(body, 'Входящий звонок', true, 1.6, true);
+                //     setTimeout(repeatedFunction, 1500)
+                // }
+
                 initialize();
                 return true;
             },
@@ -84,17 +88,23 @@ define(['jquery'], function ($) {
                 };
                 ws.onmessage = function (event) {
                     var incomingMessage = JSON.parse(event.data);
-                    console.log("Пришло сообщение с содержанием:", incomingMessage);
+                    // console.log("Пришло сообщение с содержанием:", incomingMessage);
                     var eventType = incomingMessage.eventType;
                     if (eventType === 'incomingCall' && isActiveTab) {
                         incomingCall(incomingMessage)
+
                     } else if (eventType === 'outgoingCall' && isActiveTab) {
                         outgoingCall(incomingMessage)
+
                     } else if (eventType === 'wrongToNumber') {
-                        AMOCRM.notifications.show_message_error({
-                            header: 'Ошибка',
-                            text: 'К сожалению, звонок на номер ' + incomingMessage.content + ' нельзя осуществить'
-                        });
+                        var body = 'К сожалению, звонок на номер ' + incomingMessage.content + ' нельзя осуществить';
+                        var header = 'Ошибка';
+                        showNotification(body, header, true, 10, false);
+
+                    } else if (eventType === 'noOperatorNumber') {
+                        var body = 'Ваш текущий номер телефона не указан в системе Nextel';
+                        var header = 'Ошибка';
+                        showNotification(body, header, true, 10, false);
                     }
                 };
                 ws.onclose = function () {
@@ -121,28 +131,28 @@ define(['jquery'], function ($) {
             var calledTo = incomingMessage.content;
 
             jQuery.get('//' + window.location.host + '/private/api/v2/json/contacts/list/?type=all&query=' + calledTo, function (res) {
-                var contactId, contactName, contactCompany, link_type;
+                var contactId, contactName, contactCompany, link_type, companyName, companyId;
                 if (res != undefined && res.response != undefined && res.response.contacts != undefined) {
                     var contact = res.response.contacts[0];
                     contactId = contact.id;
                     contactName = contact.name;
-                    contactCompany = contact.company_name;
+                    companyName = contact.company_name;
+                    companyId = contact.linked_company_id;
                 }
 
-                var notifierBody = '<p><a  href="/contacts/detail/' + contactId + '">' + contactName + ' </a>';
-                notifierBody += (contactCompany ? ', ' + contactCompany : '') + '</p>';
-                // notifierBody += '<p><a  href="/leads/detail/' + createdDealId + '">' + dealName + '</a></p>';
+                var body = '<p><a  href="/contacts/detail/' + contactId + '">' + contactName + '</a>';
+                if (companyId) {
+                    body += ', <a  href="/companies/detail/' + companyId + '">' + companyName + '</a></p>';
+                } else {
+                    body += '</p>';
+                }
 
                 var notification = $('.popup-inbox');
                 notification.find('.notification-call').remove(); // удаляем существующие уведомления о звонках
 
                 var header = 'Вы звоните ' + calledTo;
 
-                AMOCRM.notifications.show_message({
-                    type: 'call',
-                    header: header,
-                    text: notifierBody
-                });
+                showNotification(body, header, false, 20, false);
             });
         };
 
@@ -179,87 +189,205 @@ define(['jquery'], function ($) {
 
                     var header = '';
                     var shake = false;
-                    var autoClose = false;
+                    var autoClose = -1; // секунд до автоскрытия
+                    var needToShowIncoming = false;
+
                     if (callPhase === 'dial') {
                         header = 'Входящий звонок';
                         shake = true;
+                        autoClose = 1.6;
+                        needToShowIncoming = true;
 
                     } else if (callPhase === 'answer') {
                         header = 'Вы разговариваете с';
+                        autoClose = 1800;
 
                     } else if (callPhase === 'ended') {
                         header = 'Закончен разговор с';
-                        autoClose = true;
+                        autoClose = 10;
 
                     } else if (callPhase === 'noanswer') {
                         header = 'Пропущен звонок';
-                        autoClose = true;
+                        autoClose = 15;
+
                     }
-                    showNotification(body, header, shake, autoClose);
+                    showNotification(body, header, shake, autoClose, needToShowIncoming);
                 });
             });
         };
 
-        var showNotification = function (body, header, shake, autoClose) {
-            var $nextelNotification = $('#nextel_notification');
-            if ($nextelNotification.length) {
-                $nextelNotification.slideUp(250, function () {
-                    $nextelNotification.remove();
-                    showNotificationAfterHide(body, header, shake, autoClose);
-                });
-            } else {
-                showNotificationAfterHide(body, header, shake, autoClose);
-            }
-        };
-
-        var showNotificationAfterHide = function (body, header, shake, autoClose) {
+        var showNotification = function (body, header, shake, autoClose, needToShowIncoming) {
             var text = '<div id="nextel_notification" class="notification__item">\n' +
                 '        <img class="popup-inbox__close" src="https://adeptiustest4.amocrm.ru/frontend/images/interface/inbox/close_notification.svg">\n' +
                 '        <div class="notification-call__non-select">\n' +
-                '            <img src="https://adeptiustest4.amocrm.ru/upl/nextel_widget/widget/images/logo_min.png" style="display: block; margin: auto auto;">\n' +
+                // '            <img src="https://adeptiustest4.amocrm.ru/upl/nextel_widget/widget/images/logo.png" style="display: block; margin: auto auto;">\n' +
+                '            <img src="https://ucarecdn.com/a24c0583-f815-4d4b-a421-0d0528dbdb93/logo_noti.png" style="display: block; margin: auto auto;">\n' +
                 '        </div>\n' +
                 '        <div class="notification-call__container_text">\n' +
-                '            <div>' + header + '</div>\n' +
+                '            <div id="nextel_notification_header"><b>' + header + '</b></div>\n' +
                 '            <div>' + body + '</div>\n' +
                 '        </div>\n' +
                 '    </div>';
 
-            var $notification = $(text);
+            var $newNotification = $(text);
 
-            $notification.css({
+            $newNotification.css({
                 'z-index': '101',
                 'position': 'relative',
                 'width': '364px',
+                'height': '60px',
+                'top': '30px',
                 'left': '40%',
                 'opacity': '1 !important;',
-                'box-shadow': '0 -3px 25px 0 rgba(0, 0, 0, .13)'
+                'box-shadow': '0 -3px 25px 0 rgba(0, 0, 0, .13)',
+                'background': '#3c4451',
+                'color': '#ffffff'
             });
 
-            var $notificationCloseButton = $notification.find('.popup-inbox__close');
+            $newNotification.find('a').css({
+                color: '#f7fffc'
+            });
+
+            $newNotification.find('#nextel_notification_header').css({
+                'font-weight': 'bold'
+            });
+
+            $newNotification.find('.notification-call__container_text').css({
+                'padding-left': '10px'
+            });
+
+            // $newNotification.find('a').hover(function () {
+            //     this.css({
+            //         color: '#006aff'
+            //     });
+            // });
+
+            var $notificationCloseButton = $newNotification.find('.popup-inbox__close');
 
             $notificationCloseButton.on('click', function () {
-                $notification.remove();
+                $newNotification.remove();
             });
 
-            $notification.hide();
-            $('body').append($notification);
-            $notification.slideDown(250, function () {
-                if (shake) {
-                    repeatedFunction();
 
-                    function repeatedFunction() {
-                        $notification.shake(4, 4, 500);
-                        setTimeout(repeatedFunction, 2000)
-                    }
+            // Если уведомление уже есть и это уведомление о входящем звонке - то старое удаляем, а новое вешаем без анимации
+            // Если это другое уведомление - то красиво прячем и новое открываем
+            var $oldNotification = $('#nextel_notification');
+            var notificationIsAlreadyPresent = $oldNotification.length;
+            var oldNotyfIsIncomingCall = $oldNotification.find('#nextel_notification_header').text() === 'Входящий звонок';
+
+            if (notificationIsAlreadyPresent) {
+                if (oldNotyfIsIncomingCall && needToShowIncoming) {
+                    $oldNotification.remove();
+                    $('body').append($newNotification);
+                } else {
+                    $oldNotification.slideUp(250, function () {
+                        $oldNotification.remove();
+                        $('body').append($newNotification);
+                        $newNotification.hide();
+                        $newNotification.slideDown(250);
+                    });
+                }
+
+            } else {
+                $('body').append($newNotification);
+                $newNotification.hide();
+                $newNotification.slideDown(250);
+            }
+
+            // repeatedFunction();
+            // function repeatedFunction() {
+            //     if (shake) {
+            //         $newNotification.shake(4, 3, 500);
+            //     }
+            //     setTimeout(repeatedFunction, 1500)
+            // }
+
+
+            // https://elrumordelaluz.github.io/csshake/
+            //css shake
+            // setTimeout(function () {// ждём пока всё выплывет и только тогда трясём
+            //     if (shake) {
+            //         $newNotification.addClass('shake-rotate shake-constant');
+            //         setTimeout(function () {
+            //             $newNotification.removeClass('shake-rotate shake-constant')
+            //         }, 500)
+            //     }
+            // }, 200);
+
+
+            //js shake
+            // setTimeout(function () {// ждём пока всё выплывет и только тогда трясём
+            //     if (shake) {
+            //         $newNotification.shake(4, 3, 500);
+            //     }
+            // }, 200);
+
+            //TweenMax shaking
+            setTimeout(function () {// ждём пока всё выплывет и только тогда трясём
+                if (shake) {
+                    shakeAnimation($newNotification)
+                }
+            }, 200);
+
+
+
+            var delay = autoClose * 1000;
+            setTimeout(function () {
+                $newNotification.slideUp(250, function () {
+                    $newNotification.remove();
+                });
+            }, delay)
+        };
+
+        //TwinMax shaking
+        function shakeAnimation(element){
+            TweenMax.to(element, .1, {
+                x: -7,
+                ease: Quad.easeInOut
+            });
+            TweenMax.to(element, .1, {
+                repeat: 4,
+                x: 7,
+                yoyo: true,
+                delay: .1,
+                ease: Quad.easeInOut
+            });
+            TweenMax.to(element, .1, {
+                x: 0,
+                delay: .1 * 4
+            });
+        }
+
+
+        //jQuery shaking
+        $.fn.shake = function (intShakes, intDistance, intDuration) {
+            this.each(function () {
+                $(this).css("position", "relative");
+                for (var x = 1; x <= intShakes; x++) {
+                    $(this).animate({top: (intDistance * -1)}, ((intDuration / intShakes) / 4))
+                        .animate({top: intDistance}, ((intDuration / intShakes) / 2))
+                        .animate({top: 0}, ((intDuration / intShakes) / 4));
                 }
             });
-
-            if (autoClose) {
-                setTimeout(function () {
-                    $notification.slideUp(250);
-                }, 5000)
-            }
+            return this;
         };
+
+        function loadjscssfile(filename, filetype) {
+            if (filetype == "js") { //if filename is a external JavaScript file
+                // alert('called');
+                var fileref = document.createElement('script')
+                fileref.setAttribute("type", "text/javascript")
+                fileref.setAttribute("src", filename)
+                alert('called');
+            } else if (filetype == "css") { //if filename is an external CSS file
+                var fileref = document.createElement("link")
+                fileref.setAttribute("rel", "stylesheet")
+                fileref.setAttribute("type", "text/css")
+                fileref.setAttribute("href", filename)
+            }
+            if (typeof fileref != "undefined")
+                document.getElementsByTagName("head")[0].appendChild(fileref)
+        }
 
         return this;
     };

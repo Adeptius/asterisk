@@ -61,6 +61,10 @@ public class AmoAccount implements Serializable {
     @Column(name = "leadId")
     private int leadId;//todo хрень
 
+    @JsonProperty
+    @Column(name = "cling")
+    private Boolean cling;
+
     @ManyToOne
     @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
     private User user;
@@ -146,6 +150,17 @@ public class AmoAccount implements Serializable {
 
     public void setPhoneEnumId(String phoneEnumId) {
         this.phoneEnumId = phoneEnumId;
+    }
+
+    public boolean isCling() {
+        if (cling == null){
+            return false;
+        }
+        return cling;
+    }
+
+    public void setCling(boolean cling) {
+        this.cling = cling;
     }
 
     @Override

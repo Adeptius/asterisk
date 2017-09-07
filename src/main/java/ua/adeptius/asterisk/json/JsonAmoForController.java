@@ -6,6 +6,15 @@ public class JsonAmoForController {
     private String domain;
     private String amoLogin;
     private String apiKey;
+    private boolean cling;
+
+    public boolean isCling() {
+        return cling;
+    }
+
+    public void setCling(boolean cling) {
+        this.cling = cling;
+    }
 
     public String getDomain() {
         return domain;
@@ -36,6 +45,7 @@ public class JsonAmoForController {
         return "JsonAmoForController{" +
                 "domain='" + domain + '\'' +
                 ", amoLogin='" + amoLogin + '\'' +
+                ", cling='" + cling + '\'' +
                 ", apiKey='" + apiKey + '\'' +
                 '}';
     }

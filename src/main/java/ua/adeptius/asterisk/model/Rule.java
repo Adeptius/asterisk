@@ -371,11 +371,11 @@ public class Rule {
         return greeting;
     }
 
-    public UserMelody getGreetingMelody() {
+    public UserAudio getGreetingMelody() {
         if (greeting == null){
             return null;
         }
-        return user.getUserMelodies().stream().filter(melody -> melody.getId() == greeting).findFirst().orElse(null);
+        return user.getUserAudio().stream().filter(melody -> melody.getId() == greeting).findFirst().orElse(null);
     }
 
     public void setGreetingId(Integer greeting) {
@@ -390,11 +390,11 @@ public class Rule {
         this.message = message;
     }
 
-    public UserMelody getMessageMelody(){
+    public UserAudio getMessageMelody(){
         if (message == null){
             return null;
         }
-        return user.getUserMelodies().stream().filter(melody -> melody.getId() == message).findFirst().orElse(null);
+        return user.getUserAudio().stream().filter(melody -> melody.getId() == message).findFirst().orElse(null);
     }
 
 

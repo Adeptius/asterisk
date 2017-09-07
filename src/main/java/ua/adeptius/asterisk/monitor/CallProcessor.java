@@ -8,10 +8,9 @@ import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.senders.AmoCallSender;
+import ua.adeptius.asterisk.senders.AmoWSMessageSender;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.model.Call.CallPhase.*;
@@ -27,6 +26,7 @@ public class CallProcessor {
     public static HashMap<String, Call> calls = new HashMap<>();
     public static HashMap<String, User> phonesAndUsers = new HashMap<>();
     private static AmoCallSender amoCallSender = new AmoCallSender();
+    private static AmoWSMessageSender amoWSMessageSender = new AmoWSMessageSender();
 
 
     public static void processEvent(ManagerEvent event, String id) {
@@ -73,14 +73,14 @@ public class CallProcessor {
             }
 
             call.setAsteriskId(id);
-            call.setCalledTo(to);
+            call.setCalledTo(Collections.singletonList(to));
             call.setCalledFrom(from);
             call.setUser(user);
             call.setCalledDate(newChannelEvent.getDateReceived());
             call.setDirection(direction);
             call.setCallPhase(NEW_CALL);
 
-//            AmoWSMessageSender.addCallToSender(call);
+            AmoWSMessageSender.addCallToSender(call);
 
             calls.put(newChannelEvent.getUniqueId(), call);
             LOGGER.info("{}: Поступил новый звонок {} ->", login, call.getCalledFrom());
@@ -109,39 +109,19 @@ public class CallProcessor {
             }else if (variable.equals("DIALEDTIME")){
                 call.setSecondsFullTime(Integer.parseInt(value));
 
-            }else if (variable.equals("redirectedToSIP")){
-                call.setCalledTo(value);
+            }else if (variable.equals("redirectedTo")){
                 call.setCallPhase(REDIRECTED);
-                LOGGER.info("{}: Звонок перенаправлен на SIP {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
-                amoCallSender.send(call);
 
+                List<String> sips = Arrays.asList(value.substring(1, value.length()-1).split(", "));
+                call.setCalledTo(sips);
 
-            }else if (variable.equals("redirectedToGSM")){
-                call.setCalledTo(value);
-                call.setCallPhase(REDIRECTED);
-                LOGGER.info("{}: Звонок перенаправлен на GSM {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
-                amoCallSender.send(call);
-
-
-            }else if (variable.equals("redirectedToGSMGroup")){//todo согласовать что делать с группой и как записывать её в БД
-                value = value.substring(1, value.indexOf(","));
-                call.setCalledTo(value);
-                call.setCallPhase(REDIRECTED);
-                LOGGER.info("{}: Звонок перенаправлен на группу GSM {} -> {}",login, call.getCalledFrom(), call.getCalledTo());
-                amoCallSender.send(call);
-
-
-            }else if (variable.equals("redirectedToSIPGroup")){
-                value = value.substring(1, value.indexOf(","));
-                call.setCalledTo(value);
-                call.setCallPhase(REDIRECTED);
                 LOGGER.info("{}: Звонок перенаправлен на группу SIP {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
                 amoCallSender.send(call);
 
 
             }else if (variable.equals("DIALEDPEERNUMBER")){ // value='Intertelekom_main/0995306914'
                 value = value.substring(value.lastIndexOf("/")+1);
-                call.setCalledTo(value);
+                call.setCalledTo(Collections.singletonList(value));
                 call.setCallPhase(ANSWERED);
                 LOGGER.info("{}: На звонок ответил {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
                 amoCallSender.send(call);

@@ -62,6 +62,7 @@ public class AmoWebController {
         String domain = jsonAmoAccount.getDomain();
         String amoLogin = jsonAmoAccount.getAmoLogin();
         String apiKey = jsonAmoAccount.getApiKey();
+        boolean cling = jsonAmoAccount.isCling();
 
         if (StringUtils.isAnyBlank(domain, amoLogin, apiKey)) {
             return new Message(Error, "Some params are blank!");
@@ -78,6 +79,7 @@ public class AmoWebController {
         amoAccount.setApiKey(apiKey);
         amoAccount.setPhoneId(null);
         amoAccount.setPhoneEnumId(null);
+        amoAccount.setCling(cling);
         user.setAmoAccount(amoAccount);
 
         try {

@@ -12,7 +12,7 @@ import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Rule;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.UserMelody;
+import ua.adeptius.asterisk.model.UserAudio;
 import ua.adeptius.asterisk.utils.AudioConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,18 +26,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
 import static ua.adeptius.asterisk.json.Message.Status.Success;
 
 
 @Controller
-@RequestMapping(value = "/melodies", produces = "application/json; charset=UTF-8")
+@RequestMapping(value = "/audio", produces = "application/json; charset=UTF-8")
 @ResponseBody
-public class MelodiesWebController {
+public class AudioWebController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(MelodiesWebController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(AudioWebController.class.getSimpleName());
 
     @PostMapping(value = "/getList")
     public Object getScript(HttpServletRequest request) {
@@ -45,7 +44,7 @@ public class MelodiesWebController {
         if (user == null) {
             return new Message(Error, "Authorization invalid");
         }
-        return user.getUserMelodies();
+        return user.getUserAudio();
     }
 
 
@@ -74,7 +73,7 @@ public class MelodiesWebController {
             return new Message(Error, "Name length more than 200 chars");
         }
 
-        Optional<UserMelody> first = user.getUserMelodies().stream()
+        Optional<UserAudio> first = user.getUserAudio().stream()
                 .filter(userMelody -> userMelody.getName().equals(name))
                 .findFirst();
         if (first.isPresent()) {
@@ -138,7 +137,7 @@ public class MelodiesWebController {
                 return new Message(Error, "Broken file");
             }
 
-            UserMelody newMelody = new UserMelody();
+            UserAudio newMelody = new UserAudio();
             newMelody.setName(name);
             newMelody.setFilename(newFileName);
             newMelody.setLogin(login);
@@ -177,12 +176,12 @@ public class MelodiesWebController {
             return;
         }
 
-        Set<UserMelody> userMelodies = userObj.getUserMelodies();
-        Optional<UserMelody> first = userMelodies.stream().filter(melody -> melody.getId() == id).findFirst();
+        Set<UserAudio> userMelodies = userObj.getUserAudio();
+        Optional<UserAudio> first = userMelodies.stream().filter(melody -> melody.getId() == id).findFirst();
         if (!first.isPresent()) {
             return;
         }
-        UserMelody melody = first.get();
+        UserAudio melody = first.get();
 
         try {
             File file = findFile(user, melody.getFilename());
@@ -219,14 +218,14 @@ public class MelodiesWebController {
         }
 
 
-        Optional<UserMelody> first = user.getUserMelodies().stream().filter(melody -> melody.getId() == id).findFirst();
+        Optional<UserAudio> first = user.getUserAudio().stream().filter(melody -> melody.getId() == id).findFirst();
         if (!first.isPresent()) {
             return new Message(Error, "No melody by such id");
         }
 
-        UserMelody userMelody = first.get();
+        UserAudio userAudio = first.get();
 
-        String melodyFilename = userMelody.getFilename();
+        String melodyFilename = userAudio.getFilename();
 
         //перед удалением проверим не назначена ли мелодия на сценарий
         Set<Rule> allRules = user.getAllRules();
@@ -239,7 +238,7 @@ public class MelodiesWebController {
         }
 
         try {
-            user.removeMelody(userMelody);
+            user.removeMelody(userAudio);
             HibernateController.update(user);
             try {
                 Files.delete(Paths.get(Settings.getSetting("folder.usermusic") + user.getLogin() + File.separator + melodyFilename));

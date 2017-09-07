@@ -58,7 +58,7 @@ public class RoistatPhoneCall {
 
     public RoistatPhoneCall(Call call) {
 //        Набранный номер
-        this.callee = call.getCalledTo();
+        this.callee = call.getCalledTo().get(0);
 
 //        Номер клиента
         this.caller = call.getCalledFrom();

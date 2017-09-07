@@ -76,4 +76,13 @@ public class RootWebController {
 
         return "{\"token\":\"" + hash + "\"}";
     }
+
+
+    @RequestMapping(value = "/404")
+    public String checkLogin() {
+        return "error404";
+    }
+
+
+
 }

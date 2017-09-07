@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
@@ -16,7 +17,7 @@ public class Call {
     private String calledFrom;
 
     @JsonProperty
-    private String calledTo;
+    private List<String> calledTo;
 
     @JsonProperty
     private CallState callState;
@@ -51,13 +52,12 @@ public class Call {
 //    @JsonProperty
 //    private int secondsFullTime;
 
-//    boolean callIsEnded;
     private int amoDealId;
     private int amoContactId;
     private int lastOperationTime;
     private OuterPhone outerPhone;
     private CallPhase callPhase;
-
+    private boolean sendedAnswerWsMessage; // чисто для AmoWSMessageSender что бы он знал отправлял или нет
 
     public enum CallPhase{
         NEW_CALL,
@@ -74,8 +74,17 @@ public class Call {
         this.callPhase = callPhase;
     }
 
-    //    public int getCalculatedModifiedTime() { // AUTOINCREMENT
-//        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference;
+    public boolean isSendedAnswerWsMessage() {
+        return sendedAnswerWsMessage;
+    }
+
+    public void setSendedAnswerWsMessage(boolean sendedAnswerWsMessage) {
+        this.sendedAnswerWsMessage = sendedAnswerWsMessage;
+    }
+
+//    //    private int timeDifference;
+//    public int getCalculatedModifiedTime() { // нужно для амо который требует last_modified (добавление комента или тегов). Метод вычисляет для него значение
+//        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference; // нужен в основном, если операции изменения очень частые
 //        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
 //            lastOperationTime++;
 //            return lastOperationTime;
@@ -85,8 +94,12 @@ public class Call {
 //    }
 
 
-//    private int timeDifference;
-
+    // временно для фронтенда пока не поймём как передавать calledTo во фронтенд
+    @JsonProperty
+    @Deprecated
+    public String getCalledToOnePhone(){
+        return calledTo.get(0);
+    }
 
     public int getSecondsFullTime() {
         return secondsFullTime;
@@ -136,50 +149,6 @@ public class Call {
         calledMillis = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(calledDate).getTime();
     }
 
-    /**
-     * Возвращает true callProcessor'у что бы сообщить установилось ли значение впервые впервые
-     */
-//    public boolean setAnsweredDate(Date answeredDate) { // Задаётся в CallProcessor
-//        if (secondsToAnswer == -1) { // защита, что бы данные вводились только 1 раз.
-//            secondsToAnswer = (int) ((answeredDate.getTime() - getCalledMillis()) / 1000);
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
-
-
-//    @JsonProperty
-//    public int getSecondsToAnswer() {
-//        return secondsToAnswer == -1 ? secondsFullTime : secondsToAnswer;
-//    }
-
-//    @JsonProperty
-//    public int getSecondsTalk() { // Тут высчитывается время разговора
-//        if (callState == CallState.ANSWER) {
-//            return getSecondsFullTime() - getSecondsToAnswer();
-//        } else {
-//            return 0;
-//        }
-//    }
-
-//    public void setEndedDate(Date endedDate) { // Задаётся в CallProcessor
-//        secondsFullTime = (int) ((endedDate.getTime() - getCalledMillis()) / 1000);
-//        callIsEnded = true;
-//    }
-
-//    public boolean isCallIsEnded() { // Задаётся в CallProcessor
-//        return callIsEnded;
-//    }
-
-//    public void setSecondsFullTime(int secondsFullTime) { // Задаётся при чтении с БД
-//        this.secondsFullTime = secondsFullTime;
-//    }
-
-//    public int getSecondsFullTime() {
-//        return secondsFullTime;
-//    }
-
     public enum CallState {
         ANSWER, // звонок был принят и обработан сотрудником
         BUSY, // входящий звонок был, но линия была занята;
@@ -191,10 +160,6 @@ public class Call {
     public enum Direction {
         IN, OUT
     }
-
-//    public enum Service {
-//        TRACKING, TELEPHONY
-//    }
 
     public String getUtm() {
         return utm;
@@ -221,13 +186,14 @@ public class Call {
         this.calledFrom = addZero(calledFrom);
     }
 
-    public String getCalledTo() {
+    public List<String> getCalledTo() {
         return calledTo;
     }
 
-    public void setCalledTo(String calledto) {
-        this.calledTo = addZero(calledto);
+    public void setCalledTo(List<String> calledTo) {
+        this.calledTo = calledTo;
     }
+
 
     public String getAsteriskId() {
         return asteriskId;
@@ -237,14 +203,6 @@ public class Call {
         this.asteriskId = asteriskId;
     }
 
-//    public String getFirstCall() {
-//        return firstCall;
-//    }
-
-//    public void setFirstCall(String firstCall) {
-//        this.firstCall = firstCall;
-//    }
-
     public CallState getCallState() {
         if (callState == null) {
             return CallState.FAIL; // null если с сип позвонить на 934027182. Номер не может быть вызван.
@@ -252,15 +210,8 @@ public class Call {
         return callState;
     }
 
-//    public boolean isStateWasAlreadySetted(){
-//        return stateIsSetted;
-//    }
-
-//    private boolean stateIsSetted;
-
     public void setCallState(CallState callState) {
         this.callState = callState;
-//        stateIsSetted = true;
     }
 
     public OuterPhone getOuterPhone() {
@@ -287,9 +238,9 @@ public class Call {
         this.user = user;
     }
 
-//    public int getAmoContactId() {
-//        return amoContactId;
-//    }
+    public int getAmoContactId() {
+        return amoContactId;
+    }
 
     public void setAmoContactId(int amoContactId) {
         this.amoContactId = amoContactId;
@@ -298,17 +249,17 @@ public class Call {
     @Override
     public String toString() {
         return "Call{" +
-                "\ncalledFrom='" + calledFrom + '\'' +
-                "\ncalledTo='" + calledTo + '\'' +
-                "\ncallState=" + callState +
-                "\ndirection=" + direction +
-                "\nasteriskId='" + asteriskId + '\'' +
-                "\nuser=" + user.getLogin() +
-                "\ncalledDate='" + calledDate + '\'' +
-                "\ncalledMillis=" + calledMillis +
-                "\nsecondsTalk=" + secondsTalk +
-                "\nsecondsFullTime=" + secondsFullTime +
-                "\nouterPhone=" + outerPhone +
-                "\n}";
+                ", calledFrom='" + calledFrom + '\'' +
+                ", calledTo='" + calledTo + '\'' +
+                ", callState=" + callState +
+                ", direction=" + direction +
+                ", asteriskId='" + asteriskId + '\'' +
+                ", user=" + user.getLogin() +
+                ", calledDate='" + calledDate + '\'' +
+                ", calledMillis=" + calledMillis +
+                ", secondsTalk=" + secondsTalk +
+                ", secondsFullTime=" + secondsFullTime +
+                ", outerPhone=" + outerPhone +
+                "}";
     }
 }
