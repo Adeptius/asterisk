@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.InnerPhone;
 import ua.adeptius.asterisk.telephony.SipConfig;
@@ -20,7 +21,7 @@ public class SipConfigDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(SipConfigDao.class.getSimpleName());
 
-    private static String folder = Settings.getSetting("folder.sips");
+    private static String folder = Main.getOptions().getFolderSips();
 
 
     public static void writeToFile(SipConfig sipConfig) throws Exception {

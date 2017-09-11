@@ -83,7 +83,7 @@ public class AudioWebController {
         File tempFile = null;
         try { // файл пришел
             LOGGER.info("{}: запрос добавления мелодии {}, названный как '{}' ", login, incomingFileName, name);
-            String USER_MUSIC_FOLDER = Settings.getSetting("folder.usermusic");
+            String USER_MUSIC_FOLDER = Main.getOptions().getFolderUserMusic();
 
             byte[] bytes = file.getBytes(); // эдесь файл временно в оперативке
 
@@ -195,7 +195,7 @@ public class AudioWebController {
 
 
     private static File findFile(String user, String name) throws Exception {
-        Path path = Paths.get(Settings.getSetting("folder.usermusic") + user + "/");
+        Path path = Paths.get(Main.getOptions().getFolderUserMusic() + user + "/");
 
         List<File> list = Files.walk(path)
                 .filter(Files::isRegularFile)
@@ -241,7 +241,7 @@ public class AudioWebController {
             user.removeUserAudio(userAudio);
             HibernateController.update(user);
             try {
-                Files.delete(Paths.get(Settings.getSetting("folder.usermusic") + user.getLogin() + File.separator + melodyFilename));
+                Files.delete(Paths.get(Main.getOptions().getFolderUserMusic() + user.getLogin() + File.separator + melodyFilename));
             } catch (NoSuchFileException ignored) {}
             return new Message(Success, "Removed");
         } catch (Exception e) {

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
@@ -39,7 +40,7 @@ public class ScriptWebController {
             return new Message(Message.Status.Error, "User have no this site");
         }
 
-        String serverAddress = Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT");
+        String serverAddress = Main.getOptions().getServerAddress();
         String login = user.getLogin();
 
         String script = "<script src=\"https://"+ serverAddress +"/tracking/script/"+login+"/"+siteName+"\"></script>";
@@ -71,11 +72,11 @@ public class ScriptWebController {
                 "$.get(url,function(phone){$('.ct-phone').html(phone)});setTimeout(someRequest,TIMETOUPDATE000)}})})};" +
                 "loadScript(\"https://code.jquery.com/jquery-1.12.4.min.js\",runMyCodeAfterJQueryLoaded);";
 
-        script = script.replaceAll("SERVERADDRESS", Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT"));
+        script = script.replaceAll("SERVERADDRESS", Main.getOptions().getServerAddress());
         script = script.replaceAll("LOGIN", user.getLogin());
         script = script.replaceAll("SITENAME", siteObject.getName());
         script = script.replaceAll("GOOGLETRACKINGID", user.getTrackingId());
-        script = script.replaceAll("TIMETOUPDATE", Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
+        script = script.replaceAll("TIMETOUPDATE", ""+Main.getOptions().getSecondsToUpdatePhoneOnWebPage());
         return script;
     }
 }

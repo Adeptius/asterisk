@@ -8,6 +8,7 @@ import org.asteriskjava.manager.response.CommandResponse;
 import org.asteriskjava.manager.response.ManagerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
@@ -38,9 +39,9 @@ public class AsteriskMonitor implements ManagerEventListener {
 
     public AsteriskMonitor() throws IOException {
         ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                Settings.getSetting("asterisk.url"),
-                Settings.getSetting("asterisk.login"),
-                Settings.getSetting("asterisk.password"));
+                Main.getOptions().getAsteriskUrl(),
+                Main.getOptions().getAsteriskLogin(),
+                Main.getOptions().getAsteriskPassword());
         this.managerConnection = factory.createManagerConnection();
     }
 

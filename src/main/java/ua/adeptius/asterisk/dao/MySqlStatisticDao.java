@@ -4,6 +4,7 @@ package ua.adeptius.asterisk.dao;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.Call;
@@ -24,11 +25,11 @@ public class MySqlStatisticDao {
     private static ComboPooledDataSource statisticDataSource;
 
     public static void init() throws Exception {
-        String login = Settings.getSetting("dbLogin");
-        String password = Settings.getSetting("dbPassword");
+        String login = Main.getOptions().getDbUsername();
+        String password = Main.getOptions().getDbPassword();
         statisticDataSource = new ComboPooledDataSource();
         statisticDataSource.setDriverClass("com.mysql.jdbc.Driver");
-        statisticDataSource.setJdbcUrl("jdbc:mysql://" + Settings.getSetting("dbAdress"));
+        statisticDataSource.setJdbcUrl(Main.getOptions().getDbUrl() + "statisticdb");
         statisticDataSource.setUser(login);
         statisticDataSource.setPassword(password);
         statisticDataSource.setMinPoolSize(1);

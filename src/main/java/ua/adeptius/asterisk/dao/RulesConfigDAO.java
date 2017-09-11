@@ -4,6 +4,7 @@ package ua.adeptius.asterisk.dao;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.Rule;
@@ -21,7 +22,7 @@ public class RulesConfigDAO {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RulesConfigDAO.class.getSimpleName());
 
-    private static String folder = Settings.getSetting("folder.rules");
+    private static String folder = Main.getOptions().getFolderRules();
 
 
     public static void writeAllNeededScenarios() throws Exception {

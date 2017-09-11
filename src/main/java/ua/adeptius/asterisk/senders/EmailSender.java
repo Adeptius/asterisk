@@ -2,6 +2,7 @@ package ua.adeptius.asterisk.senders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.Email;
 
@@ -31,7 +32,7 @@ public class EmailSender extends Thread {
     public EmailSender() {
         setName("EmailSender");
         setDaemon(true);
-        serverAddress = Settings.getSetting("SERVER_ADDRESS_FOR_SCRIPT");
+        serverAddress = Main.getOptions().getServerAddress();
         start();
     }
 

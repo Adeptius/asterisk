@@ -12,6 +12,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ua.adeptius.asterisk.Main;
 
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -21,24 +22,14 @@ import java.util.Properties;
 @PropertySource({ "classpath:config.properties" })
 public class HibernateConfig {
 
-    @Value("${jdbc.driverClassName}")
-    private String driverClassName;
-    @Value("${jdbc.url}")
-    private String url;
-    @Value("${jdbc.username}")
-    private String username;
-    @Value("${jdbc.password}")
-    private String password;
-
-    @Value("${hibernate.dialect}")
-    private String hibernateDialect;
-    @Value("${hibernate.show_sql}")
-    private String hibernateShowSql;
+    private String url = Main.getOptions().getDbUrl() + "calltrackdb";
+    private String username = Main.getOptions().getDbUsername();
+    private String password = Main.getOptions().getDbPassword();
 
     @Bean
     public DataSource dataSource() throws Exception{
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setDriverClass(driverClassName);
+        dataSource.setDriverClass("com.mysql.jdbc.Driver");
         dataSource.setJdbcUrl(url+"?useUnicode=true&characterEncoding=utf8&characterSetResults=UTF-8");
         dataSource.setUser(username);
         dataSource.setPassword(password);
@@ -61,8 +52,8 @@ public class HibernateConfig {
 
     private Properties getHibernateProperties() {
         Properties properties = new Properties();
-        properties.put(AvailableSettings.DIALECT, hibernateDialect);
-        properties.put(AvailableSettings.SHOW_SQL, hibernateShowSql);
+        properties.put(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQLDialect");
+        properties.put(AvailableSettings.SHOW_SQL, "false");
         properties.put(AvailableSettings.CURRENT_SESSION_CONTEXT_CLASS, "org.springframework.orm.hibernate5.SpringSessionContext");
         properties.put("hibernate.connection.CharSet", "UTF-8");
         properties.put("hibernate.connection.useUnicode", true);

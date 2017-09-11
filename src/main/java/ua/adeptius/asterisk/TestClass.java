@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 
 @Component
-//@EnableWebMvc
+@EnableWebMvc
 public class TestClass {
 
     public static void main(String[] args) throws Exception {

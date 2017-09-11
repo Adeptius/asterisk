@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.senders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.model.Tracking;
 import ua.adeptius.asterisk.dao.Settings;
 
@@ -23,7 +24,7 @@ public class Mail {
 //        long currentTime = new GregorianCalendar().getTimeInMillis();
 //        long pastTime = currentTime - lastEmail;
 //        int pastMinutes = (int) (pastTime / 1000 / 60);
-//        int antispam = Integer.parseInt(Settings.getSetting("MAIL_ANTISPAM"));
+//        int antispam = Main.getOptions().getMailAntiSpam();
 //        String login = tracking.getLogin();
 //        if (pastMinutes < antispam){
 //            LOGGER.trace("{}: последнее письмо было отправлено недавно ({} минут назад)", login, pastMinutes);

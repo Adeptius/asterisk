@@ -3,17 +3,21 @@ package ua.adeptius.asterisk.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.model.TimePairCookie;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
+import ua.adeptius.asterisk.interceptors.AccessControlOriginInterceptor;
 import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.PendingUser;
 import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.test.Options;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +76,7 @@ public class Scheduler{
 
         // продливаем время аренды номера
         long past = currentTime - phoneTime;
-        int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
+        int timeToDeleteOldPhones = Integer.parseInt(""+Main.getOptions().getSecondsToRemoveOldPhones())*1000;
         if (past > timeToDeleteOldPhones) {
 //            MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": номер " + oldPhone.getNumber() + " освободился. Был занят " + oldPhone.getBusyTimeText());
             phone.markFree();
@@ -194,6 +198,20 @@ public class Scheduler{
             }catch (Exception e){
                 LOGGER.error("Ошибка удаления временного пользователя: " + pendingUser.getLogin() ,e);
             }
+        }
+    }
+
+    private Options options;
+
+    @Autowired
+    public void setOptions(Options options) {
+        this.options = options;
+    }
+
+    @Scheduled(fixedRate = 300000)
+    private void printProfile(){
+        if (options.isProfilingEnabled()) {
+            AccessControlOriginInterceptor.printProfiling();
         }
     }
 }
