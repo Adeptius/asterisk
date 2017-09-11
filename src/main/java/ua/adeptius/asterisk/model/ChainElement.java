@@ -60,7 +60,7 @@ public class ChainElement {
     private int awaitingTime;
 
     @ManyToOne
-    @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
+    @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
 
     public static final String AGI_ADDRESS = "78.159.55.63/hello.agi";

@@ -13,9 +13,9 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.ForwardType;
+import ua.adeptius.asterisk.telephony.SipConfig;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
@@ -49,7 +49,7 @@ public class HibernateDaoTest {
         site.setTimeToBlock(120);
         site.setStandardNumber("5551112");
         site.setUser(user);
-        user.getSites().add(site);
+        user.addSite(site);
         HibernateController.update(user);
     }
 
@@ -86,8 +86,6 @@ public class HibernateDaoTest {
         HibernateController.update(user);
 
 
-
-
     }
 
     /**
@@ -107,6 +105,27 @@ public class HibernateDaoTest {
             assertNull("Номера не отвязались от сайта", outerPhone.getSitename());
         }
     }
+
+    @Test
+    public void testDeleteInnerPhones() throws Exception {
+        User user = HibernateController.getUserByLogin("hibernate");
+
+        SipConfig sipConfig = new SipConfig("2222222");
+        InnerPhone innerPhone = HibernateController.saveSipBySipConfig(sipConfig, user.getLogin());
+        user.addInnerPhones(Collections.singletonList(innerPhone));
+        HibernateController.update(user);
+
+        user = HibernateController.getUserByLogin("hibernate");
+        InnerPhone innerPhoneByNumber = user.getInnerPhoneByNumber("2222222");
+        assertNotNull(innerPhoneByNumber);
+        user.removeInnerPhones(Collections.singletonList(innerPhoneByNumber));
+        HibernateController.update(user);
+
+        user = HibernateController.getUserByLogin("hibernate");
+        innerPhoneByNumber = user.getInnerPhoneByNumber("2222222");
+        assertNull(innerPhoneByNumber);
+    }
+
 
     /**
      * При удалении пользователя внешние номера должны освобождатся, но не удалятся
@@ -194,11 +213,45 @@ public class HibernateDaoTest {
         assertNull(roistatAccount);
     }
 
+    @Test
+    public void operatorLocationsTest() throws Exception {
+        User user = HibernateController.getUserByLogin("hibernate");
+        assertNull(user.getOperatorLocation());
+
+        AmoOperatorLocation operatorLocation = new AmoOperatorLocation();
+        operatorLocation.setName("hiberLocations");
+        HashMap<String, String> map = new HashMap<>();
+        map.put("111", "222");
+        operatorLocation.setAmoUserIdAndInnerNumber(map);
+        user.setAmoOperatorLocations(operatorLocation);
+        HibernateController.update(user);
+
+
+        user = HibernateController.getUserByLogin("hibernate");
+        operatorLocation = user.getOperatorLocation();
+        assertNotNull("OperatorLocation не сохраняется", operatorLocation);
+        assertEquals("hiberLocations", operatorLocation.getName());
+        assertTrue(operatorLocation.getAmoUserIdAndInnerNumber().size() == 1);
+
+        user.setAmoOperatorLocations(null);
+//        user.setRoistatAccount(null);
+        HibernateController.update(user);
+
+        user = HibernateController.getUserByLogin("hibernate");
+
+        assertNull(user.getOperatorLocation());
+
+        operatorLocation = HibernateController.getAmoOperatorLocationByUser("hibernate");
+
+        assertNull(operatorLocation);
+
+    }
+
 
     @Test
     public void siteTest() throws Exception {
         User user = HibernateController.getUserByLogin("hibernate");
-        assertEquals(1,user.getSites().size());
+        assertEquals(1, user.getSites().size());
 
         Site site = user.getSiteByName("hiber");
         assertNotNull(site);
@@ -209,8 +262,28 @@ public class HibernateDaoTest {
         user = HibernateController.getUserByLogin("hibernate");
         site = user.getSiteByName("hiber");
         assertEquals(1, site.getBlackList().size());
-        
+    }
 
+    @Test
+    public void userAudioTest() throws Exception {
+        User user = HibernateController.getUserByLogin("hibernate");
+        assertEquals(0, user.getUserAudio().size());
+        UserAudio userAudio = new UserAudio();
+        userAudio.setFilename("123.mp3");
+        userAudio.setName("123");
+        user.addUserAudio(userAudio);
+
+        HibernateController.update(user);
+        user = HibernateController.getUserByLogin("hibernate");
+        assertEquals(1, user.getUserAudio().size());
+
+        UserAudio next = user.getUserAudio().iterator().next();
+        user.removeUserAudio(next);
+
+        HibernateController.update(user);
+        user = HibernateController.getUserByLogin("hibernate");
+
+        assertEquals(0, user.getUserAudio().size());
     }
 
     @Test
@@ -227,9 +300,8 @@ public class HibernateDaoTest {
         user = HibernateController.getUserByLogin("hibernate");
 
         Set<Scenario> scenarios = user.getScenarios();
-        scenario = scenarios.iterator().next();
         List<Rule> rules = scenario.getRules();
-        assertEquals(2,rules.size());
+        assertEquals(2, rules.size());
 
         firstRule = rules.stream().filter(rule -> rule.getName().equals("hiberRule")).findFirst().get();
         firstChainElement = firstRule.getChain().get(0);
@@ -247,17 +319,17 @@ public class HibernateDaoTest {
     }
 
 
-    private Scenario addNewScenario(User user, String name){
-       Scenario scenario = new Scenario();
-       scenario.setName(name);
-       user.addScenario(scenario);
-       return scenario;
+    private Scenario addNewScenario(User user, String name) {
+        Scenario scenario = new Scenario();
+        scenario.setName(name);
+        user.addScenario(scenario);
+        return scenario;
     }
 
-    private Rule addNewRule(Scenario scenario, String name){
+    private Rule addNewRule(Scenario scenario, String name) {
         Rule rule = new Rule();
         rule.setName(name);
-        rule.setDays(new boolean[]{true,true,true,true,true,true,true});
+        rule.setDays(new boolean[]{true, true, true, true, true, true, true});
         rule.setStartHour(0);
         rule.setEndHour(24);
         rule.setType(RuleType.DEFAULT);
@@ -266,12 +338,13 @@ public class HibernateDaoTest {
         return rule;
     }
 
-    private ChainElement addNewChainElement(Rule rule, int position){
+    private ChainElement addNewChainElement(Rule rule, int position) {
         ChainElement chainElement = new ChainElement();
         chainElement.setAwaitingTime(10);
         chainElement.setDestinationType(SIP);
         chainElement.setForwardType(TO_ALL);
         chainElement.setPosition(position);
+        chainElement.setToList(Arrays.asList("111", "222"));
         rule.addChainElement(chainElement);
         return chainElement;
     }
@@ -279,12 +352,12 @@ public class HibernateDaoTest {
     @AfterClass
     public static void cleaningDb() throws Exception {
         User user = HibernateController.getUserByLogin("hibernate");
-        if (user != null){
+        if (user != null) {
             HibernateController.delete(user);
         }
 
         AmoAccount amoAccount = HibernateController.getAmoAccountByUser("hibernate");
-        if (amoAccount != null){
+        if (amoAccount != null) {
             HibernateController.delete(amoAccount);
         }
 

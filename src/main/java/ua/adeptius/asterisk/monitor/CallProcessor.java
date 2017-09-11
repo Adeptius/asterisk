@@ -4,6 +4,7 @@ package ua.adeptius.asterisk.monitor;
 import org.asteriskjava.manager.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.*;
@@ -17,7 +18,6 @@ import static ua.adeptius.asterisk.model.Call.CallPhase.*;
 import static ua.adeptius.asterisk.model.Call.CallState.*;
 import static ua.adeptius.asterisk.model.Call.Direction.IN;
 import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
-import static ua.adeptius.asterisk.utils.MyStringUtils.makePrettyLog;
 
 
 public class CallProcessor {
@@ -57,7 +57,7 @@ public class CallProcessor {
                 }
             }
 
-            System.err.println(makePrettyLog(event));
+//            System.err.println(makePrettyLog(event));
             String login = user.getLogin();
             if (from.length()==7&&from.startsWith("2")&&to.length()==7&&to.startsWith("2")){
                 LOGGER.info("{}: Обнаружен внутренний звонок. {} -> {}. Не регистрируем...", login, from, to);
@@ -80,7 +80,9 @@ public class CallProcessor {
             call.setDirection(direction);
             call.setCallPhase(NEW_CALL);
 
-            AmoWSMessageSender.addCallToSender(call);
+            if (direction == IN && !Main.remoteServerIsUp){
+                amoWSMessageSender.addCallToSender(call);
+            }
 
             calls.put(newChannelEvent.getUniqueId(), call);
             LOGGER.info("{}: Поступил новый звонок {} ->", login, call.getCalledFrom());
@@ -98,7 +100,7 @@ public class CallProcessor {
         String login = call.getUser().getLogin();
 
         if (event instanceof VarSetEvent) {
-            System.err.println(makePrettyLog(event));
+//            System.err.println(makePrettyLog(event));
             VarSetEvent varSetEvent = (VarSetEvent) event;
             String variable = varSetEvent.getVariable();
             String value = varSetEvent.getValue();
@@ -133,7 +135,7 @@ public class CallProcessor {
 
         if (event instanceof HangupEvent) {
             calls.remove(id);
-            System.err.println(makePrettyLog(event));
+//            System.err.println(makePrettyLog(event));
             HangupEvent hangupEvent = (HangupEvent) event;// если окончание разговора - удаляем из мапы и передаём список дальше
             String cause = hangupEvent.getCauseTxt();
             if (cause == null){

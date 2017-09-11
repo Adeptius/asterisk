@@ -21,6 +21,11 @@ public class HibernateController {
 
     private static HibernateDao hibernateDao;
 
+
+
+
+
+
     @Autowired
     public void setHibernateDao(HibernateDao hibernateDao) {
         HibernateController.hibernateDao = hibernateDao;
@@ -42,9 +47,12 @@ public class HibernateController {
         hibernateDao.saveUser(user);
     }
 
+    public static void delete(User user) {
+        hibernateDao.delete(user);
+    }
+
 
     public static void update(User user) {
-
         hibernateDao.update(user);
     }
 
@@ -56,10 +64,30 @@ public class HibernateController {
         return userByLogin;
     }
 
-
-    public static void delete(User user) {
-        hibernateDao.delete(user);
+    /**
+     * PendingUser
+     */
+    public static void saveOrUpdate(PendingUser pendingUser) {
+        LOGGER.info("{}: Обновление ожидающего пользователя...", pendingUser.getLogin());
+        hibernateDao.saveOrUpdate(pendingUser);
     }
+
+    public static void removePendingUserByLogin(String login){
+        hibernateDao.removePendingUserByLogin(login);
+    }
+
+    public static void removePendingUser(PendingUser pendingUser){
+        hibernateDao.removePendingUser(pendingUser);
+    }
+
+    public static PendingUser getPendingUserByKey(String key){
+        return hibernateDao.getPendingUserByKey(key);
+    }
+
+    public static List<PendingUser> getAllPendingUsers() {
+        return hibernateDao.getAllPendingUsers();
+    }
+
 
     /**
      * Melodies
@@ -69,6 +97,7 @@ public class HibernateController {
         return hibernateDao.getMelodies();
     }
 
+
     /**
      * AmoCRM
      */
@@ -77,6 +106,7 @@ public class HibernateController {
         return hibernateDao.getAmoAccountByUser(nextelLogin);
     }
 
+
     /**
      * Roistat
      */
@@ -84,6 +114,16 @@ public class HibernateController {
     public static RoistatAccount getRoistatAccountByUser(String nextelLogin) {
         return hibernateDao.getRoistatAccountByUser(nextelLogin);
     }
+
+
+    /**
+     * Operator location
+     */
+    // Для тестов
+    public static AmoOperatorLocation getAmoOperatorLocationByUser(String login) {
+        return hibernateDao.getAmoOperatorLocationByUser(login);
+    }
+
 
     /**
      * Inner phones
@@ -131,6 +171,8 @@ public class HibernateController {
     }
 
     public static void markOuterPhoneFree(List<String> numbersToRelease) throws Exception {
+        LOGGER.trace("Освобождаем {} внешних номеров {}", numbersToRelease.size(), numbersToRelease);
+
         hibernateDao.markOuterPhoneFree(numbersToRelease);
     }
 

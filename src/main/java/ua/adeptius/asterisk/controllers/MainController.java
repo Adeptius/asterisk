@@ -4,6 +4,7 @@ package ua.adeptius.asterisk.controllers;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.Call;
@@ -79,6 +80,10 @@ public class MainController {
 
     public static void onNewCall(Call call) {
         LOGGER.debug("{}: отправляем звонок во все системы {}", call.getUser().getLogin(), call);
+        if (Main.remoteServerIsUp){
+            LOGGER.info("Звонок не отправляется - запущен удалённый сервер");
+            return;
+        }
 
         OuterPhone outerPhone = call.getOuterPhone();
         if (outerPhone != null){
@@ -88,7 +93,6 @@ public class MainController {
 
         googleAnalitycsCallSender.send(call);
         roistatCallSender.send(call);
-//        amoCallSender.send(call);
         MySqlStatisticDao.saveCall(call);
     }
 }

@@ -11,6 +11,7 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -19,9 +20,26 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @Entity
 @Table(name = "users", schema = "calltrackdb")
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
-public class User {
+public class User implements Serializable{
 
     private static Logger LOGGER = LoggerFactory.getLogger(User.class.getSimpleName());
+
+    public User() {
+    }
+
+    public User(String login, String password, String email, String trackingId) {
+        this.login = login;
+        this.password = password;
+        this.email = email;
+        this.trackingId = trackingId;
+        outerPhones = new HashSet<>();
+        innerPhones = new HashSet<>();
+        chainElements = new HashSet<>();
+        scenarios = new HashSet<>();
+        rules = new HashSet<>();
+        sites = new HashSet<>();
+        userAudio = new HashSet<>();
+    }
 
     @Id
     @Column(name = "login")
@@ -40,50 +58,48 @@ public class User {
     @Column(name = "trackingId")
     private String trackingId;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "nextelLogin", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<AmoAccount> amoAccountSet;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "nextelLogin", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<RoistatAccount> roistatAccountSet;
 
+    //    @JoinColumn(name = "busy", referencedColumnName = "login")
     @JsonProperty
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "busy", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "busy", fetch = FetchType.EAGER)
     private Set<OuterPhone> outerPhones;
 
     @JsonProperty
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "busy", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "busy", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<InnerPhone> innerPhones;
 
     @JsonProperty
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
+//    @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Site> sites;
 
     @JsonProperty
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<AmoOperatorLocation> amoOperatorLocations;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    //    @JoinColumn(name = "login", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<Rule> rules;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    //    @JoinColumn(name = "login", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<Scenario> scenarios;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<ChainElement> chainElements;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    //    @JoinColumn(name = "login", referencedColumnName = "login")
+    @OneToMany(cascade = CascadeType.ALL,  mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<UserAudio> userAudio;
 
+    /**
+     * AmoCRM
+     */
     @JsonProperty
     @Transient
     public AmoAccount getAmoAccount() {
@@ -107,6 +123,9 @@ public class User {
         this.amoAccountSet.add(amoAccount);
     }
 
+    /**
+     * Roistat
+     */
     @JsonProperty
     @Transient
     public RoistatAccount getRoistatAccount() {
@@ -135,7 +154,7 @@ public class User {
      */
     public void removeSite(Site site) {
         site.releaseAllPhones();
-        getSites().remove(site);
+        sites.remove(site);
     }
 
     public Site getSiteByName(String sitename) {
@@ -148,14 +167,12 @@ public class User {
     }
 
     public Set<Site> getSites() {
-        if (sites == null) {
-            return new HashSet<>();
-        }
-        return sites;
+        return Collections.unmodifiableSet(sites);
     }
 
-    public void setSites(Set<Site> sites) {
-        this.sites = sites;
+    public void addSite(Site site) {
+        site.setUser(this);
+        sites.add(site);
     }
 
     /**
@@ -177,19 +194,25 @@ public class User {
         return Collections.unmodifiableSet(outerPhones);
     }
 
-    public void setOuterPhones(Set<OuterPhone> outerPhones) {
+    public void setOuterPhones(Set<OuterPhone> outerPhones) { // todo где это используется?
         this.outerPhones = outerPhones;
         outerPhonesCache = null;
     }
 
     public void addOuterPhones(Collection<OuterPhone> outerPhones) {
         this.outerPhones.addAll(outerPhones);
+        for (OuterPhone outerPhone : outerPhones) {
+            outerPhone.setBusy(login);
+        }
         outerPhonesCache = null;
     }
 
 
     public void removeOuterPhones(Collection<OuterPhone> outerPhonesToRemove) {
         this.outerPhones.removeAll(outerPhonesToRemove);
+        for (OuterPhone outerPhone : outerPhonesToRemove) {
+            outerPhone.setBusy(null);
+        }
         outerPhonesCache = null;
     }
 
@@ -214,10 +237,10 @@ public class User {
         return Collections.unmodifiableSet(innerPhones);
     }
 
-    public void setInnerPhones(Set<InnerPhone> innerPhones) {
-        this.innerPhones = innerPhones;
-        innerPhonesCache = null;
-    }
+//    public void setInnerPhones(Set<InnerPhone> innerPhones) {
+//        this.innerPhones = innerPhones;
+//        innerPhonesCache = null;
+//    }
 
 
     public void addInnerPhones(Collection<InnerPhone> innerPhones) {
@@ -235,8 +258,6 @@ public class User {
     /**
      * Operator locations
      */
-
-
     @JsonProperty
     @Transient
     public AmoOperatorLocation getOperatorLocation() {
@@ -256,7 +277,8 @@ public class User {
             return;
         }
 
-        amoOperatorLocation.setLogin(login);
+        amoOperatorLocation.setUser(this);
+//        amoOperatorLocation.setLogin(login);
         this.amoOperatorLocations.add(amoOperatorLocation);
     }
 
@@ -314,7 +336,7 @@ public class User {
         return Collections.unmodifiableSet(rules);
     }
 
-    void saveInUsersRules(Rule rule) { // это должго быть в scenario
+    void saveInUsersRules(Rule rule) { // todo это должно быть в scenario
         rules.add(rule);
     }
 
@@ -329,7 +351,7 @@ public class User {
         return Collections.unmodifiableSet(chainElements);
     }
 
-    void saveInUsersChains(ChainElement element) { // это должго быть в scenario
+    void saveInUsersChains(ChainElement element) { //todo это должно быть в rule
         chainElements.add(element);
     }
 
@@ -344,12 +366,13 @@ public class User {
         return Collections.unmodifiableSet(userAudio);
     }
 
-    public void addMelody(UserAudio melody){
-        userAudio.add(melody);
+    public void addUserAudio(UserAudio audio){
+        audio.setLogin(login);
+        userAudio.add(audio);
     }
 
-    public void removeMelody(UserAudio melody){
-        userAudio.remove(melody);
+    public void removeUserAudio(UserAudio audio){
+        userAudio.remove(audio);
     }
 
 

@@ -122,6 +122,7 @@ public class PhonesWebController {
                         .limit(redutrantCount)
                         .collect(Collectors.toList());
                 redutrantNumbers.forEach(phone -> phone.setSitename(null)); // освобождаем номер на случай, если он был привязан к сайту
+                HibernateController.markOuterPhoneFree(redutrantNumbers.stream().map(OuterPhone::getNumber).collect(Collectors.toList()));
                 user.removeOuterPhones(redutrantNumbers);// и наконец удаляем их у пользователя
 //                outerPhones.removeAll(redutrantNumbers);
                 LOGGER.debug("{}: Удалено {} внешних номеров. Теперь их {}", login, redutrantNumbers.size(), outerPhones.size());
@@ -149,7 +150,7 @@ public class PhonesWebController {
                         .sorted((o1, o2) -> o2.getNumber().compareTo(o1.getNumber()))
                         .limit(redutrantCount)
                         .collect(Collectors.toList());
-                innerPhones.removeAll(redutrantNumbers);
+//                innerPhones.removeAll(redutrantNumbers);
                 user.removeInnerPhones(redutrantNumbers);
 //                PhonesController.removeSipNumbersConfigs(redutrantNumbers);
                 LOGGER.debug("{}: Удалено {} внутренних номеров. Теперь их {}", login, redutrantNumbers.size(), innerPhones.size());

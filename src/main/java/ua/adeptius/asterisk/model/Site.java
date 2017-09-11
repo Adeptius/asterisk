@@ -35,7 +35,7 @@ public class Site {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "login", insertable = false, updatable = false)
+    @Column(name = "login")
     private String login;
 
     @JsonProperty
@@ -54,7 +54,7 @@ public class Site {
     private String blackIps = "";
 
     @ManyToOne
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
 
     @Transient

@@ -34,7 +34,7 @@ public class Scenario {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
+    @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
 
     @JsonProperty

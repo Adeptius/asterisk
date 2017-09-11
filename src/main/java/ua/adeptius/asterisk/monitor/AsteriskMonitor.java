@@ -109,25 +109,11 @@ public class AsteriskMonitor implements ManagerEventListener {
         return sipsFree;
     }
 
-//    public static void setSipsFree(HashMap<String, Boolean> sipsFree) {
-//        AsteriskMonitor.sipsFree = sipsFree;
-//    }
-
     public static HashMap<String, Boolean> getSipsFreeOrRinging() {
         return sipsFreeOrRinging;
     }
 
-//    public static void setSipsFreeOrRinging(HashMap<String, Boolean> sipsFreeOrRinging) {
-//        AsteriskMonitor.sipsFreeOrRinging = sipsFreeOrRinging;
-//    }
 
-    /**
-     * 1 Мониторинг логов астериска
-     * 2 Первичная фильтрация от ненужных элементов
-     * 3 Передача информативных логов в call processor
-     *
-     * @see AsteriskLogAnalyzer
-     */
     public void onManagerEvent(ManagerEvent event) {
         try {
             if (event instanceof NewChannelEvent) {

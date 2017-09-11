@@ -164,7 +164,7 @@ public class Rule {
     private Integer message;
 
     @ManyToOne
-    @JoinColumn(name = "login", referencedColumnName = "login", insertable = false, updatable = false)
+    @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
 
     public String getScenario() {

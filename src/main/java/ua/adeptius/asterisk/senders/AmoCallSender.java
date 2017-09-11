@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
+import ua.adeptius.amocrm.exceptions.AmoTooManyRequestsException;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyException;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
 import ua.adeptius.amocrm.javax_web_socket.WebSocket;
@@ -12,6 +13,7 @@ import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
+import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.*;
 
@@ -56,6 +58,11 @@ public class AmoCallSender extends Thread {
     private void prepareCreateContactAndDeal(Call call) {
         if (call.getDirection() != Call.Direction.IN) {
             return; // пока что занимаемся только входящими.
+        }
+
+        if (Main.remoteServerIsUp){
+            LOGGER.info("Работа локально. AmoCallSender отключен");
+            return;
         }
 
         User user = call.getUser();
@@ -132,6 +139,8 @@ public class AmoCallSender extends Thread {
             LOGGER.info("{}: Звонок завершен проверяем отвечен ли он или нет", login);
             try {
                 AmoDAO.addCallToNotes(amoAccount, call);
+            } catch (AmoTooManyRequestsException e) {
+                LOGGER.warn("{}: Очень много запросов на добавления звонка в АМО", login);
             } catch (Exception e) {
                 e.printStackTrace();
             }

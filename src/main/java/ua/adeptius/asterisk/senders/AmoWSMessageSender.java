@@ -5,14 +5,14 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
 import ua.adeptius.amocrm.javax_web_socket.WebSocket;
 import ua.adeptius.amocrm.javax_web_socket.WsMessage;
+import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.AmoOperatorLocation;
 import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.model.User;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
 import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
@@ -23,6 +23,8 @@ import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.outgoingCall;
 public class AmoWSMessageSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoWSMessageSender.class.getSimpleName());
+    private static Queue<Call> queue = new ConcurrentLinkedQueue<>(); // сюда доствляют обьекты Call другие потоки
+    private static Set<Call> calls = new HashSet<>(); // коллекция наполняется из очереди когда поток просыпается
 
     public AmoWSMessageSender() {
         setDaemon(true);
@@ -38,67 +40,74 @@ public class AmoWSMessageSender extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            sendMessages();
-        }
-    }
 
-    public static void addCallToSender(Call call) {
-        calls.add(call);
-    }
+            while (!queue.isEmpty()){ // берём все пришедшие Call из очереди и добавляем в Set<Call> calls
+                Call call = queue.poll();
+                calls.add(call);
+                LOGGER.debug("{}: взят на контроль звонок от {}", call.getUser().getLogin(), call.getCalledFrom());
+            }
 
-    private static Set<Call> calls = new HashSet<>();
-
-    private void sendMessages() {
-        for (Call call : calls) {
             try {
-                sendMessage(call);
+                sendMessages();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void sendMessage(Call call) throws Exception {
-        Call.CallPhase callPhase = call.getCallPhase();
-        User user = call.getUser();
+    public void addCallToSender(Call call) {
+        queue.offer(call);
+    }
 
-        AmoAccount amoAccount = user.getAmoAccount();
-        if (amoAccount == null) {
-            return;
-        }
+    private void sendMessages() throws Exception {
+        Iterator<Call> iterator = calls.iterator(); // итератор потому что надо удалять
+        while(iterator.hasNext()){
+            Call call = iterator.next();
+            Call.CallPhase callPhase = call.getCallPhase();
+            User user = call.getUser();
 
-        AmoOperatorLocation operatorLocation = user.getOperatorLocation();
-        if (operatorLocation == null) {
-            return;
-        }
-
-        if (callPhase == Call.CallPhase.NEW_CALL) {
-
-
-        } else if (callPhase == Call.CallPhase.REDIRECTED) {
-            sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.dial);
-
-
-        } else if (callPhase == Call.CallPhase.ANSWERED) {
-            if (!call.isSendedAnswerWsMessage()) {
-                LOGGER.debug("{}: отправляю сообщение оператору на телефоне {}, что он ответил на звонок",
-                        call.getUser().getLogin(), call.getCalledTo().get(0));
-
-                sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.answer);
-                // использую метод ToAll так как при ответе там всегда только 1 элемент
-                call.setSendedAnswerWsMessage(true);
-
+            AmoAccount amoAccount = user.getAmoAccount();
+            if (amoAccount == null) {
+                iterator.remove();
+                LOGGER.debug("{}: звонок от {} больше не отслеживается - оказалось нет амо акка", call.getUser().getLogin(), call.getCalledFrom());
+                continue;
             }
 
-        } else if (callPhase == Call.CallPhase.ENDED) {
-
-
-            if (call.getCallState() == Call.CallState.ANSWER) {
-                sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.ended);
+            AmoOperatorLocation operatorLocation = user.getOperatorLocation();
+            if (operatorLocation == null) {
+                iterator.remove();
+                LOGGER.debug("{}: звонок от {} больше не отслеживается - нет инфы о местоположении операторов", call.getUser().getLogin(), call.getCalledFrom());
+                continue;
             }
-            calls.remove(call);
-            if (calls.size() > 5) {
-                LOGGER.warn("Размер мапы {} - если пользователей мало - то что-то не удаляется", calls.size());
+
+            if (callPhase == Call.CallPhase.NEW_CALL) {
+
+
+            } else if (callPhase == Call.CallPhase.REDIRECTED) {
+                sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.dial);
+
+
+            } else if (callPhase == Call.CallPhase.ANSWERED) {
+                if (!call.isSendedAnswerWsMessage()) {
+                    LOGGER.debug("{}: отправляю сообщение оператору на телефоне {}, что он ответил на звонок",
+                            call.getUser().getLogin(), call.getCalledTo().get(0));
+
+                    sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.answer);
+                    // использую метод ToAll так как при ответе там всегда только 1 элемент
+                    call.setSendedAnswerWsMessage(true);
+
+                }
+
+            } else if (callPhase == Call.CallPhase.ENDED) {
+
+                if (call.getCallState() == Call.CallState.ANSWER) {
+                    sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.ended);
+                }
+                iterator.remove();
+                LOGGER.debug("{}: звонок от {} больше не отслеживается", call.getUser().getLogin(), call.getCalledFrom());
+                if (calls.size() > 5) {
+                    LOGGER.warn("Размер мапы {} - если пользователей мало - то что-то не удаляется", calls.size());
+                }
             }
         }
     }

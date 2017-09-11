@@ -26,6 +26,7 @@ public class AgiInProcessor extends BaseAgiScript {
     private static HashMap<String, Rule> phoneNumbersAndRules = new HashMap<>();
     private static Random random = new Random();
     private static ThreadLocal<String> threadLocalMelody = new ThreadLocal<>();
+    private static ThreadLocal<String> threadLocalLogin = new ThreadLocal<>();
 
 
     public void service(AgiRequest request, AgiChannel channel) {
@@ -49,31 +50,37 @@ public class AgiInProcessor extends BaseAgiScript {
 
             User user = rule.getUser();
             threadLocalMelody.set(rule.getMelody());
-            String username = user.getLogin();
-            LOGGER.debug("{}: Поступил звонок с {} на номер {}", username, fromNumber, toNumber);
+            threadLocalLogin.set(user.getLogin());
+            LOGGER.debug("{}: Поступил звонок с {} на номер {}", threadLocalLogin.get(), fromNumber, toNumber);
 
             HashMap<Integer, ChainElement> chain = rule.getChain();
             if (chain == null || chain.size() == 0) {
-                LOGGER.error("{}: цепочка отсутствует или пуста! Номер {}, правило {}", username, toNumber, rule);
+                LOGGER.error("{}: цепочка отсутствует или пуста! Номер {}, правило {}", threadLocalLogin.get(), toNumber, rule);
                 return;
             }
+
+            answer();
+            LOGGER.debug("{}: Снятие трубки {}", threadLocalLogin.get(), fromNumber);
+
+            LOGGER.debug("{}: удерживаю звонок и играю {}", threadLocalLogin.get(), threadLocalMelody.get());
+            playMusicOnHold(threadLocalMelody.get());
+
+
+            Thread.sleep(10000);
+
+
+            LOGGER.debug("{}: отпускаю звонок", threadLocalLogin.get());
+            stopMusicOnHold();
+
 
             // Приветствие
             UserAudio greetingMelody = rule.getGreetingMelody();
             if (greetingMelody != null) {
                 answer();
-                playMelody(greetingMelody, username);
+                playMelody(greetingMelody);
             }
 
-            try {
-                checkAmoResponsibleUser(user, fromNumber);
-
-            }catch (AgiException ae){
-                throw ae;
-            } catch (Exception e) {
-                e.printStackTrace();//вообще ignored но для первичного дебага так будет
-            }
-
+            checkAmoResponsibleUser(user, fromNumber);
 
             for (int i = 0; i < chain.size(); i++) {
                 ChainElement chainElement = chain.get(i);
@@ -99,8 +106,17 @@ public class AgiInProcessor extends BaseAgiScript {
             // Прощание
             UserAudio messageMelody = rule.getMessageMelody();
             if (messageMelody != null) { //если пользователь установил какое-то сообщение
-                playMelody(messageMelody, username);
+                playMelody(messageMelody);
             }
+
+//            exec("DIAL", "SIP/2001036&SIP/2001037,10,m(slow)");
+//            answer();
+//            streamFile("welcome");
+//            System.out.println("Channel status before = " + getStringedStatus(channel));
+//            answer();
+//            streamFile("/var/lib/asterisk/sounds/en/alarm");
+//            exec("Playback", "/var/lib/asterisk/sounds/en/welcome");
+//            playMusicOnHold("slow");
 
         } catch (AgiHangupException ignored) { // если звонящий кинул трубку
 
@@ -115,7 +131,7 @@ public class AgiInProcessor extends BaseAgiScript {
         }
     }
 
-    private void checkAmoResponsibleUser(User user, String fromNumber) throws Exception {
+    private void checkAmoResponsibleUser(User user, String fromNumber) throws AgiException {
         AmoAccount amoAccount = user.getAmoAccount();
         if (amoAccount == null) {
             LOGGER.debug("{}: амо аккаунт отсутствует. Ответственного пользователя не ищем", user.getLogin());
@@ -127,12 +143,13 @@ public class AgiInProcessor extends BaseAgiScript {
             return;
         }
 
-        LOGGER.debug("{}: ищем контакт по номеру {}", user.getLogin(), fromNumber);
-        JsonAmoContact contactByNumber = AmoDAO.getContactIdByPhoneNumber(amoAccount, fromNumber);
-        if (contactByNumber == null) {
-            LOGGER.debug("{}: контакт по телефону {} не найден в AMO", user.getLogin(), fromNumber);
-            return;
-        }
+        try {
+            LOGGER.debug("{}: ищем контакт по номеру {}", user.getLogin(), fromNumber);
+            JsonAmoContact contactByNumber = AmoDAO.getContactIdByPhoneNumber(amoAccount, fromNumber);
+            if (contactByNumber == null) {
+                LOGGER.debug("{}: контакт по телефону {} не найден в AMO", user.getLogin(), fromNumber);
+                return;
+            }
 
 //        JsonAmoDeal contactsLatestActiveDial = AmoDAO.getContactsLatestActiveDial(amoAccount, contactByNumber);
 //        if (contactsLatestActiveDial == null) {
@@ -140,26 +157,31 @@ public class AgiInProcessor extends BaseAgiScript {
 //            return;
 //        }
 
-        String responsibleUserId = contactByNumber.getResponsible_user_id();
-        LOGGER.debug("{}: найдена сделка по телефону {}. Ответственный пользователь: {}", user.getLogin(), fromNumber, responsibleUserId);
+            String responsibleUserId = contactByNumber.getResponsible_user_id();
+            LOGGER.debug("{}: найдена сделка по телефону {}. Ответственный пользователь: {}", user.getLogin(), fromNumber, responsibleUserId);
 
-        HashMap<String, String> amoUserIdAndInnerNumber = user.getOperatorLocation().getAmoUserIdAndInnerNumber();
-        String responsibleOperatorNumber = amoUserIdAndInnerNumber.get(responsibleUserId);
-        if (responsibleOperatorNumber == null) {
-            LOGGER.debug("{}: номер телефона ответственного сотрудника не найден", user.getLogin());
-            return;
+            HashMap<String, String> amoUserIdAndInnerNumber = user.getOperatorLocation().getAmoUserIdAndInnerNumber();
+            String responsibleOperatorNumber = amoUserIdAndInnerNumber.get(responsibleUserId);
+            if (responsibleOperatorNumber == null) {
+                LOGGER.debug("{}: номер телефона ответственного сотрудника не найден", user.getLogin());
+                return;
+            }
+            LOGGER.debug("{}: найден номер телефона ответственного сотрудника: {}", user.getLogin(), responsibleOperatorNumber);
+
+            autodetectTypeAndDialToNumber(responsibleOperatorNumber);
+        } catch (AgiException ae) {
+            throw ae;
+        } catch (Exception e) {
+            e.printStackTrace();//вообще ignored но для первичного дебага так будет
         }
-        LOGGER.debug("{}: найден номер телефона ответственного сотрудника: {}", user.getLogin(), responsibleOperatorNumber);
-
-        autodetectTypeAndDialToNumber(responsibleOperatorNumber);
     }
 
 
-    private void playMelody(UserAudio melody, String username) throws AgiException {
+    private void playMelody(UserAudio melody) throws AgiException {
         String filename = melody.getFilename();
         filename = filename.substring(0, filename.length() - 4); //астериск не принимает расширение файлов
-        String filePath = "/var/lib/asterisk/sounds/user/" + username + "/" + filename;
-        LOGGER.debug("{}: проигрывание файла {}. Мелодия {}", username, filePath, melody);
+        String filePath = "/var/lib/asterisk/sounds/user/" + threadLocalLogin.get() + "/" + filename;
+        LOGGER.debug("{}: проигрывание файла {}. Мелодия {}", threadLocalLogin.get(), filePath, melody);
         streamFile(filePath);
     }
 
@@ -176,7 +198,7 @@ public class AgiInProcessor extends BaseAgiScript {
      * Алгоритмы редиректов
      */
 
-    private void processToAllRedirect(ChainElement element) throws AgiException {
+    private void processToAllRedirect(ChainElement element) throws AgiException, InterruptedException {
         List<String> toList = element.getToList();
         int awaitingTime = element.getAwaitingTime();
         DestinationType destinationType = element.getDestinationType();
@@ -199,6 +221,36 @@ public class AgiInProcessor extends BaseAgiScript {
             // Звоним на все GSMы
             dialToGsmGroup(toList, awaitingTime);
         }
+
+//        List<String> toList = element.getToList();
+//        int awaitingTime = element.getAwaitingTime();
+//        DestinationType destinationType = element.getDestinationType();
+//        if (destinationType == SIP) {
+//
+//            List<String> callList = new ArrayList<>(); // составляем список свободных операторов
+//            for (int i = 0; i < awaitingTime * 4; i++) {
+//                HashMap<String, Boolean> sipsState = AsteriskMonitor.getSipsFree();
+//
+//                for (String number : toList) {
+//                    Boolean numberIsFree = sipsState.get(number);
+//                    if (numberIsFree) {
+//                        callList.add(number); // если оператор свободен - добавляем в список свободных операторов
+//                    }
+//                }
+//
+//                // Список свободных операторов составлен. Теперь всем им звоним одновременно
+//
+//                if (callList.size() > 0){
+//                    dialToSipGroup(callList, awaitingTime);
+//                }else {
+//                    callList.clear();
+//                }
+//                Thread.sleep(250);
+//            }
+//        } else if (destinationType == GSM) {
+//            // Звоним на все GSMы
+//            dialToGsmGroup(toList, awaitingTime);
+//        }
     }
 
     private void processQueueRedirect(ChainElement element) throws AgiException {
@@ -275,9 +327,9 @@ public class AgiInProcessor extends BaseAgiScript {
 
     private void dialToSipGroup(List<String> sips, int timeout) throws AgiException {
         getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
-        LOGGER.debug("Производится звонок на группу SIP {} с ожиданием {} секунд", sips, timeout);
+        LOGGER.debug("{}: Производится звонок на группу SIP {} с ожиданием {} секунд", threadLocalLogin.get(), sips, timeout);
         if (sips.size() == 0) {
-            LOGGER.debug("Список номеров в SIP группе пуст");
+            LOGGER.debug("{}: Список номеров в SIP группе пуст", threadLocalLogin.get());
             return;
         }
 
@@ -290,21 +342,21 @@ public class AgiInProcessor extends BaseAgiScript {
         setVariable("redirectedTo", sips.toString());
 //        AmoMultiThreadController.sendWsMessageCallingToNumber(sips);
         int responseCode = exec("DIAL", result);
-        LOGGER.debug("SIPS {}: {}", sips, getStringedCode(responseCode));
+        LOGGER.debug("{}: SIPS {}: {}", threadLocalLogin.get(), sips, getStringedCode(responseCode));
         if (responseCode == -1) {
-            LOGGER.debug("SIP {}: разговор состоялся. Завершаем вызов: Hangup", sips);
+            LOGGER.debug("{}: SIP {}: разговор состоялся. Завершаем вызов: Hangup", threadLocalLogin.get(), sips);
             hangup();
         } else if (responseCode == 0) {
-            LOGGER.debug("SIP {}: Никто не ответил.", sips);
+            LOGGER.debug("{}: SIP {}: Никто не ответил.", threadLocalLogin.get(), sips);
         }
     }
 
     private void dialToGsmGroup(List<String> numbers, int timeout) throws AgiException {
         getChannelStatus();// это чисто что бы вылетел hangUpException если канал уже не существует
-        LOGGER.debug("Производится звонок на группу GSM {} с ожиданием {} секунд", numbers, timeout);
+        LOGGER.debug("{}: Производится звонок на группу GSM {} с ожиданием {} секунд", threadLocalLogin.get(), numbers, timeout);
 
         if (numbers.size() == 0) {
-            LOGGER.debug("Список номеров в GSM группе пуст");
+            LOGGER.debug("{}: Список номеров в GSM группе пуст", threadLocalLogin.get());
             return;
         }
 
@@ -318,9 +370,9 @@ public class AgiInProcessor extends BaseAgiScript {
         setVariable("redirectedTo", numbers.toString());
 //        AmoMultiThreadController.sendWsMessageCallingToNumber(numbers);
         int responseCode = exec("DIAL", result);
-        LOGGER.debug("GSM {}: {}", numbers, getStringedCode(responseCode));
+        LOGGER.debug("{}: GSM {}: {}",threadLocalLogin.get(), numbers, getStringedCode(responseCode));
         if (responseCode == -1) {
-            LOGGER.debug("GSM {}: разговор состоялся. Завершаем вызов: Hangup", numbers);
+            LOGGER.debug("{}: GSM {}: разговор состоялся. Завершаем вызов: Hangup",threadLocalLogin.get(), numbers);
             hangup();
         }
     }

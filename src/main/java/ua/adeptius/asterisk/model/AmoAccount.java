@@ -34,7 +34,7 @@ public class AmoAccount implements Serializable {
     private int id;
 
 
-    @Column(name = "nextelLogin", insertable = false, updatable = false)
+    @Column(name = "nextelLogin")
     private String nextelLogin;
 
     @JsonProperty
@@ -66,7 +66,7 @@ public class AmoAccount implements Serializable {
     private Boolean cling;
 
     @ManyToOne
-    @JoinColumn(name = "nextelLogin", referencedColumnName = "login")
+    @JoinColumn(name = "nextelLogin", insertable = false, updatable = false)
     private User user;
 
     @Nullable

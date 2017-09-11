@@ -24,7 +24,7 @@ public class AmoOperatorLocation {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "login", insertable = false, updatable = false)
+    @Column(name = "login")
     private String login;
 
     @JsonProperty
@@ -35,8 +35,12 @@ public class AmoOperatorLocation {
     private String bindingString;
 
     @ManyToOne
-    @JoinColumn(name = "login", referencedColumnName = "login")
+    @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
+
+//    @ManyToOne
+//    @JoinColumn(name = "login")
+//    private User user;
 
     @Transient
     private HashMap<String, String> amoUserIdAndInnerNumber = null;
@@ -107,6 +111,17 @@ public class AmoOperatorLocation {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        if (user != null){
+            login = user.getLogin();
+        }
+        this.user = user;
     }
 
     public String getName() {

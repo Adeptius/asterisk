@@ -7,21 +7,23 @@ import org.asteriskjava.Cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.monitor.*;
+import ua.adeptius.asterisk.senders.EmailSender;
+import java.util.Map;
 
 
 @Component
-//@EnableWebMvc
 public class Main {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Main.class.getSimpleName());
     public static boolean startedOnWindows;
+    public static boolean remoteServerIsUp;
     public static AsteriskMonitor monitor;
+    public static EmailSender emailSender;
 
     @AfterSpringLoadComplete
     public void init() {
@@ -30,12 +32,19 @@ public class Main {
     }
 
     private void checkIfNeedRestartAndSetVariables() {
-        boolean itsLinux = "root".equals(System.getenv().get("USER"));
+        Map<String, String> getenv = System.getenv();
+        String os = getenv.get("OS");
+        boolean itsLinux = !(os != null && os.equals("Windows_NT"));
+
         boolean firstStart = Settings.getSettingBoolean("firstStart");
         LOGGER.info("Сервер загружается");
 
         if (itsLinux) { // это линукс
             LOGGER.info("OS Linux");
+            Settings.setSetting("folder.rules", "/var/www/html/admin/modules/core/etc/clients/");
+            Settings.setSetting("folder.sips", "/etc/asterisk/sip_clients/");
+            Settings.setSetting("folder.usermusic", "/var/lib/asterisk/sounds/user/");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT", "cstat.nextel.com.ua:8443");
 
         } else { // Это винда
             LOGGER.info("OS Windows");
@@ -62,6 +71,20 @@ public class Main {
     }
 
     private void afterTomcatRebootInit() {
+        emailSender = new EmailSender();
+        if (startedOnWindows) {
+            try {
+                HttpResponse<String> response = Unirest
+                        .post("http://cstat.nextel.com.ua/tracking/scenario/getMelodies")
+                        .header("content-type", "application/json")
+                        .asString();
+                if (response.getStatus() == 200) {
+                    System.out.println("!!!!!!!!!!!!!!!!!!!ВНИМАНИЕ! ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!!!!!!!!!!!");
+                    remoteServerIsUp = true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
 
         LOGGER.info("Начало инициализации модели");
         try {
@@ -118,17 +141,6 @@ public class Main {
 
         new Cli().start(); // Запуск AGI интерфейса астериска
 
-        if (startedOnWindows) {
-            try {
-                HttpResponse<String> response = Unirest
-                        .post("http://cstat.nextel.com.ua/tracking/scenario/getMelodies")
-                        .header("content-type", "application/json")
-                        .asString();
-                if (response.getStatus() == 200) {
-                    System.out.println("!!!!!!!!!!!!!!!!!!!ВНИМАНИЕ! ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!!!!!!!!!!!");
-                }
-            } catch (Exception ignored) {
-            }
-        }
+
     }
 }

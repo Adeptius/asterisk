@@ -12,12 +12,10 @@ import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.model.OuterPhone;
+import ua.adeptius.asterisk.model.PendingUser;
 import ua.adeptius.asterisk.model.Site;
 
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -135,7 +133,7 @@ public class Scheduler{
      * Scenario writer
      */
     private static int scenarioTries = 0;
-    @Scheduled(cron = "0 59 * * * ?") // в 55 минут каждого часа
+    @Scheduled(cron = "0 58 * * * ?") // в 55 минут каждого часа
     private void generateConfig(){
         LOGGER.trace("Начинается запись всех конфигов астериска в файлы.");
 
@@ -161,10 +159,8 @@ public class Scheduler{
         }
     }
 
-    @Scheduled(cron = "0 00 * * * ?") // в 0 минут каждого часа
+    @Scheduled(cron = "10 00 * * * ?") // в 0 минут каждого часа
     private void updatePhonesMapForCallProcessor(){
-//        CallProcessor.updatePhonesHashMap();
-//        AsteriskLogAnalyzer.updatePhonesHashMap();
         CallProcessor.updatePhonesHashMap();
     }
 
@@ -178,6 +174,25 @@ public class Scheduler{
             } catch (Exception e) {
                 LOGGER.error("Ошибка запуска мониторинга телефонии: ", e);
                 monitor = null;
+            }
+        }
+    }
+
+    @Scheduled(fixedRate = 600000)
+    private void clean(){
+        List<PendingUser> pendingUsers = HibernateController.getAllPendingUsers();
+        for (PendingUser pendingUser : pendingUsers) {
+            try{
+                long timeCreated = pendingUser.getDate().getTime();
+                long timeNow = new Date().getTime();
+                long pastTime = timeNow - timeCreated;
+                int pastMinutes = (int)(pastTime / 1000 / 60);
+                if (pastMinutes>180){
+                    LOGGER.info("Временный пользователь {} удалён. Прошло {} минут", pendingUser.getLogin(), pastMinutes);
+                    HibernateController.removePendingUser(pendingUser);
+                }
+            }catch (Exception e){
+                LOGGER.error("Ошибка удаления временного пользователя: " + pendingUser.getLogin() ,e);
             }
         }
     }

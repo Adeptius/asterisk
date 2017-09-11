@@ -3,6 +3,7 @@ package ua.adeptius.asterisk.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.model.PendingUser;
 import ua.adeptius.asterisk.model.User;
 
 import java.security.MessageDigest;
@@ -83,6 +84,10 @@ public class UserContainer {
         }
     }
 
+    public static User getUserByEmail(String email) {
+        return null;
+    }
+
 //    public static List<Tracking> getAllSites(){
 //        return users.stream().filter(user -> user.getTracking() != null).map(User::getTracking).collect(Collectors.toList());
 //    }
@@ -119,4 +124,5 @@ public class UserContainer {
         }
         return null;
     }
+
 }

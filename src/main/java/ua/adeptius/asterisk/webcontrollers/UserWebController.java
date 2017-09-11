@@ -15,6 +15,7 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 @Controller
@@ -31,6 +32,9 @@ public class UserWebController {
             "01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])");
 
 
+    /**
+     * Только для меня. В документации отсутствует.
+     */
     @PostMapping("/add") // дата регистрации пользователя и дата последнего посещения или как-то так
     public Object addUser(@RequestBody JsonUser jsonUser) {
         String login = jsonUser.getLogin();
@@ -61,11 +65,7 @@ public class UserWebController {
 
         try {
             RootWebController.clearCache();
-            User newUser = new User();
-            newUser.setLogin(login);
-            newUser.setPassword(jsonUser.getPassword());
-            newUser.setEmail(email);
-            newUser.setTrackingId(jsonUser.getTrackingId());
+            User newUser = new User(login, jsonUser.getPassword(), email, jsonUser.getTrackingId());
             HibernateController.saveUser(newUser);
             UserContainer.putUser(newUser);
             return new Message(Message.Status.Success, "User created");

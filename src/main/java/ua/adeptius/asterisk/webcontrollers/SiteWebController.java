@@ -57,14 +57,13 @@ public class SiteWebController {
 
 
         Site site = new Site();
-        site.setUser(user);
         site.setName(newName);
         site.setStandardNumber(convertPhone(newStandardNumber));
         site.setTimeToBlock(newtimeToBlock);
 
 
         try {
-            user.getSites().add(site);
+            user.addSite(site);
             HibernateController.update(user);
             return new Message(Message.Status.Success, "Site added");
         } catch (Exception e) {

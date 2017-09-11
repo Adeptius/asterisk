@@ -4,7 +4,9 @@ define(['jquery'], function ($) {
         var isActiveTab = true;
         var domain = AMOCRM.constant("account").subdomain;
         var userId = AMOCRM.constant("user").id;
-        var wsUrl = 'wss://adeptius.pp.ua:8443/tracking/ws/' + domain + '/' + userId;
+        // var local = 'adeptius.pp.ua';
+        var local = 'cstat.nextel.com.ua';
+        var wsUrl = 'wss://'+local+':8443/tracking/ws/' + domain + '/' + userId;
         // var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
         var ws;
 
@@ -17,7 +19,7 @@ define(['jquery'], function ($) {
             },
             init: function () {
                 //https://elrumordelaluz.github.io/csshake/
-                $('head').append('<link rel="stylesheet" type="text/css" href="https://adeptius.pp.ua:8443/tracking/csshake.min.css">');
+                // $('head').append('<link rel="stylesheet" type="text/css" href="https://adeptius.pp.ua:8443/tracking/csshake.min.css">');
                 $('head').append('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>');
 
                 //тестовая проверка уведомления звонка

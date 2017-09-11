@@ -103,7 +103,9 @@ public class RulesConfigDAO {
             }
 
             try {
-                RulesConfigDAO.writeToFile(rule, fromNumbers);
+                if (!rule.getLogin().equals("e404")){ // todo для тестов оставил, что бы не создавался файл e404.conf
+                    RulesConfigDAO.writeToFile(rule, fromNumbers);
+                }
             } catch (IOException e) {
                 LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
             }

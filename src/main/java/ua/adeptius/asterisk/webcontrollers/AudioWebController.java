@@ -141,7 +141,7 @@ public class AudioWebController {
             newMelody.setName(name);
             newMelody.setFilename(newFileName);
             newMelody.setLogin(login);
-            user.addMelody(newMelody);
+            user.addUserAudio(newMelody);
             HibernateController.update(user);
             LOGGER.debug("{}: новая пользовательская мелодия сохранена в БД: {}", login, newMelody);
 
@@ -238,7 +238,7 @@ public class AudioWebController {
         }
 
         try {
-            user.removeMelody(userAudio);
+            user.removeUserAudio(userAudio);
             HibernateController.update(user);
             try {
                 Files.delete(Paths.get(Settings.getSetting("folder.usermusic") + user.getLogin() + File.separator + melodyFilename));

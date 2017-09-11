@@ -14,6 +14,8 @@ import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -95,6 +97,62 @@ public class HibernateDao {
         session.getTransaction().commit();
         session.close();
     }
+
+
+    /**
+     * PendingUser
+     */
+    public void saveOrUpdate(PendingUser pendingUser) {
+        LOGGER.info("{}: Обновление ожидающего пользователя...", pendingUser.getLogin());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.saveOrUpdate(pendingUser);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public PendingUser getPendingUserByKey(String secretKey){
+        Session session = sessionFactory.openSession();
+        String hql = "FROM PendingUser P WHERE P.key = :secretKey";
+        Query query = session.createQuery(hql);
+        query.setParameter("secretKey", secretKey);
+        PendingUser pendingUser = (PendingUser) query.uniqueResult();
+        session.close();
+        return pendingUser;
+    }
+
+    public void removePendingUserByLogin(String login){
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        String hql = "FROM PendingUser P WHERE P.login = :login";
+        Query query = session.createQuery(hql);
+        query.setParameter("login", login);
+        PendingUser pendingUser = (PendingUser) query.uniqueResult();
+        session.delete(pendingUser);
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public void removePendingUser(PendingUser pendingUser){
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(pendingUser);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public List<PendingUser> getAllPendingUsers(){
+        Session session = sessionFactory.openSession();
+        List<PendingUser> list = session.createQuery("select p from PendingUser p").list();
+        session.close();
+        return list;
+    }
+
+
 
 
 //    public static void deleteUser(String username) {
@@ -258,6 +316,21 @@ public class HibernateDao {
         return roistatAccount;
     }
 
+
+    /**
+     * Operator location
+     */
+    // Для тестов
+    public AmoOperatorLocation getAmoOperatorLocationByUser(String login) {
+        Session session = sessionFactory.openSession();
+        String hql = "FROM AmoOperatorLocation A WHERE A.login = :login";
+        Query query = session.createQuery(hql);
+        query.setParameter("login", login);
+        AmoOperatorLocation operatorLocation = (AmoOperatorLocation) query.uniqueResult();
+        session.close();
+        return operatorLocation;
+    }
+
 //    @Deprecated
 //    public static void removeRoistatAccount(User user) {
 //        LOGGER.info("Удаление roistat аккаунта у пользователя {}", user.getLogin());
@@ -413,15 +486,16 @@ public class HibernateDao {
         session.close();
     }
 
-    @Deprecated
-    public void markOuterPhoneFree(List<String> numbersToRelease) throws Exception {
-        LOGGER.trace("Освобождаем {} внешних номеров {}", numbersToRelease.size(), numbersToRelease);
+
+    public void markOuterPhoneFree(Collection<String> numbersToRelease) throws Exception {
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 
         for (String s : numbersToRelease) {
             OuterPhone phone = session.load(OuterPhone.class, s);
             phone.setBusy(null);
+            phone.setSitename(null);
+            phone.setScenarioId(null);
         }
 
         session.getTransaction().commit();

@@ -383,6 +383,8 @@ public class AmoDAO {
                 throw new AmoCantCreateDealException();
             } else if (errorCode == 402) {
                 throw new AmoAccountNotPaidException();
+            } else if (errorCode == 232){
+                throw new AmoTooManyRequestsException();
             }
 
             LOGGER.error("Добавить обработку кода ошибки авторизации " + errorCode);
