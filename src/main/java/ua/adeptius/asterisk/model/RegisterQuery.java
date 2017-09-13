@@ -12,17 +12,17 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-@Table(name = "pending_user")
-public class PendingUser implements Serializable {
+@Table(name = "register_query")
+public class RegisterQuery implements Serializable {
 
-    public PendingUser() {
+    public RegisterQuery() {
     }
 
-    public PendingUser(@Nonnull String login, @Nonnull String password, @Nonnull String email) {
+    public RegisterQuery(@Nonnull String login, @Nonnull String password, @Nonnull String email) {
         this.login = login;
         this.password = password;
         this.email = email;
-        key = MyStringUtils.generateRandomKey();
+        hash = MyStringUtils.generateRandomKey();
         date = new Date();
     }
 
@@ -37,18 +37,18 @@ public class PendingUser implements Serializable {
     private String email;
 
     @Column(name = "hash")
-    private String key;
+    private String hash;
 
     @Column(name = "date")
     private Date date;
 
     @Override
     public String toString() {
-        return "PendingUser{" +
+        return "RegisterQuery{" +
                 "login='" + login + '\'' +
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
-                ", key='" + key + '\'' +
+                ", hash='" + hash + '\'' +
                 ", date=" + date +
                 '}';
     }
@@ -86,21 +86,20 @@ public class PendingUser implements Serializable {
         this.email = email;
     }
 
-    public String getKey() {
-        return key;
+    public String getHash() {
+        return hash;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setHash(String hash) {
+        this.hash = hash;
     }
-
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        PendingUser that = (PendingUser) o;
+        RegisterQuery that = (RegisterQuery) o;
 
         return login != null ? login.equals(that.login) : that.login == null;
     }

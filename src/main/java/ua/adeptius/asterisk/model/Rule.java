@@ -75,10 +75,7 @@ public class Rule {
 
         greeting = jsonRule.getGreeting();
         message = jsonRule.getMessage();
-
-
-
-
+        amoResponsibleId = jsonRule.getAmoResponsibleId();
         chain = new HashMap<>();
 
 
@@ -156,6 +153,10 @@ public class Rule {
     private String melody;
 
     @JsonProperty
+    @Column(name = "amo_responsible_id")
+    private String amoResponsibleId;
+
+    @JsonProperty
     @Column(name = "greeting")
     private Integer greeting;
 
@@ -195,7 +196,6 @@ public class Rule {
         }
         return chain;
     }
-
 
     public void addChainElement(ChainElement element) {
         element.setUser(user);
@@ -447,6 +447,13 @@ public class Rule {
         login = user.getLogin();
     }
 
+    public String getAmoResponsibleId() {
+        return amoResponsibleId;
+    }
+
+    public void setAmoResponsibleId(String amoResponsibleId) {
+        this.amoResponsibleId = amoResponsibleId;
+    }
 
     @Override
     public String toString() {
@@ -458,6 +465,7 @@ public class Rule {
                 ", startHour=" + startHour +
                 ", endHour=" + endHour +
                 ", days='" + days + '\'' +
+                ", amoResponsibleId='" + amoResponsibleId + '\'' +
                 ", user=" + user.getLogin() +
                 '}';
     }

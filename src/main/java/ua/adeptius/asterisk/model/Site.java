@@ -183,7 +183,7 @@ public class Site {
                 ", name='" + name + '\'' +
                 ", standardNumber='" + standardNumber + '\'' +
                 ", timeToBlock=" + timeToBlock +
-                ", blackIps='" + blackIps + '\'' +
+                ", blackIps length='" + blackIps.length() + '\'' +
                 ", user=" + user.getLogin() +
                 '}';
     }

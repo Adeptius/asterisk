@@ -13,14 +13,21 @@
             var query = window.location.search;
             var key = query.substring(query.indexOf('=') + 1);
 
-            $.post('/tracking/registration/key',
-                {key: key}, function (result) {
-                    $('body').append($('<p>' + JSON.stringify(result) + '</p>'));
-                });
+            $('#button').on('click', function () {
+                var pass = $('#pass').val();
+                $.post('/tracking/user/recoverConfirm',
+                    {key: key, newPass: pass}, function (result) {
+                        $('body').append($('<p>' + JSON.stringify(result) + '</p>'));
+                    });
+            });
         });
     </script>
 
 </head>
+
+<p>Новый пароль:</p>
+<input type="password" id="pass">
+<input type="submit" value="Отправить" id="button">
 
 <body>
 </body>

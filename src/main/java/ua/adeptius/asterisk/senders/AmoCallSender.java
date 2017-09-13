@@ -1,32 +1,34 @@
 package ua.adeptius.asterisk.senders;
 
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.AmoTooManyRequestsException;
 import ua.adeptius.amocrm.exceptions.AmoWrongLoginOrApiKeyException;
-import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
-import ua.adeptius.amocrm.javax_web_socket.WebSocket;
-import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
+import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.monitor.AgiInProcessor;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
-import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
-import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
+import java.util.List;
+import java.util.concurrent.*;
 
 @SuppressWarnings("Duplicates")
 public class AmoCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoCallSender.class.getSimpleName());
     private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
+    private static Settings settings = Main.settings;
+    private static final ExecutorService EXECUTOR = new ThreadPoolExecutor(
+            3,20,60, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(30), new ThreadFactoryBuilder().setNameFormat("AmoCallSender-Pool-%d").build());
 
 
     public void send(Call call) {
@@ -38,7 +40,7 @@ public class AmoCallSender extends Thread {
     }
 
     public AmoCallSender() {
-        setName("AmoCallSender");
+        setName("AmoCallSender-Manager");
         setDaemon(true);
         start();
     }
@@ -48,7 +50,7 @@ public class AmoCallSender extends Thread {
         while (true) {
             try {
                 Call call = blockingQueue.take();
-                prepareCreateContactAndDeal(call);
+                EXECUTOR.submit(() -> prepareCreateContactAndDeal(call));
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
             }
@@ -56,14 +58,20 @@ public class AmoCallSender extends Thread {
     }
 
     private void prepareCreateContactAndDeal(Call call) {
+
+        if (!settings.isSenderAmoCallSenderEnabled()) {
+            LOGGER.debug("AmoCallSender отключен");
+            return;
+        }
+
         if (call.getDirection() != Call.Direction.IN) {
             return; // пока что занимаемся только входящими.
         }
 
-        if (Main.remoteServerIsUp){
-            LOGGER.info("Работа локально. AmoCallSender отключен");
-            return;
-        }
+//        if (Main.remoteServerIsUp){
+//            LOGGER.info("Работа локально. AmoCallSender отключен");
+//            return;
+//        }
 
         User user = call.getUser();
         AmoAccount amoAccount = user.getAmoAccount();
@@ -118,6 +126,7 @@ public class AmoCallSender extends Thread {
 
         Call.CallPhase callPhase = call.getCallPhase();
 
+
         if (callPhase == Call.CallPhase.NEW_CALL) {
             LOGGER.info("{}: Только позвонили - это первый редирект. Создаём или привязываем сделку", login);
             try {
@@ -125,6 +134,9 @@ public class AmoCallSender extends Thread {
             } catch (Exception e) {
                 LOGGER.error(login + ": Не удалось создать сделку и контакт", e);
             }
+            // Находим и привязываем правило по которому пришел звонок - понадобится далее
+            String number = call.getOuterPhone().getNumber();
+            call.setRule(AgiInProcessor.getPhoneNumbersAndRules().get(number));
 
         } else if (callPhase == Call.CallPhase.REDIRECTED) {
             LOGGER.info("{}: Еще никто не ответил на звонок, просто выполнился еще один редирект", login);
@@ -132,8 +144,33 @@ public class AmoCallSender extends Thread {
 
 
         } else if (callPhase == Call.CallPhase.ANSWERED) {
-            LOGGER.info("{}: На звонок только что ответили. Трубку поднял {}", login, call.getCalledTo());
+            String calledTo = call.getCalledTo().get(0);
+            LOGGER.info("{}: На звонок только что ответили. Трубку поднял {}", login, calledTo);
 
+            // Назначение ответственного за сделку того, кто поднял трубку
+            // Но только если в данный момент назначены api user или responsible user
+            String amoResponsibleId = call.getRule().getAmoResponsibleId();
+            String responsibleUserNow = call.getAmoContactResponsibleId();
+            boolean responsibleApiUser = responsibleUserNow.equals(apiUserId);
+            boolean responsibleRuleUser = responsibleUserNow.equals(amoResponsibleId);
+
+            if (responsibleApiUser) {// ответственный стандартный пользователь или из правил - поэтому меняем
+                String workersId = amoAccount.getWorkersId(calledTo);
+                if (workersId != null) {
+                    // мы знаем айдишник ответившего сотрудника в амо
+                    try {
+                        AmoDAO.setResponsibleUserForContact(amoAccount, call, workersId);
+                        call.setAmoContactResponsibleId(workersId);
+                        LOGGER.debug("{}: назначили {} ответственным за контакт {}", login, workersId, calledTo);
+                    } catch (Exception e) {
+                        LOGGER.error(login + ": ошибка назначения ответственного за контакт", e);
+                    }
+                } else {
+                    LOGGER.debug("{}: неизвестен id оператора на телефоне {}", login, calledTo);
+                }
+            }else {
+                LOGGER.info("{}: Ответственный сотрудник за контакт {} уже назначен", login, calledTo);
+            }
 
         } else if (callPhase == Call.CallPhase.ENDED) {
             LOGGER.info("{}: Звонок завершен проверяем отвечен ли он или нет", login);
@@ -143,6 +180,27 @@ public class AmoCallSender extends Thread {
                 LOGGER.warn("{}: Очень много запросов на добавления звонка в АМО", login);
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+            // А также назначаем ответственного за пропущенные если он есть и вызов был пропущен
+            if (call.getCallState() == Call.CallState.ANSWER){
+                return;
+            }
+            // на звонок не ответили
+
+            String amoResponsibleId = call.getRule().getAmoResponsibleId();
+            if (amoResponsibleId == null) {
+                return;
+            }
+            // ответственный за пропущенные есть.
+
+            if (!call.getAmoContactResponsibleId().equals(apiUserId)){
+                return;
+            } // уже на кого-то назначено
+
+            try {
+                AmoDAO.setResponsibleUserForContact(amoAccount, call, amoResponsibleId);
+            } catch (Exception e) {
+                LOGGER.error(login + ": не получилось назначить ответственного за пропущенные", e);
             }
         }
     }
@@ -167,10 +225,12 @@ public class AmoCallSender extends Thread {
             int contactId = AmoDAO.addNewContactNewMethod(amoAccount, contactNumber, dealId, "Nextel", contactName);
             LOGGER.debug("{}: Новый контакт {} и сделка {} созданы!", login, contactId, dealId);
             call.setAmoContactId(contactId);
+            call.setAmoContactResponsibleId(amoAccount.getApiUserId());
 
         } else { // контакт уже есть.
             LOGGER.debug("Контакт AMO по телефону {} найден. id={} Ищем и обновляем сделку.", contactNumber, jsonAmoContact.getId());
             call.setAmoContactId(jsonAmoContact.getId());
+            call.setAmoContactResponsibleId(jsonAmoContact.getResponsible_user_id());
             // нужно найти сделки привязанные к этому контакту
             JsonAmoDeal latestActiveDial = AmoDAO.getContactsLatestActiveDial(amoAccount, jsonAmoContact);
 

@@ -14,9 +14,9 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.senders.EmailSender;
-import ua.adeptius.asterisk.test.Options;
 
-import javax.management.*;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
 
@@ -29,17 +29,9 @@ public class Main {
     public static boolean remoteServerIsUp;
     public static AsteriskMonitor monitor;
     public static EmailSender emailSender;
+    public static Settings settings = new Settings();
 
-    public static Options options;
 
-    public static Options getOptions() {
-        return options;
-    }
-
-    @Autowired
-    public void setOptions(Options options) {
-        Main.options = options;
-    }
 
     @AfterSpringLoadComplete
     public void init() {
@@ -51,17 +43,25 @@ public class Main {
         Map<String, String> getenv = System.getenv();
         String os = getenv.get("OS");
         boolean itsLinux = !(os != null && os.equals("Windows_NT"));
-        options.setItsLinux(itsLinux);
+        settings.setItsLinux(itsLinux);
 
         boolean firstStart = Settings.getSettingBoolean("firstStart");
         LOGGER.info("Сервер загружается");
 
         if (itsLinux) { // это линукс
             LOGGER.info("OS Linux");
+            Settings.setSetting("folder.rules", "/var/www/html/admin/modules/core/etc/clients/");
+            Settings.setSetting("folder.sips", "/etc/asterisk/sip_clients/");
+            Settings.setSetting("folder.usermusic", "/var/lib/asterisk/sounds/user/");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT", "cstat.nextel.com.ua:8443");
 
         } else { // Это винда
             LOGGER.info("OS Windows");
             startedOnWindows = true;
+            Settings.setSetting("folder.rules", "D:\\home\\adeptius\\tomcat\\rules\\");
+            Settings.setSetting("folder.sips", "D:\\home\\adeptius\\tomcat\\sips\\");
+            Settings.setSetting("folder.usermusic", "D:\\home\\adeptius\\tomcat\\usermusic\\");
+            Settings.setSetting("SERVER_ADDRESS_FOR_SCRIPT", "adeptius.pp.ua:8443");
         }
 
         if (firstStart && itsLinux) {
@@ -90,6 +90,7 @@ public class Main {
                 if (response.getStatus() == 200) {
                     System.out.println("!!!!!!!!!!!!!!!!!!!ВНИМАНИЕ! ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!!!!!!!!!!!");
                     remoteServerIsUp = true;
+                    settings.setRemoteServerIsUp(true);
                 }
             } catch (Exception ignored) {
             }
@@ -152,7 +153,7 @@ public class Main {
 
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
         try {
-            platformMBeanServer.registerMBean(options, new ObjectName("Adeptius", "name", "controller"));
+            platformMBeanServer.registerMBean(settings, new ObjectName("Adeptius", "name", "controller"));
         } catch (Exception e) {
             e.printStackTrace();
         }

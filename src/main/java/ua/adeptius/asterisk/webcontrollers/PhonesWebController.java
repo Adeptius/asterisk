@@ -180,7 +180,7 @@ public class PhonesWebController {
     public Object getBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newAssign) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
 
         // проверим все ли присланные имена сайтов существуют

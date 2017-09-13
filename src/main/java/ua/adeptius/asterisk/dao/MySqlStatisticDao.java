@@ -25,11 +25,11 @@ public class MySqlStatisticDao {
     private static ComboPooledDataSource statisticDataSource;
 
     public static void init() throws Exception {
-        String login = Main.getOptions().getDbUsername();
-        String password = Main.getOptions().getDbPassword();
+        String login = Main.settings.getDbUsername();
+        String password = Main.settings.getDbPassword();
         statisticDataSource = new ComboPooledDataSource();
         statisticDataSource.setDriverClass("com.mysql.jdbc.Driver");
-        statisticDataSource.setJdbcUrl(Main.getOptions().getDbUrl() + "statisticdb");
+        statisticDataSource.setJdbcUrl(Main.settings.getDbUrl() + "statisticdb");
         statisticDataSource.setUser(login);
         statisticDataSource.setPassword(password);
         statisticDataSource.setMinPoolSize(1);
@@ -62,9 +62,15 @@ public class MySqlStatisticDao {
 
     public static int getCountStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
         LOGGER.trace("{}: запрос количества строк статистики с {} по {} направление {}", user,startDate, endDate, direction);
+        String directionQuery = "direction = '" + direction + "' AND ";
+        if (direction.equals("BOTH")){
+            directionQuery = "";
+        }
+
         String sql = "SELECT COUNT(*) FROM " + user +
-                " WHERE direction = '" + direction +
-                "' AND calledDate BETWEEN STR_TO_DATE('" + startDate +
+                " WHERE " +
+                directionQuery +
+                "calledDate BETWEEN STR_TO_DATE('" + startDate +
                 "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
                 "', '%Y-%m-%d %H:%i:%s')";
         try (Connection connection = getStatisticConnection();
@@ -85,9 +91,15 @@ public class MySqlStatisticDao {
     public static List<Call> getStatisticOfRange(String user, String startDate, String endDate, String direction,
                                                  int limit, int offset) throws Exception {
         LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
+        String directionQuery = "direction = '" + direction + "' AND ";
+        if (direction.equals("BOTH")){
+            directionQuery = "";
+        }
+
         String sql = "SELECT * FROM " + user +
-                " WHERE direction = '" + direction +
-                "' AND calledDate BETWEEN STR_TO_DATE('" + startDate +
+                " WHERE " +
+                directionQuery +
+                "calledDate BETWEEN STR_TO_DATE('" + startDate +
                 "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
                 "', '%Y-%m-%d %H:%i:%s')  LIMIT "+limit+" OFFSET "+offset;
         try (Connection connection = getStatisticConnection();

@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.senders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import org.apache.commons.lang3.StringUtils;
@@ -12,13 +13,17 @@ import ua.adeptius.asterisk.model.RoistatAccount;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.Call;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class RoistatCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RoistatPhoneCall.class.getSimpleName());
     private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
     private static ObjectMapper mapper = new ObjectMapper();
+    private static final ExecutorService EXECUTOR = new ThreadPoolExecutor(
+            1,10,60, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(30), new ThreadFactoryBuilder().setNameFormat("RoistatCallSender-Pool-%d").build());
+
 
     public void send(Call call) {
         try {
@@ -30,7 +35,7 @@ public class RoistatCallSender extends Thread {
 
 
     public RoistatCallSender() {
-        setName("RoistatCallSender");
+        setName("RoistatCallSender-Manager");
         setDaemon(true);
         start();
     }
@@ -40,7 +45,7 @@ public class RoistatCallSender extends Thread {
         while (true) {
             try {
                 Call call = blockingQueue.take();
-                sendReport(call);
+                EXECUTOR.submit(() -> sendReport(call));
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
             }

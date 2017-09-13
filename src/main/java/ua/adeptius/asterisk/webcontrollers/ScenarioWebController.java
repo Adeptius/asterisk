@@ -60,7 +60,7 @@ public class ScenarioWebController {
             return getMelodiesFromCache();
         } catch (Exception e) {
             LOGGER.error("Ошибка получения списка мелодий", e);
-            return new Message(Error, "Internal error").toString();
+            return new Message(Error, "Internal error");
         }
     }
 
@@ -69,7 +69,7 @@ public class ScenarioWebController {
     public Object getAllScenarios(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
         return user.getScenarios();
     }
@@ -96,7 +96,7 @@ public class ScenarioWebController {
     public Object removeScenario(HttpServletRequest request, Integer id) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
 
         if (id == null) {
@@ -123,7 +123,7 @@ public class ScenarioWebController {
     public Object setScenario(@RequestBody JsonScenario jsonScenario, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
 
         // создаём обьект Scenario из json запроса
@@ -318,7 +318,7 @@ public class ScenarioWebController {
     public Object getBindings(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
 
         Set<OuterPhone> outerPhones = user.getOuterPhones();
@@ -331,7 +331,7 @@ public class ScenarioWebController {
     public Object getBindings(HttpServletRequest request, @RequestBody HashMap<String, Integer> newBindings) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
-            return new Message(Error, "Authorization invalid").toString();
+            return new Message(Error, "Authorization invalid");
         }
 
         // проверим все ли присланные id сценариев существуют

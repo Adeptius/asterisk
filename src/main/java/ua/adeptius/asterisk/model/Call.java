@@ -54,16 +54,28 @@ public class Call {
 
     private int amoDealId;
     private int amoContactId;
+    private String amoContactResponsibleId;
+
     private int lastOperationTime;
     private OuterPhone outerPhone;
     private CallPhase callPhase;
     private boolean sendedAnswerWsMessage; // чисто для AmoWSMessageSender что бы он знал отправлял или нет
+
+    private Rule rule;
 
     public enum CallPhase{
         NEW_CALL,
         REDIRECTED,
         ANSWERED,
         ENDED
+    }
+
+    public Rule getRule() {
+        return rule;
+    }
+
+    public void setRule(Rule rule) {
+        this.rule = rule;
     }
 
     public CallPhase getCallPhase() {
@@ -82,17 +94,15 @@ public class Call {
         this.sendedAnswerWsMessage = sendedAnswerWsMessage;
     }
 
-//    //    private int timeDifference;
-//    public int getCalculatedModifiedTime() { // нужно для амо который требует last_modified (добавление комента или тегов). Метод вычисляет для него значение
-//        int currentTime = ((int) ((new Date().getTime() / 1000))) + timeDifference; // нужен в основном, если операции изменения очень частые
-//        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
-//            lastOperationTime++;
-//            return lastOperationTime;
-//        } else {
-//            return currentTime;
-//        }
-//    }
-
+    public int getCalculatedModifiedTime() { // нужно для амо который требует last_modified (добавление комента или тегов). Метод вычисляет для него значение
+        int currentTime = (int) (System.currentTimeMillis() /1000); // нужен в основном, если операции изменения очень частые
+        if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
+            lastOperationTime++;
+            return lastOperationTime;
+        } else {
+            return currentTime;
+        }
+    }
 
     // временно для фронтенда пока не поймём как передавать calledTo во фронтенд
     @JsonProperty
@@ -244,6 +254,14 @@ public class Call {
 
     public void setAmoContactId(int amoContactId) {
         this.amoContactId = amoContactId;
+    }
+
+    public String getAmoContactResponsibleId() {
+        return amoContactResponsibleId;
+    }
+
+    public void setAmoContactResponsibleId(String amoContactResponsibleId) {
+        this.amoContactResponsibleId = amoContactResponsibleId;
     }
 
     @Override

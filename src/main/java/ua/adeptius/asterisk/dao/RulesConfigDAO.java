@@ -22,7 +22,7 @@ public class RulesConfigDAO {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RulesConfigDAO.class.getSimpleName());
 
-    private static String folder = Main.getOptions().getFolderRules();
+    private static String folder = Main.settings.getFolderRules();
 
 
     public static void writeAllNeededScenarios() throws Exception {
@@ -104,9 +104,9 @@ public class RulesConfigDAO {
             }
 
             try {
-                if (!rule.getLogin().equals("e404")){ // todo для тестов оставил, что бы не создавался файл e404.conf
+//                if (!rule.getLogin().equals("e404")){ // todo для тестов оставил, что бы не создавался файл e404.conf
                     RulesConfigDAO.writeToFile(rule, fromNumbers);
-                }
+//                }
             } catch (IOException e) {
                 LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
             }

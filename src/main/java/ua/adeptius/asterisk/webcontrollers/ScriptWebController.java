@@ -24,6 +24,7 @@ import static ua.adeptius.asterisk.json.Message.Status.Error;
 public class ScriptWebController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ScriptWebController.class.getSimpleName());
+    private static Settings settings = Main.settings;
 
     @PostMapping(value = "/get", produces = "application/json; charset=UTF-8")
     public Object getScript(HttpServletRequest request, @RequestParam String siteName) {
@@ -40,7 +41,7 @@ public class ScriptWebController {
             return new Message(Message.Status.Error, "User have no this site");
         }
 
-        String serverAddress = Main.getOptions().getServerAddress();
+        String serverAddress = settings.getServerAddress();
         String login = user.getLogin();
 
         String script = "<script src=\"https://"+ serverAddress +"/tracking/script/"+login+"/"+siteName+"\"></script>";
@@ -51,11 +52,11 @@ public class ScriptWebController {
     public String getScript2(@PathVariable String login, @PathVariable String site) {
         User user = UserContainer.getUserByName(login);
         if (user == null) {
-            return new Message(Error, "No such user").toString();
+            return "{\"Status\":\"Error\",\"Message\":\"No such user\"}";
         }
         Site siteObject = user.getSiteByName(site);
         if (siteObject == null) {
-            return new Message(Error, "No such site").toString();
+            return "{\"Status\":\"Error\",\"Message\":\"No such site\"}";
         }
 
         String script = "function loadScript(url,callback){var head=document.getElementsByTagName('head')[0];var script=document.createElement('script');" +
@@ -72,11 +73,11 @@ public class ScriptWebController {
                 "$.get(url,function(phone){$('.ct-phone').html(phone)});setTimeout(someRequest,TIMETOUPDATE000)}})})};" +
                 "loadScript(\"https://code.jquery.com/jquery-1.12.4.min.js\",runMyCodeAfterJQueryLoaded);";
 
-        script = script.replaceAll("SERVERADDRESS", Main.getOptions().getServerAddress());
+        script = script.replaceAll("SERVERADDRESS", settings.getServerAddress());
         script = script.replaceAll("LOGIN", user.getLogin());
         script = script.replaceAll("SITENAME", siteObject.getName());
         script = script.replaceAll("GOOGLETRACKINGID", user.getTrackingId());
-        script = script.replaceAll("TIMETOUPDATE", ""+Main.getOptions().getSecondsToUpdatePhoneOnWebPage());
+        script = script.replaceAll("TIMETOUPDATE", ""+settings.getSecondsToUpdatePhoneOnWebPage());
         return script;
     }
 }

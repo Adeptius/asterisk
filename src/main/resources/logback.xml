@@ -34,6 +34,8 @@
     <logger name="com.mchange" level="WARN"/>
     <logger name="org.apache.http" level="WARN"/>
     <logger name="org.apache" level="WARN"/>
+    <logger name="com.mchange.v2.c3p0.management.ActiveManagementCoordinator" level="ERROR"/>
+
 
     <root level="trace">
         <appender-ref ref="console"/>

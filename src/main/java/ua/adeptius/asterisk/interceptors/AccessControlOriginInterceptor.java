@@ -1,41 +1,28 @@
 package ua.adeptius.asterisk.interceptors;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-import ua.adeptius.asterisk.test.Options;
+import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.Settings;
 
-import javax.interceptor.Interceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
 public class AccessControlOriginInterceptor extends HandlerInterceptorAdapter {
 
-    private Options options;
-
-    @Autowired
-    public void setOptions(Options options) {
-        this.options = options;
-    }
-
-    public static boolean profiling;
-
     public static HashMap<String, Long> map = new HashMap<>();
-
     private long startTime;
+    private static Settings settings = Main.settings;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String accessControlAllowOrigin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-        if (options.isProfilingEnabled()) {
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        if (settings.isProfilingEnabled()) {
             startTime = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         }
         return super.preHandle(request, response, handler);
@@ -44,7 +31,7 @@ public class AccessControlOriginInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        if (options.isProfilingEnabled()){
+        if (settings.isProfilingEnabled()){
             String path = request.getServletPath();
             long now = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
             long past = now - startTime;
@@ -61,6 +48,11 @@ public class AccessControlOriginInterceptor extends HandlerInterceptorAdapter {
 
 
     public static void printProfiling(){
+        System.out.println();
+        System.out.println("-----------------PROFILING--------------------");
         map.forEach((s, aLong) -> System.out.println(s + " - " + TimeUnit.MICROSECONDS.toMillis(aLong)));
+        System.out.println("----------------------------------------------");
+        System.out.println();
+        map.clear();
     }
 }

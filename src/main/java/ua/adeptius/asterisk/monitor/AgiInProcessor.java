@@ -59,18 +59,18 @@ public class AgiInProcessor extends BaseAgiScript {
                 return;
             }
 
-            answer();
-            LOGGER.debug("{}: Снятие трубки {}", threadLocalLogin.get(), fromNumber);
-
-            LOGGER.debug("{}: удерживаю звонок и играю {}", threadLocalLogin.get(), threadLocalMelody.get());
-            playMusicOnHold(threadLocalMelody.get());
-
-
-            Thread.sleep(10000);
-
-
-            LOGGER.debug("{}: отпускаю звонок", threadLocalLogin.get());
-            stopMusicOnHold();
+//            answer();
+//            LOGGER.debug("{}: Снятие трубки {}", threadLocalLogin.get(), fromNumber);
+//
+//            LOGGER.debug("{}: удерживаю звонок и играю {}", threadLocalLogin.get(), threadLocalMelody.get());
+//            playMusicOnHold(threadLocalMelody.get());
+//
+//
+//            Thread.sleep(10000);
+//
+//
+//            LOGGER.debug("{}: отпускаю звонок", threadLocalLogin.get());
+//            stopMusicOnHold();
 
 
             // Приветствие

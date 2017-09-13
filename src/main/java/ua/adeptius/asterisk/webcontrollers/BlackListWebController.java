@@ -50,12 +50,7 @@ public class BlackListWebController {
         try {
             LOGGER.debug("{}: сайт {} добавление IP {} в черный список", user.getLogin(), site, ip);
 
-
-
             HibernateController.update(user); //  Оптимизация: это затратно по ресурсам ---------------------------------------
-
-
-
 
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка добавления IP " + ip + " в черный список", e);

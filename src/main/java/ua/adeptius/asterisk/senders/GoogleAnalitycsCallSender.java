@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.senders;
 
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.lang3.StringUtils;
@@ -11,7 +12,7 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.Call;
 
 import java.util.HashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 import static ua.adeptius.asterisk.model.Call.Direction.IN;
 
@@ -19,6 +20,9 @@ public class GoogleAnalitycsCallSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(GoogleAnalitycsCallSender.class.getSimpleName());
     private LinkedBlockingQueue<Call> blockingQueue = new LinkedBlockingQueue<>();
+    private static final ExecutorService EXECUTOR = new ThreadPoolExecutor(
+            1,10,60, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(30), new ThreadFactoryBuilder().setNameFormat("GoogleAnalitycsCallSender-Pool-%d").build());
 
     public void send(Call call) {
         try {
@@ -30,7 +34,7 @@ public class GoogleAnalitycsCallSender extends Thread {
 
 
     public GoogleAnalitycsCallSender() {
-        setName("AmoCallSender");
+        setName("GoogleAnalitycsCallSender-Manager");
         setDaemon(true);
         start();
     }
@@ -40,7 +44,7 @@ public class GoogleAnalitycsCallSender extends Thread {
         while (true) {
             try {
                 Call call = blockingQueue.take();
-                sendReport(call);
+                EXECUTOR.submit(() -> sendReport(call));
             } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
             }

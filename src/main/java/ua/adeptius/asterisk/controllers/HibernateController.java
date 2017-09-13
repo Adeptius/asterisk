@@ -1,7 +1,6 @@
 package ua.adeptius.asterisk.controllers;
 
 
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import ua.adeptius.asterisk.telephony.SipConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class HibernateController {
@@ -67,27 +65,50 @@ public class HibernateController {
     /**
      * PendingUser
      */
-    public static void saveOrUpdate(PendingUser pendingUser) {
-        LOGGER.info("{}: Обновление ожидающего пользователя...", pendingUser.getLogin());
-        hibernateDao.saveOrUpdate(pendingUser);
+    public static void saveOrUpdate(RegisterQuery registerQuery) {
+        LOGGER.info("{}: Сохранение запроса на регистрацию...", registerQuery.getLogin());
+        hibernateDao.saveOrUpdate(registerQuery);
     }
 
-    public static void removePendingUserByLogin(String login){
-        hibernateDao.removePendingUserByLogin(login);
+    public static void removeRegisterQueryByLogin(String login){
+        hibernateDao.removeRegisterQueryByLogin(login);
     }
 
-    public static void removePendingUser(PendingUser pendingUser){
-        hibernateDao.removePendingUser(pendingUser);
+    public static void removeRegisterQuery(RegisterQuery registerQuery){
+        hibernateDao.removeRegisterQuery(registerQuery);
     }
 
-    public static PendingUser getPendingUserByKey(String key){
-        return hibernateDao.getPendingUserByKey(key);
+    public static RegisterQuery getRegisterQueryByKey(String key){
+        return hibernateDao.getRegisterQueryByHash(key);
     }
 
-    public static List<PendingUser> getAllPendingUsers() {
-        return hibernateDao.getAllPendingUsers();
+    public static List<RegisterQuery> getAllRegisterQueries() {
+        return hibernateDao.getAllRegisterQueries();
     }
 
+
+    /**
+     * Recover user
+     */
+    public static void saveOrUpdate(RecoverQuery recoverQuery) {
+       hibernateDao.saveOrUpdate(recoverQuery);
+    }
+
+    public static RecoverQuery getRecoverQueryByHash(String hash){
+       return hibernateDao.getRecoverQueryByHash(hash);
+    }
+
+    public static void removeRecoverQuery(RecoverQuery recoverQuery){
+        hibernateDao.removeRecoverQuery(recoverQuery);
+    }
+
+    public static List<RecoverQuery> getAllRecoverQueries(){
+       return hibernateDao.getAllRecoverQueries();
+    }
+
+    public static void removeRecoverQueryByLogin(String name){
+        hibernateDao.removeRecoverQueryByLogin(name);
+    }
 
     /**
      * Melodies

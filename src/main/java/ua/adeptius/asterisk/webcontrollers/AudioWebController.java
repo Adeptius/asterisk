@@ -37,6 +37,7 @@ import static ua.adeptius.asterisk.json.Message.Status.Success;
 public class AudioWebController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AudioWebController.class.getSimpleName());
+    private static Settings settings = Main.settings;
 
     @PostMapping(value = "/getList")
     public Object getScript(HttpServletRequest request) {
@@ -83,7 +84,7 @@ public class AudioWebController {
         File tempFile = null;
         try { // файл пришел
             LOGGER.info("{}: запрос добавления мелодии {}, названный как '{}' ", login, incomingFileName, name);
-            String USER_MUSIC_FOLDER = Main.getOptions().getFolderUserMusic();
+            String USER_MUSIC_FOLDER = settings.getFolderUserMusic();
 
             byte[] bytes = file.getBytes(); // эдесь файл временно в оперативке
 
@@ -124,7 +125,7 @@ public class AudioWebController {
 
 
             LOGGER.debug("{}: конвертация {} -> {}", login, tempPath, newFilePath);
-            int convertedSize = AudioConverter.convert(tempPath, newFilePath,10);
+            int convertedSize = AudioConverter.convert(tempPath, newFilePath,30);
             if (!Main.startedOnWindows) {// если запускается локально на винде - chmod не требуется
                 Runtime.getRuntime().exec("chmod 644 " + newFilePath);
             }
@@ -195,7 +196,7 @@ public class AudioWebController {
 
 
     private static File findFile(String user, String name) throws Exception {
-        Path path = Paths.get(Main.getOptions().getFolderUserMusic() + user + "/");
+        Path path = Paths.get(settings.getFolderUserMusic() + user + "/");
 
         List<File> list = Files.walk(path)
                 .filter(Files::isRegularFile)
@@ -241,7 +242,7 @@ public class AudioWebController {
             user.removeUserAudio(userAudio);
             HibernateController.update(user);
             try {
-                Files.delete(Paths.get(Main.getOptions().getFolderUserMusic() + user.getLogin() + File.separator + melodyFilename));
+                Files.delete(Paths.get(settings.getFolderUserMusic() + user.getLogin() + File.separator + melodyFilename));
             } catch (NoSuchFileException ignored) {}
             return new Message(Success, "Removed");
         } catch (Exception e) {

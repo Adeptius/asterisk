@@ -46,7 +46,6 @@ public class User implements Serializable{
     @JsonProperty
     private String login;
 
-
     @Column(name = "password")
     private String password;
 

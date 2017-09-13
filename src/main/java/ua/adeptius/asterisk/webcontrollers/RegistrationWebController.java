@@ -12,7 +12,7 @@ import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Email;
-import ua.adeptius.asterisk.model.PendingUser;
+import ua.adeptius.asterisk.model.RegisterQuery;
 import ua.adeptius.asterisk.model.User;
 
 import java.util.regex.Pattern;
@@ -76,8 +76,8 @@ public class RegistrationWebController {
 //            return new Message(Error, "Email was sended already");
 //        }
 
-        if (password.length() < 15) {
-            return new Message(Error, "Password lenth less than 15");
+        if (password.length() < 20) {
+            return new Message(Error, "Password lenth less than 20");
         }
 
         String str2 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -88,34 +88,34 @@ public class RegistrationWebController {
             }
         }
 
-        PendingUser pendingUser = new PendingUser(login, password, email);
+        RegisterQuery registerQuery = new RegisterQuery(login, password, email);
         try {
-            HibernateController.saveOrUpdate(pendingUser);
-            Main.emailSender.send(new Email(pendingUser));
+            HibernateController.saveOrUpdate(registerQuery);
+            Main.emailSender.send(new Email(registerQuery));
             LOGGER.info("Ключ отправлен на {}", email);
             return new Message(Success, "Key sended to " + email);
         }catch (Exception e){
-            LOGGER.error(login + " ошибка сохранения временного пользователя", e);
+            LOGGER.error(login + " ошибка сохранения запроса на регистрацию", e);
             return new Message(Error, "Internal error");
         }
     }
 
     @PostMapping("/key")
     public Object registerConfirm(String key) {
-       PendingUser pendingUser = HibernateController.getPendingUserByKey(key);
-       if (pendingUser==null){
+       RegisterQuery registerQuery = HibernateController.getRegisterQueryByKey(key);
+       if (registerQuery ==null){
            LOGGER.info("Ключ {} неправильный или просроченный", key);
            return new Message(Error, "Key wrong or expired");
        }
        try {
-           User newUser = new User(pendingUser.getLogin(), pendingUser.getPassword(), pendingUser.getEmail(), null);
+           User newUser = new User(registerQuery.getLogin(), registerQuery.getPassword(), registerQuery.getEmail(), null);
            HibernateController.saveUser(newUser);
            UserContainer.putUser(newUser);
-           HibernateController.removePendingUserByLogin(pendingUser.getLogin());
-           LOGGER.info("Пользователь {} успешно зарегистрирован", pendingUser.getLogin());
+           HibernateController.removeRegisterQueryByLogin(registerQuery.getLogin());
+           LOGGER.info("Пользователь {} успешно зарегистрирован", registerQuery.getLogin());
            return new Message(Success, UserContainer.createMd5(newUser)); // возвращаем токен, что бы сразу авторизоватся
        }catch (Exception e){
-           LOGGER.error("Ошибка создания пользователя из PendingUser, login " + pendingUser.getLogin(), e);
+           LOGGER.error("Ошибка создания пользователя из RegisterQuery, login " + registerQuery.getLogin(), e);
            return new Message(Error, "Internal error");
        }
     }

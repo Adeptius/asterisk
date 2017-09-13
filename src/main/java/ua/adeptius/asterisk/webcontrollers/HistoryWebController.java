@@ -54,7 +54,7 @@ public class HistoryWebController {
             return new Message(Message.Status.Error, "Offset is less than 0");
         }
 
-        if (!direction.equals("IN") && !direction.equals("OUT")) {
+        if (!direction.equals("IN") && !direction.equals("OUT") && !direction.equals("BOTH")) {
             return new Message(Message.Status.Error, "Wrong direction");
         }
 

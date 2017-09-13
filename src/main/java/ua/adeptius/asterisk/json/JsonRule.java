@@ -14,6 +14,15 @@ public class JsonRule {
     private Integer greeting;
     private Integer message;
     private String melody;
+    private String amoResponsibleId;
+
+    public String getAmoResponsibleId() {
+        return amoResponsibleId;
+    }
+
+    public void setAmoResponsibleId(String amoResponsibleId) {
+        this.amoResponsibleId = amoResponsibleId;
+    }
 
     public String getMelody() {
         return melody;

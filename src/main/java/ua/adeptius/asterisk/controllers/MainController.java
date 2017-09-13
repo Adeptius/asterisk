@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
+import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.Call;
 import ua.adeptius.asterisk.senders.AmoCallSender;
@@ -21,6 +22,7 @@ public class MainController {
 
     private static RoistatCallSender roistatCallSender = new RoistatCallSender();
     private static GoogleAnalitycsCallSender googleAnalitycsCallSender = new GoogleAnalitycsCallSender();
+    private static Settings settings = Main.settings;
 
     public static String getFreeNumberFromSite(User user, Site site, String googleId, String ip, String pageRequest) throws NoSuchElementException {
         String login = site.getLogin();
@@ -80,7 +82,7 @@ public class MainController {
 
     public static void onNewCall(Call call) {
         LOGGER.debug("{}: отправляем звонок во все системы {}", call.getUser().getLogin(), call);
-        if (Main.remoteServerIsUp){
+        if (settings.isRemoteServerIsUp()){
             LOGGER.info("Звонок не отправляется - запущен удалённый сервер");
             return;
         }

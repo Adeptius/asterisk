@@ -156,6 +156,28 @@ public class AmoWebController {
     }
 
 
+    @PostMapping("/getUsers")
+    public Object getUsers(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid");
+        }
+
+        AmoAccount amoAccount = user.getAmoAccount();
+        if (amoAccount == null) {
+            return new Message(Error, "User have not connected Amo account");
+        }
+
+        try {
+            // Загружаем из Amo список работников пользователя
+            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
+            return jsonAmoAccount.getUsersNameAndId();
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": Ошибка при отправке списка сотрудников", e);
+            return new Message(Error, "Internal error");
+        }
+    }
+
     @PostMapping("/getBindings")
     public Object getBindings(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));

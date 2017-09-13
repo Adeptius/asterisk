@@ -44,6 +44,19 @@ public class AdminWebController {
         return hashMap;
     }
 
+    @PostMapping("/getAllSettings")
+    public Object getSetting(@RequestParam String adminPassword) {
+        if (isAdminPasswordWrong(adminPassword)) {
+            return new Message(Message.Status.Error, "Wrong password");
+        }
+
+        Map<String, String> map = new HashMap<>();
+        map.put("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE", Settings.getSetting("SECONDS_TO_UPDATE_PHONE_ON_WEB_PAGE"));
+        map.put("SECONDS_TO_REMOVE_OLD_PHONES", Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"));
+        map.put("MAIL_ANTISPAM", Settings.getSetting("MAIL_ANTISPAM"));
+        return map;
+    }
+
     @PostMapping("/setSetting")
     public Object setSetting(@RequestParam String name,
                              @RequestParam String value,

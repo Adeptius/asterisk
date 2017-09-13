@@ -1,23 +1,35 @@
 package ua.adeptius.asterisk.json;
 
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.adeptius.asterisk.model.User;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+@JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
 public class JsonUser {
 
+    @JsonProperty
     private String login;
-    private String password;
+    @JsonProperty
     private String email;
+    @JsonProperty
     private String trackingId;
+    @JsonProperty
+    private boolean amoConnected;
+
+    private String password;
 
     public JsonUser() {
     }
 
     public JsonUser(User user) {
         login = user.getLogin();
-        password = user.getPassword();
+//        password = user.getPassword();
         email = user.getEmail();
         trackingId = user.getTrackingId();
+        amoConnected = user.getAmoAccount() != null;
     }
 
     public String getLogin() {
@@ -50,6 +62,10 @@ public class JsonUser {
 
     public void setTrackingId(String trackingId) {
         this.trackingId = trackingId;
+    }
+
+    public boolean isAmoConnected() {
+        return amoConnected;
     }
 
     @Override

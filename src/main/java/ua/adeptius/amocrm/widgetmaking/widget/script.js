@@ -90,7 +90,7 @@ define(['jquery'], function ($) {
                 };
                 ws.onmessage = function (event) {
                     var incomingMessage = JSON.parse(event.data);
-                    // console.log("Пришло сообщение с содержанием:", incomingMessage);
+                    console.log("Пришло сообщение с содержанием:", incomingMessage);
                     var eventType = incomingMessage.eventType;
                     if (eventType === 'incomingCall' && isActiveTab) {
                         incomingCall(incomingMessage)
@@ -197,7 +197,7 @@ define(['jquery'], function ($) {
                     if (callPhase === 'dial') {
                         header = 'Входящий звонок';
                         shake = true;
-                        autoClose = 1.6;
+                        autoClose = 2.5;
                         needToShowIncoming = true;
 
                     } else if (callPhase === 'answer') {

@@ -4,25 +4,27 @@ package ua.adeptius.asterisk.model;
 public class Email {
 
     private String email;
-    private String key;
+    private String hash;
     private String userLogin;
     private EmailType emailType;
 
-//    public Email(String email, String key, String userLogin) {
-//        this.email = email;
-//        this.key = key;
-//        this.userLogin = userLogin;
-//    }
-
-    public Email(PendingUser pendingUser) {
-        this.email = pendingUser.getEmail();
-        this.key = pendingUser.getKey();
-        this.userLogin = pendingUser.getLogin();
+    public Email(RegisterQuery registerQuery) {
+        this.email = registerQuery.getEmail();
+        this.hash = registerQuery.getHash();
+        this.userLogin = registerQuery.getLogin();
         emailType = EmailType.REGISTRATION;
     }
 
+    public Email(RecoverQuery recoverQuery) {
+        this.email = recoverQuery.getEmail();
+        this.hash = recoverQuery.getHash();
+        this.userLogin = recoverQuery.getLogin();
+        emailType = EmailType.RECOVER;
+    }
+
     public static enum EmailType{
-        REGISTRATION
+        REGISTRATION,
+        RECOVER
     }
 
 
@@ -42,12 +44,12 @@ public class Email {
         this.email = email;
     }
 
-    public String getKey() {
-        return key;
+    public String getHash() {
+        return hash;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
     public String getUserLogin() {

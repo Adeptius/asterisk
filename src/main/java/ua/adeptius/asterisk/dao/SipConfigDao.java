@@ -21,8 +21,7 @@ public class SipConfigDao {
 
     private static Logger LOGGER =  LoggerFactory.getLogger(SipConfigDao.class.getSimpleName());
 
-    private static String folder = Main.getOptions().getFolderSips();
-
+    private static String folder = Main.settings.getFolderSips();
 
     public static void writeToFile(SipConfig sipConfig) throws Exception {
         LOGGER.trace("Запись SIP конфига в файл {}", sipConfig.getNumber());

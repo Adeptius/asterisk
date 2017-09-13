@@ -129,7 +129,7 @@ public class AmoDAO {
         LOGGER.debug("{}: Запрос id контакта {} для {}", login, phoneNumber, amoLogin);
         String url = "api/v2/json/contacts/list?query=" + phoneNumber;
         JSONObject jResponse = getJResponse(true, amoAccount, url, null, null);
-        if (jResponse.toString().equals("{\"no content\":\"true\"}")){
+        if (jResponse.toString().equals("{\"no content\":\"true\"}")) {
             return null;
         }
         String firstContactInArray = jResponse.getJSONArray("contacts").getJSONObject(0).toString();
@@ -144,8 +144,19 @@ public class AmoDAO {
         getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
     }
 
+    public static void setResponsibleUserForContact(AmoAccount amoAccount, Call call, String amoUserId) throws Exception {
+        String userLogin = amoAccount.getAmoLogin();
+        LOGGER.debug("{}: Запрос установки ответственного {} за контакт {}", userLogin, amoUserId, call.getAmoContactId());
+        String request = "{\"request\":{\"contacts\":{\"update\":[{"
+                +"\"id\":" + call.getAmoContactId()
+                +",\"last_modified\":" + call.getCalculatedModifiedTime()
+                +",\"responsible_user_id\":" + amoUserId
+                +"}]}}}";
+        getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
+    }
+
     public static int addNewContactNewMethod(AmoAccount amoAccount, String contactNumber, int dealId,
-                                              String tags, String contactName) throws Exception {
+                                             String tags, String contactName) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
         String phoneEnumId = amoAccount.getPhoneEnumId();
@@ -212,18 +223,18 @@ public class AmoDAO {
 
         String textIfAnswered = "";
 
-        if (call.getCallState() == Call.CallState.ANSWER){
-            textIfAnswered = "\\\"LINK\\\":\\\"https://cstat.nextel.com.ua:8443/tracking/history/record/"+ asteriskId +"/"+ yearMonthDay +"\\\"," +
-                    "\\\"DURATION\\\": \\\""+ secondsTalk +"\\\",";
+        if (call.getCallState() == Call.CallState.ANSWER) {
+            textIfAnswered = "\\\"LINK\\\":\\\"https://cstat.nextel.com.ua:8443/tracking/history/record/" + asteriskId + "/" + yearMonthDay + "\\\"," +
+                    "\\\"DURATION\\\": \\\"" + secondsTalk + "\\\",";
         }
 
         String request = "{\"request\": {\"notes\": {\"add\": [{" +
-                "\"element_id\": "+ amoContactId +"," +
+                "\"element_id\": " + amoContactId + "," +
                 "\"element_type\": 1," + //1 - контакт 2-сделка 3-компания
                 "\"note_type\": \"10\"," + //10 или 11, входящий или исходящий
-                "\"text\": \"{\\\"UNIQ\\\": \\\""+ asteriskId +"\\\"," +
-                 textIfAnswered +
-                "\\\"PHONE\\\":\\\""+ calledFrom +"\\\"," +
+                "\"text\": \"{\\\"UNIQ\\\": \\\"" + asteriskId + "\\\"," +
+                textIfAnswered +
+                "\\\"PHONE\\\":\\\"" + calledFrom + "\\\"," +
                 "\\\"call_status\\\": \\\"4\\\"," +
                 "\\\"SRC\\\": \\\"nextel_widget\\\"}\"}]}}}";
 
@@ -247,7 +258,7 @@ public class AmoDAO {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
         LOGGER.debug("{}: Запрос удаления сделки {} в аккаунте {}", login, dealId, amoLogin);
-        getJResponse(false, amoAccount, "deals/delete.php", null,"ID", "" + dealId, "ACTION", "DELETE","pipeline","Y");
+        getJResponse(false, amoAccount, "deals/delete.php", null, "ID", "" + dealId, "ACTION", "DELETE", "pipeline", "Y");
     }
 
     @Nullable
@@ -330,7 +341,7 @@ public class AmoDAO {
         String cookie = getCookie(amoAccount);
 
         String login = amoAccount.getUser().getLogin();
-        LOGGER.trace("{}: Отправка URL={} метод={} amoLogin={} данные={}", login, url,(isGET? "GET":"POST"), amoAccount.getAmoLogin() ,body);
+        LOGGER.trace("{}: Отправка URL={} метод={} amoLogin={} данные={}", login, url, (isGET ? "GET" : "POST"), amoAccount.getAmoLogin(), body);
 
         if (isGET && body != null) {
             throw new Exception("GET не может иметь Body");
@@ -347,8 +358,8 @@ public class AmoDAO {
             post.header("Cookie", cookie);
             post.body(body);
             if (fields != null) {
-                for (int i = 0; i < fields.length; i+=2) {
-                    post.field(fields[i], fields[i+1]);
+                for (int i = 0; i < fields.length; i += 2) {
+                    post.field(fields[i], fields[i + 1]);
                 }
             }
             stringHttpResponse = post.asString();
@@ -383,7 +394,7 @@ public class AmoDAO {
                 throw new AmoCantCreateDealException();
             } else if (errorCode == 402) {
                 throw new AmoAccountNotPaidException();
-            } else if (errorCode == 232){
+            } else if (errorCode == 232) {
                 throw new AmoTooManyRequestsException();
             }
 

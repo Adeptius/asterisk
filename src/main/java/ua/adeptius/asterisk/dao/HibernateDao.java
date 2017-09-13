@@ -7,15 +7,12 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.telephony.SipConfig;
 
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -102,52 +99,107 @@ public class HibernateDao {
     /**
      * PendingUser
      */
-    public void saveOrUpdate(PendingUser pendingUser) {
-        LOGGER.info("{}: Обновление ожидающего пользователя...", pendingUser.getLogin());
+    public void saveOrUpdate(RegisterQuery registerQuery) {
+        LOGGER.info("{}: Обновление ожидающего пользователя...", registerQuery.getLogin());
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        session.saveOrUpdate(pendingUser);
+        session.saveOrUpdate(registerQuery);
 
         session.getTransaction().commit();
         session.close();
     }
 
-    public PendingUser getPendingUserByKey(String secretKey){
+    public RegisterQuery getRegisterQueryByHash(String hash){
         Session session = sessionFactory.openSession();
-        String hql = "FROM PendingUser P WHERE P.key = :secretKey";
+        String hql = "FROM RegisterQuery P WHERE P.hash = :hash";
         Query query = session.createQuery(hql);
-        query.setParameter("secretKey", secretKey);
-        PendingUser pendingUser = (PendingUser) query.uniqueResult();
+        query.setParameter("hash", hash);
+        RegisterQuery registerQuery = (RegisterQuery) query.uniqueResult();
         session.close();
-        return pendingUser;
+        return registerQuery;
     }
 
-    public void removePendingUserByLogin(String login){
+    public void removeRegisterQueryByLogin(String login){
         Session session = sessionFactory.openSession();
         session.beginTransaction();
-        String hql = "FROM PendingUser P WHERE P.login = :login";
+        String hql = "FROM RegisterQuery P WHERE P.login = :login";
         Query query = session.createQuery(hql);
         query.setParameter("login", login);
-        PendingUser pendingUser = (PendingUser) query.uniqueResult();
-        session.delete(pendingUser);
+        RegisterQuery registerQuery = (RegisterQuery) query.uniqueResult();
+        session.delete(registerQuery);
         session.getTransaction().commit();
         session.close();
     }
 
-    public void removePendingUser(PendingUser pendingUser){
+    public void removeRegisterQuery(RegisterQuery registerQuery){
         Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        session.delete(pendingUser);
+        session.delete(registerQuery);
 
         session.getTransaction().commit();
         session.close();
     }
 
-    public List<PendingUser> getAllPendingUsers(){
+    public List<RegisterQuery> getAllRegisterQueries(){
         Session session = sessionFactory.openSession();
-        List<PendingUser> list = session.createQuery("select p from PendingUser p").list();
+        List<RegisterQuery> list = session.createQuery("select p from RegisterQuery p").list();
+        session.close();
+        return list;
+    }
+
+
+    /**
+     * RecoverUser
+     */
+    public void saveOrUpdate(RecoverQuery recoverQuery) {
+        LOGGER.info("{}: Обновление пользователя для восстановления пароля...", recoverQuery.getLogin());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.saveOrUpdate(recoverQuery);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public RecoverQuery getRecoverQueryByHash(String hash){
+        Session session = sessionFactory.openSession();
+        String hql = "FROM RecoverQuery R WHERE R.hash = :hash";
+        Query query = session.createQuery(hql);
+        query.setParameter("hash", hash);
+        RecoverQuery recoverQuery = (RecoverQuery) query.uniqueResult();
+        session.close();
+        return recoverQuery;
+    }
+
+    public void removeRecoverQuery(RecoverQuery recoverQuery){
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.delete(recoverQuery);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public void removeRecoverQueryByLogin(String name){
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        String hql = "DELETE FROM RecoverQuery R WHERE R.login = :login";
+        Query query = session.createQuery(hql);
+        query.setParameter("login", name);
+        query.executeUpdate();
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public List<RecoverQuery> getAllRecoverQueries(){
+        Session session = sessionFactory.openSession();
+        List<RecoverQuery> list = session.createQuery("select r from RecoverQuery r").list();
         session.close();
         return list;
     }

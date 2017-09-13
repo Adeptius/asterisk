@@ -3,7 +3,6 @@ package ua.adeptius.asterisk.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.model.PendingUser;
 import ua.adeptius.asterisk.model.User;
 
 import java.security.MessageDigest;
@@ -66,9 +65,11 @@ public class UserContainer {
         hashes.put(createMd5(user), user);
     }
 
+    //todo сделать мапу с именами и самими юзерами
 
     private static HashMap<String, User> usersCache = new HashMap<>();
 
+    // todo это хрень
     public static User getUserByName(String name) {
         try {
             User user = usersCache.get(name);
@@ -84,8 +85,8 @@ public class UserContainer {
         }
     }
 
-    public static User getUserByEmail(String email) {
-        return null;
+    public static User getUserByEmail(String email) { // todo подобные вещи быстрее с БД вытащить наверное
+        return users.stream().filter(user -> user.getEmail().equals(email)).findFirst().orElse(null);
     }
 
 //    public static List<Tracking> getAllSites(){

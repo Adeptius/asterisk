@@ -3,7 +3,6 @@ package ua.adeptius.asterisk.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,9 +14,9 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.interceptors.AccessControlOriginInterceptor;
 import ua.adeptius.asterisk.model.OuterPhone;
-import ua.adeptius.asterisk.model.PendingUser;
+import ua.adeptius.asterisk.model.RegisterQuery;
+import ua.adeptius.asterisk.model.RecoverQuery;
 import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.test.Options;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +53,7 @@ public class Scheduler{
     /**
      * Tracking phone Watcher
      */
+    //todo сделать отдельным классом
     @Scheduled(initialDelay = 10000, fixedRate = 3000) // каждые 3 секунды
     private void checkAllPhones(){
         List<Site> sites = UserContainer.getUsers().stream()
@@ -76,7 +76,7 @@ public class Scheduler{
 
         // продливаем время аренды номера
         long past = currentTime - phoneTime;
-        int timeToDeleteOldPhones = Integer.parseInt(""+Main.getOptions().getSecondsToRemoveOldPhones())*1000;
+        int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
         if (past > timeToDeleteOldPhones) {
 //            MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": номер " + oldPhone.getNumber() + " освободился. Был занят " + oldPhone.getBusyTimeText());
             phone.markFree();
@@ -183,34 +183,47 @@ public class Scheduler{
     }
 
     @Scheduled(fixedRate = 600000)
-    private void clean(){
-        List<PendingUser> pendingUsers = HibernateController.getAllPendingUsers();
-        for (PendingUser pendingUser : pendingUsers) {
+    private void cleanPendingQueries(){
+        List<RegisterQuery> registerQueries = HibernateController.getAllRegisterQueries();
+        for (RegisterQuery registerQuery : registerQueries) {
             try{
-                long timeCreated = pendingUser.getDate().getTime();
+                long timeCreated = registerQuery.getDate().getTime();
                 long timeNow = new Date().getTime();
                 long pastTime = timeNow - timeCreated;
                 int pastMinutes = (int)(pastTime / 1000 / 60);
                 if (pastMinutes>180){
-                    LOGGER.info("Временный пользователь {} удалён. Прошло {} минут", pendingUser.getLogin(), pastMinutes);
-                    HibernateController.removePendingUser(pendingUser);
+                    LOGGER.info("Запрос регистрации пользователя {} удалён. Прошло {} минут", registerQuery.getLogin(), pastMinutes);
+                    HibernateController.removeRegisterQuery(registerQuery);
                 }
             }catch (Exception e){
-                LOGGER.error("Ошибка удаления временного пользователя: " + pendingUser.getLogin() ,e);
+                LOGGER.error("Ошибка удаления запроса регистрации пользователя: " + registerQuery.getLogin() ,e);
             }
         }
     }
 
-    private Options options;
-
-    @Autowired
-    public void setOptions(Options options) {
-        this.options = options;
+    @Scheduled(fixedRate = 600000)
+    private void cleanRecoverQueries(){
+        List<RecoverQuery> recoverQueries = HibernateController.getAllRecoverQueries();
+        for (RecoverQuery recoverQuery : recoverQueries) {
+            try{
+                long timeCreated = recoverQuery.getDate().getTime();
+                long timeNow = new Date().getTime();
+                long pastTime = timeNow - timeCreated;
+                int pastMinutes = (int)(pastTime / 1000 / 60);
+                if (pastMinutes>180){
+                    LOGGER.info("Запрос восстановления пароля {} удалён. Прошло {} минут", recoverQuery.getLogin(), pastMinutes);
+                    HibernateController.removeRecoverQuery(recoverQuery);
+                }
+            }catch (Exception e){
+                LOGGER.error("Ошибка удаления запроса восстановления пароля: " + recoverQuery.getLogin() ,e);
+            }
+        }
     }
 
-    @Scheduled(fixedRate = 300000)
-    private void printProfile(){
-        if (options.isProfilingEnabled()) {
+    @Scheduled(fixedRate = 5000)
+    private void print(){
+        if (Main.settings.isShowProfilingResultNow()){
+            Main.settings.setShowProfilingResultNow(false);
             AccessControlOriginInterceptor.printProfiling();
         }
     }

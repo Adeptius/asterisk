@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 
-@SuppressWarnings("Duplicates")
 public class AsteriskMonitor implements ManagerEventListener {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AsteriskMonitor.class.getSimpleName());
@@ -38,10 +37,8 @@ public class AsteriskMonitor implements ManagerEventListener {
     private static HashMap<String, Boolean> sipsFreeOrRinging = new HashMap<>();
 
     public AsteriskMonitor() throws IOException {
-        ManagerConnectionFactory factory = new ManagerConnectionFactory(
-                Main.getOptions().getAsteriskUrl(),
-                Main.getOptions().getAsteriskLogin(),
-                Main.getOptions().getAsteriskPassword());
+        ManagerConnectionFactory factory = new ManagerConnectionFactory(Main.settings.getAsteriskUrl(),
+                Main.settings.getAsteriskLogin(), Main.settings.getAsteriskPassword());
         this.managerConnection = factory.createManagerConnection();
     }
 
@@ -54,12 +51,20 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
     private class SipsStateUpdater extends Thread {
+
+        public SipsStateUpdater() {
+            setName("SipsStateUpdater");
+            setDaemon(true);
+        }
+
         @Override
         public void run() {
             while (true) {
                 try {
                     Thread.sleep(250);
                     updateSipsState();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 } catch (Exception ignored) {
                 }
             }
@@ -125,133 +130,40 @@ public class AsteriskMonitor implements ManagerEventListener {
                     // это фильтрует вторую цепочку логов при звонке с сип на сип
                 }
 
-                CallProcessor.processEvent(newChannelEvent, newChannelEvent.getUniqueId());
-                return;
-            }
-
-
-            if (event instanceof NewExtenEvent) {
-                NewExtenEvent newExtenEvent = (NewExtenEvent) event;
-
-                String extension = newExtenEvent.getExtension();
-                if (extension != null && extension.equals("recordcheck")) {
-                    return;
-                }
-
-                String context = newExtenEvent.getContext();
-                if (context != null) {
-                    if (context.equals("app-blacklist-check") || context.equals("sub-record-check")) {
-                        return;
-                    }
-                }
-
-                String application = newExtenEvent.getApplication();
-                if (application != null) {
-                    if (application.equals("Set") || application.equals("GotoIf")
-                            || application.equals("ExecIf") || application.equals("GosubIf")
-                            || application.equals("Macro") || application.equals("MacroExit")
-                            || application.equals("AGI") || application.equals("NoOp")
-                            || application.equals("Gosub") || application.equals("Hangup")) {
-                        return;
-                    }
-                }
-
-                CallProcessor.processEvent(newExtenEvent, newExtenEvent.getUniqueId());
+                CallProcessor.processEvent(newChannelEvent);
                 return;
             }
 
 
             if (event instanceof VarSetEvent) {
                 VarSetEvent varSetEvent = (VarSetEvent) event;
+                String variable = varSetEvent.getVariable();
+
+                if (!variable.equals("ANSWEREDTIME") && !variable.equals("DIALEDTIME")
+                        && !variable.equals("redirectedTo") && !variable.equals("DIALEDPEERNUMBER")) {
+                    return;
+                }
+
                 if (varSetEvent.getChannel() == null) {
                     return;
                 }
 
-                String variable = varSetEvent.getVariable();
                 String value = varSetEvent.getValue();
-                if (value == null || value.equals("null") || variable.startsWith("RTPAUDIOQOS") || getVariablesToSkip().contains(variable)) {
+                if (value == null || value.equals("null")) {
                     return;
                 }
 
-                CallProcessor.processEvent(varSetEvent, varSetEvent.getUniqueId());
+                CallProcessor.processEvent(varSetEvent);
+
                 return;
             }
 
             if (event instanceof HangupEvent) {
                 HangupEvent hangupEvent = (HangupEvent) event;
-                CallProcessor.processEvent(hangupEvent, hangupEvent.getUniqueId());
+                CallProcessor.processEvent(hangupEvent);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-
-    private static List<String> variablesToSkip;
-
-    public static List<String> getVariablesToSkip() {
-        if (variablesToSkip == null) {
-            variablesToSkip = new ArrayList<>();
-            variablesToSkip.add("MACRO_DEPTH");
-            variablesToSkip.add("NOW");
-            variablesToSkip.add("__DAY");
-            variablesToSkip.add("__MONTH");
-            variablesToSkip.add("__YEAR");
-            variablesToSkip.add("__TIMESTR");
-            variablesToSkip.add("__MON_FMT");
-            variablesToSkip.add("__REC_POLICY_MODE");
-            variablesToSkip.add("__CALLFILENAME");
-            variablesToSkip.add("MIXMONITOR_FILENAME");
-            variablesToSkip.add("LOCAL_MIXMON_ID");
-            variablesToSkip.add("__MIXMON_ID");
-            variablesToSkip.add("__RECORD_ID");
-            variablesToSkip.add("__REC_STATUS");
-            variablesToSkip.add("LOCAL(ARG1)");
-            variablesToSkip.add("LOCAL(ARG2)");
-            variablesToSkip.add("LOCAL(ARG3)");
-            variablesToSkip.add("LOCAL(ARGC)");
-            variablesToSkip.add("SIPDOMAIN");
-            variablesToSkip.add("AJ_AGISTATUS");
-            variablesToSkip.add("AGISTATUS");
-            variablesToSkip.add("BRIDGEPVTCALLID");
-            variablesToSkip.add("BRIDGEPEER");
-            variablesToSkip.add("FROMEXTEN");
-            variablesToSkip.add("NoOp");
-            variablesToSkip.add("SIPCALLID");
-            variablesToSkip.add("num");
-            variablesToSkip.add("");
-            variablesToSkip.add("__FROM_DID");
-            variablesToSkip.add("MACRO_EXTEN");
-            variablesToSkip.add("MACRO_CONTEXT");
-            variablesToSkip.add("MACRO_PRIORITY");
-            variablesToSkip.add("ARG1");
-            variablesToSkip.add("ARG2");
-            variablesToSkip.add("TOUCH_MONITOR");
-            variablesToSkip.add("AMPUSER");
-            variablesToSkip.add("MOHCLASS");
-            variablesToSkip.add("ARG4");
-            variablesToSkip.add("DIAL_TRUNK");
-            variablesToSkip.add("OUTBOUND_GROUP");
-            variablesToSkip.add("DB_RESULT");
-            variablesToSkip.add("TRUNKOUTCID"); // внешний шлюз
-            variablesToSkip.add("REALCALLERIDNUM");
-            variablesToSkip.add("TRUNKCIDOVERRIDE");
-            variablesToSkip.add("OUTNUM");
-            variablesToSkip.add("DIAL_NUMBER");
-            variablesToSkip.add("custom");
-            variablesToSkip.add("MACRO_IN_HANGUP");
-            variablesToSkip.add("SIPURI");
-            variablesToSkip.add("DIALSTATUS"); // содержит CHANUNAVAIL ANSWER
-            variablesToSkip.add("DID");
-            variablesToSkip.add("DIALEDPEERNAME");
-            // показывает номер того кто ответил в этот момент, но эта инфа есть в HangupEvent - connectedlinename
-            // но необходимо при звонках на gsm
-//            variablesToSkip.add("DIALEDPEERNUMBER");
-            variablesToSkip.add("CALLED_BLACKLIST");
-            variablesToSkip.add("DIAL_TRUNK_OPTIONS");
-            variablesToSkip.add("__FROMEXTEN");
-            variablesToSkip.add("PLAYBACKSTATUS");
-        }
-        return variablesToSkip;
     }
 }

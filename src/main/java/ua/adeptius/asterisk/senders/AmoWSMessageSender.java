@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
 import ua.adeptius.amocrm.javax_web_socket.WebSocket;
 import ua.adeptius.amocrm.javax_web_socket.WsMessage;
+import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.AmoOperatorLocation;
@@ -18,13 +20,12 @@ import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.*;
 import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
 import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.outgoingCall;
 
-@SuppressWarnings("Duplicates")
-//@Deprecated
 public class AmoWSMessageSender extends Thread {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AmoWSMessageSender.class.getSimpleName());
     private static Queue<Call> queue = new ConcurrentLinkedQueue<>(); // сюда доствляют обьекты Call другие потоки
     private static Set<Call> calls = new HashSet<>(); // коллекция наполняется из очереди когда поток просыпается
+    private static Settings settings = Main.settings;
 
     public AmoWSMessageSender() {
         setDaemon(true);
@@ -36,7 +37,7 @@ public class AmoWSMessageSender extends Thread {
     public void run() {
         while (true) {
             try {
-                Thread.sleep(1500);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -48,7 +49,13 @@ public class AmoWSMessageSender extends Thread {
             }
 
             try {
+                long t0 = System.nanoTime()/1000000;
                 sendMessages();
+                long t1 = System.nanoTime()/1000000;
+                long difference = t1 - t0;
+                if (difference > 100){
+                    LOGGER.warn("На отправку уведомлений потребовалось {}мс. Звонков {}", difference, calls.size());
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -56,7 +63,11 @@ public class AmoWSMessageSender extends Thread {
     }
 
     public void addCallToSender(Call call) {
-        queue.offer(call);
+        if (settings.isSenderAmoWSMessageSenderEnabled()){
+            queue.offer(call);
+        } else {
+            LOGGER.debug("AmoWSMessageSender отключен");
+        }
     }
 
     private void sendMessages() throws Exception {
@@ -89,8 +100,8 @@ public class AmoWSMessageSender extends Thread {
 
             } else if (callPhase == Call.CallPhase.ANSWERED) {
                 if (!call.isSendedAnswerWsMessage()) {
-                    LOGGER.debug("{}: отправляю сообщение оператору на телефоне {}, что он ответил на звонок",
-                            call.getUser().getLogin(), call.getCalledTo().get(0));
+//                    LOGGER.debug("{}: отправляю сообщение оператору на телефоне {}, что он ответил на звонок",
+//                            call.getUser().getLogin(), call.getCalledTo().get(0));
 
                     sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.answer);
                     // использую метод ToAll так как при ответе там всегда только 1 элемент
@@ -130,7 +141,7 @@ public class AmoWSMessageSender extends Thread {
                 } else if (callPhase == answer || callPhase == ended) {
                     LOGGER.trace("{}: Отправлено WS сообщение, что ответ на звонок был.", login);
                 } else if (callPhase == dial) {
-                    LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
+//                    LOGGER.trace("{}: Отправили WS сообщение о новом звонке", login);
                 }
             }
         }
