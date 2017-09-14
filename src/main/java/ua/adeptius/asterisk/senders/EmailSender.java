@@ -186,22 +186,50 @@ public class EmailSender extends Thread {
     }
 
 
+//    private void sendMessage(String toEmail, String subject, String body) throws MessagingException {
+//        Authenticator auth = new Authenticator() {
+//            protected PasswordAuthentication getPasswordAuthentication() {
+//                return new PasswordAuthentication(username, password);
+//            }
+//        };
+//        Properties properties = new Properties();
+//        properties.put("mail.smtp.host", "smtp.gmail.com"); //SMTP Host
+//        properties.put("mail.smtp.port", "587"); //TLS Port
+//        properties.put("mail.smtp.auth", "true"); //enable authentication
+//        properties.put("mail.smtp.starttls.enable", "true"); //enable STARTTLS
+//
+//        Session session = Session.getInstance(properties, auth);
+//
+//        MimeMessage message = new MimeMessage(session);
+//        message.setFrom(new InternetAddress(username));
+//        message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+//        message.setSubject(subject);
+//        Multipart multipart = new MimeMultipart("alternative");
+//
+//        BodyPart messageBodyPart = new MimeBodyPart();
+//        messageBodyPart.setContent(body, "text/html; charset=UTF-8");
+//        multipart.addBodyPart(messageBodyPart);
+//        message.setContent(multipart);
+//
+//        Transport.send(message);
+//    }
+
     private void sendMessage(String toEmail, String subject, String body) throws MessagingException {
         Authenticator auth = new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
+                return new PasswordAuthentication("do_not_reply@nextel.com.ua", "7aEpg01Aa8UF");
             }
         };
         Properties properties = new Properties();
-        properties.put("mail.smtp.host", "smtp.gmail.com"); //SMTP Host
-        properties.put("mail.smtp.port", "587"); //TLS Port
+        properties.put("mail.smtp.host", "mail.ukraine.com.ua"); //SMTP Host
+        properties.put("mail.smtp.port", "25"); //TLS Port
         properties.put("mail.smtp.auth", "true"); //enable authentication
         properties.put("mail.smtp.starttls.enable", "true"); //enable STARTTLS
 
         Session session = Session.getInstance(properties, auth);
 
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(username));
+        message.setFrom(new InternetAddress("do_not_reply@nextel.com.ua"));
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
         message.setSubject(subject);
         Multipart multipart = new MimeMultipart("alternative");

@@ -58,7 +58,7 @@ public class AdminWebController {
     }
 
     @PostMapping("/setSetting")
-    public Object setSetting(@RequestParam String name,
+    public Message setSetting(@RequestParam String name,
                              @RequestParam String value,
                              @RequestParam String adminPassword) {
         if (isAdminPasswordWrong(adminPassword)) {

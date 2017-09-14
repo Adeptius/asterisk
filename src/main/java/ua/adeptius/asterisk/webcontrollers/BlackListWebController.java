@@ -24,7 +24,7 @@ public class BlackListWebController {
 
 
     @PostMapping("/add")
-    public Object addToBlackList(String ip, String siteName, HttpServletRequest request) {
+    public Message addToBlackList(String ip, String siteName, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -61,7 +61,7 @@ public class BlackListWebController {
 
 
     @PostMapping("/remove")
-    public Object removeFromBlackList(String ip, String siteName, HttpServletRequest request) {
+    public Message removeFromBlackList(String ip, String siteName, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");

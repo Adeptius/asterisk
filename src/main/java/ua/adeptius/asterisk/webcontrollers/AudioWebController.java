@@ -51,7 +51,7 @@ public class AudioWebController {
 
     @ResponseBody
     @PostMapping("/add")
-    public Object singleFileUpload(HttpServletRequest request,
+    public Message singleFileUpload(HttpServletRequest request,
                                    @RequestParam("file") MultipartFile file, @RequestParam("name") String name) {
 
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
@@ -212,7 +212,7 @@ public class AudioWebController {
     }
 
     @PostMapping(value = "/remove")
-    public Object remove(HttpServletRequest request, int id) {
+    public Message remove(HttpServletRequest request, int id) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");

@@ -19,7 +19,7 @@ public class JsonUser {
     @JsonProperty
     private boolean amoConnected;
 
-    private String password;
+    private String password; // нужен только для моего гуи при создании акка
 
     public JsonUser() {
     }

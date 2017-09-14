@@ -63,7 +63,7 @@ public class PhonesWebController {
     }
 
     @PostMapping("/setNumberCount")
-    public Object setNumberCount(@RequestBody JsonPhoneCount jsonPhoneCount, HttpServletRequest request) {
+    public Message setNumberCount(@RequestBody JsonPhoneCount jsonPhoneCount, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -177,7 +177,7 @@ public class PhonesWebController {
 
 
     @PostMapping("/setBindings")
-    public Object getBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newAssign) {
+    public Message getBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newAssign) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");

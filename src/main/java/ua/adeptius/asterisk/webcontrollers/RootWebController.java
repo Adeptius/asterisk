@@ -13,6 +13,8 @@ import ua.adeptius.asterisk.model.User;
 
 import java.util.HashMap;
 
+import static ua.adeptius.asterisk.json.Message.Status.Success;
+
 
 @Controller
 public class RootWebController {
@@ -61,7 +63,7 @@ public class RootWebController {
 
     @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")
     @ResponseBody
-    public Object checkLogin(@RequestParam String login, @RequestParam String password) {
+    public Message checkLogin(@RequestParam String login, @RequestParam String password) {
         User user = UserContainer.getUserByName(login);
         if (user == null) {
             return new Message(Message.Status.Error, "Wrong login or password");
@@ -74,7 +76,8 @@ public class RootWebController {
             return new Message(Message.Status.Error, "Wrong login or password");
         }
 
-        return "{\"token\":\"" + hash + "\"}";
+        return new Message(Success, hash);
+//        return "{\"token\":\"" + hash + "\"}";
     }
 
 

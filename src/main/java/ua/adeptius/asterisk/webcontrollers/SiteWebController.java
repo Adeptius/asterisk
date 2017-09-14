@@ -27,7 +27,7 @@ public class SiteWebController {
 
 
     @PostMapping("/add")
-    public Object add(@RequestBody JsonSite jsonSite, HttpServletRequest request) {
+    public Message add(@RequestBody JsonSite jsonSite, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -77,7 +77,7 @@ public class SiteWebController {
     }
 
     @PostMapping("/edit")
-    public Object edit(HttpServletRequest request, @RequestBody JsonSite jsonSite) {
+    public Message edit(HttpServletRequest request, @RequestBody JsonSite jsonSite) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -115,7 +115,7 @@ public class SiteWebController {
     }
 
     @PostMapping("/remove")
-    public Object removeSite(HttpServletRequest request, @RequestParam String siteName) {
+    public Message removeSite(HttpServletRequest request, @RequestParam String siteName) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");

@@ -53,7 +53,7 @@ public class AmoWebController {
     }
 
     @PostMapping("/set")
-    public Object set(@RequestBody JsonAmoForController jsonAmoAccount, HttpServletRequest request) {
+    public Message set(@RequestBody JsonAmoForController jsonAmoAccount, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -96,7 +96,7 @@ public class AmoWebController {
     }
 
     @PostMapping("/test")
-    public Object check(HttpServletRequest request) {
+    public Message check(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -130,7 +130,7 @@ public class AmoWebController {
     }
 
     @PostMapping("/remove")
-    public Object remove(HttpServletRequest request) {
+    public Message remove(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -219,7 +219,7 @@ public class AmoWebController {
     }
 
     @PostMapping("/setBindings")
-    public Object setBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newBindings) {
+    public Message setBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newBindings) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");

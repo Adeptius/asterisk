@@ -27,7 +27,7 @@ public class ScriptWebController {
     private static Settings settings = Main.settings;
 
     @PostMapping(value = "/get", produces = "application/json; charset=UTF-8")
-    public Object getScript(HttpServletRequest request, @RequestParam String siteName) {
+    public Message getScript(HttpServletRequest request, @RequestParam String siteName) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");

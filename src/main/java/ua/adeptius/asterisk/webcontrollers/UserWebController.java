@@ -41,7 +41,7 @@ public class UserWebController {
      * Только для меня. В документации отсутствует.
      */
     @PostMapping("/add") // дата регистрации пользователя и дата последнего посещения или как-то так
-    public Object addUser(@RequestBody JsonUser jsonUser) {
+    public Message addUser(@RequestBody JsonUser jsonUser) {
         String login = jsonUser.getLogin();
 
         User currentUser = UserContainer.getUserByName(login);
@@ -64,7 +64,7 @@ public class UserWebController {
         }
 
         String email = jsonUser.getEmail();
-        if (email == null || !emailRegex.matcher(email).find()){
+        if (email == null || !emailRegex.matcher(email).find()) {
             return new Message(Error, "Email is wrong.");
         }
 
@@ -81,35 +81,55 @@ public class UserWebController {
     }
 
 
-    @PostMapping("/set")
-    public Object getUser(@RequestBody JsonUser setUser, HttpServletRequest request) {
+    @SuppressWarnings("Duplicates")
+    @PostMapping("/setPassword")
+    public Message setPassword(String password, HttpServletRequest request) {
         String oldHash = request.getHeader("Authorization");
         User user = UserContainer.getUserByHash(oldHash);
         if (user == null) {
             return new Message(Error, "Authorization invalid");
         }
 
-        String password = setUser.getPassword();
+
         if (StringUtils.isBlank(password) || password.length() < 20) {
             return new Message(Error, "Password is too short. Must be minimum 20 characters");
-        }else {
-            String str2 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            for (int i = 0; i < password.length(); i++) {
-                String s = password.substring(i, i + 1);
-                if (!str2.contains(s)) {
-                    return new Message(Error, "Password contains non-eng symbols");
-                }
+        }
+
+        String str2 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (int i = 0; i < password.length(); i++) {
+            String s = password.substring(i, i + 1);
+            if (!str2.contains(s)) {
+                return new Message(Error, "Password contains non-eng symbols");
             }
         }
 
+        user.setPassword(password);
+
+        try {
+            HibernateController.update(user);
+            UserContainer.recalculateHashesForUser(oldHash, user);
+            return new Message(Message.Status.Success, UserContainer.createMd5(user));
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": ошибка изменения пароля пользователя: " + user.getLogin(), e);
+            return new Message(Error, "Internal error");
+        }
+    }
+
+
+    @SuppressWarnings("Duplicates")
+    @PostMapping("/set")
+    public Message getUser(@RequestBody JsonUser setUser, HttpServletRequest request) {
+        String oldHash = request.getHeader("Authorization");
+        User user = UserContainer.getUserByHash(oldHash);
+        if (user == null) {
+            return new Message(Error, "Authorization invalid");
+        }
 
         String email = setUser.getEmail();
-        if (email == null || !emailRegex.matcher(email).find()){
+        if (email == null || !emailRegex.matcher(email).find()) {
             return new Message(Error, "Email is wrong.");
         }
 
-
-        user.setPassword(password);
         user.setEmail(email);
         user.setTrackingId(setUser.getTrackingId());
 
@@ -145,7 +165,7 @@ public class UserWebController {
     }
 
     @PostMapping("/remove")
-    public Object remove(HttpServletRequest request) {
+    public Message remove(HttpServletRequest request) {
         String hash = request.getHeader("Authorization");
         User user = UserContainer.getUserByHash(hash);
         if (user == null) {
@@ -166,9 +186,9 @@ public class UserWebController {
     }
 
     @PostMapping("/recoverPassword")
-    public Object recoverPassword(String userName) {
+    public Message recoverPassword(String userName) {
         User userByName = UserContainer.getUserByName(userName);
-        if (userByName == null){
+        if (userByName == null) {
             return new Message(Error, "User not found");
         }
 
@@ -188,7 +208,7 @@ public class UserWebController {
 
     @SuppressWarnings("Duplicates")
     @PostMapping("/recoverConfirm")
-    public Object recoverConfirm(String key, String newPass) {
+    public Message recoverConfirm(String key, String newPass) {
         RecoverQuery recoverQueryByHash = HibernateController.getRecoverQueryByHash(key);
         if (recoverQueryByHash == null) {
             return new Message(Error, "Wrong key or expired");
@@ -196,7 +216,7 @@ public class UserWebController {
 
         if (StringUtils.isBlank(newPass) || newPass.length() < 20) {
             return new Message(Error, "Password is too short. Must be minimum 20 characters");
-        }else {
+        } else {
             String str2 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
             for (int i = 0; i < newPass.length(); i++) {
                 String s = newPass.substring(i, i + 1);
@@ -217,7 +237,7 @@ public class UserWebController {
             UserContainer.recalculateHashesForUser(oldHash, userByName);
             HibernateController.removeRecoverQueryByLogin(login);
             return new Message(Success, UserContainer.createMd5(userByName));
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.error("Ошибка при восстановлении пароля", e);
             return new Message(Error, "Internal error");
         }

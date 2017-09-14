@@ -36,7 +36,7 @@ public class RegistrationWebController {
 
 
     @PostMapping("/register")
-        public Object register(String login, String email, String password) {
+        public Message register(String login, String email, String password) {
         LOGGER.info("Запрос регистрации для {}, email: {}, длинна пароля: {}", login, email, password.length());
 
         // Проверка логина
@@ -101,7 +101,7 @@ public class RegistrationWebController {
     }
 
     @PostMapping("/key")
-    public Object registerConfirm(String key) {
+    public Message registerConfirm(String key) {
        RegisterQuery registerQuery = HibernateController.getRegisterQueryByKey(key);
        if (registerQuery ==null){
            LOGGER.info("Ключ {} неправильный или просроченный", key);

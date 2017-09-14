@@ -75,21 +75,21 @@ public class ClickToCallWebController {
 //    }
 
 
-    @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")
-    @ResponseBody
-    public Object checkLogin(@RequestParam String login, @RequestParam String password) {
-        User user = UserContainer.getUserByName(login);
-        if (user == null) {
-            return new Message(Message.Status.Error, "Wrong login or password");
-        }
-        if (!user.getPassword().equals(password)) {
-            return new Message(Message.Status.Error, "Wrong login or password");
-        }
-        String hash = UserContainer.getHashOfUser(user);
-        if (hash == null) {
-            return new Message(Message.Status.Error, "Wrong login or password");
-        }
-
-        return "{\"token\":\"" + hash + "\"}";
-    }
+//    @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")
+//    @ResponseBody
+//    public Object checkLogin(@RequestParam String login, @RequestParam String password) {
+//        User user = UserContainer.getUserByName(login);
+//        if (user == null) {
+//            return new Message(Message.Status.Error, "Wrong login or password");
+//        }
+//        if (!user.getPassword().equals(password)) {
+//            return new Message(Message.Status.Error, "Wrong login or password");
+//        }
+//        String hash = UserContainer.getHashOfUser(user);
+//        if (hash == null) {
+//            return new Message(Message.Status.Error, "Wrong login or password");
+//        }
+//
+//        return "{\"token\":\"" + hash + "\"}";
+//    }
 }

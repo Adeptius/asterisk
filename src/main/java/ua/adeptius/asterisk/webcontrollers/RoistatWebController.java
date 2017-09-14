@@ -47,7 +47,7 @@ public class RoistatWebController {
 
 
     @PostMapping("/set")
-    public Object set(@RequestBody JsonRoistatForController jsonRoistat, HttpServletRequest request) {
+    public Message set(@RequestBody JsonRoistatForController jsonRoistat, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -84,7 +84,7 @@ public class RoistatWebController {
     }
 
     @PostMapping("/test")
-    public Object check(HttpServletRequest request) {
+    public Message check(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
@@ -111,7 +111,7 @@ public class RoistatWebController {
     }
 
     @PostMapping("/remove")
-    public Object remove(HttpServletRequest request) {
+    public Message remove(HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");

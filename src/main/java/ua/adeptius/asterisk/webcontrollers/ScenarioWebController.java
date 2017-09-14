@@ -93,7 +93,7 @@ public class ScenarioWebController {
     }
 
     @PostMapping("/remove")
-    public Object removeScenario(HttpServletRequest request, Integer id) {
+    public Message removeScenario(HttpServletRequest request, Integer id) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -120,7 +120,7 @@ public class ScenarioWebController {
 
 
     @PostMapping("/set")
-    public Object setScenario(@RequestBody JsonScenario jsonScenario, HttpServletRequest request) {
+    public Message setScenario(@RequestBody JsonScenario jsonScenario, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
@@ -328,7 +328,7 @@ public class ScenarioWebController {
     }
 
     @PostMapping("/setBindings")
-    public Object getBindings(HttpServletRequest request, @RequestBody HashMap<String, Integer> newBindings) {
+    public Message getBindings(HttpServletRequest request, @RequestBody HashMap<String, Integer> newBindings) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");
