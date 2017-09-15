@@ -1,9 +1,12 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
+    <conversionRule conversionWord="highlightex" converterClass="ua.adeptius.asterisk.spring_config.HighlightingCompositeConverterEx" />
+
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %highlightex(%-5level) %highlightex([%30logger]) - %highlightex(%msg%n)</pattern>
+            <!--<pattern>[%thread] %highlightex(%-5level) %logger{15} - %highlightex(%msg) %n</pattern>-->
             <!--<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>-->
         </encoder>
     </appender>
@@ -35,6 +38,7 @@
     <logger name="org.apache.http" level="WARN"/>
     <logger name="org.apache" level="WARN"/>
     <logger name="com.mchange.v2.c3p0.management.ActiveManagementCoordinator" level="ERROR"/>
+    <logger name="org.asteriskjava.fastagi.DefaultAgiServer" level="INFO"/>
 
 
     <root level="trace">

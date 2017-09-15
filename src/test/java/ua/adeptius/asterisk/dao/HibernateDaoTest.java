@@ -298,10 +298,13 @@ public class HibernateDaoTest {
 
         HibernateController.update(user);
         user = HibernateController.getUserByLogin("hibernate");
+        scenario = user.getScenarios().iterator().next();
+
 
         Set<Scenario> scenarios = user.getScenarios();
         List<Rule> rules = scenario.getRules();
         assertEquals(2, rules.size());
+
 
         firstRule = rules.stream().filter(rule -> rule.getName().equals("hiberRule")).findFirst().get();
         firstChainElement = firstRule.getChain().get(0);
@@ -314,8 +317,11 @@ public class HibernateDaoTest {
         HibernateController.update(user);
         user = HibernateController.getUserByLogin("hibernate");
 
-        //todo дописать тесты что бы убедится что на этом моменте и правила и цепочки удалены
-
+        List<Rule> ruleList = HibernateController.getRuleByUser("hibernate");
+        assertTrue("При удалении сценария не удаляются правила", ruleList.isEmpty());
+//
+        List<ChainElement> hibernate = HibernateController.getChainsByUser("hibernate");
+        assertTrue("при удалении правила не удаляются цепочки", hibernate.isEmpty());
     }
 
 

@@ -212,7 +212,7 @@ public class AudioWebController {
     }
 
     @PostMapping(value = "/remove")
-    public Message remove(HttpServletRequest request, int id) {
+    public Object remove(HttpServletRequest request, int id) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Error, "Authorization invalid");

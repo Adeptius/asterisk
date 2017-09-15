@@ -93,7 +93,7 @@ public class RoistatCallSender extends Thread {
             String result = new JSONObject(body).getString("status");
 
             if ("success".equals(result)) {
-                LOGGER.trace("{}: Звонок отправлен в Roistat", login);
+                LOGGER.info("{}: Звонок отправлен в Roistat", login);
             } else {
                 LOGGER.error("{}: Ошибка отправки звонка в Roistat: {}", login, new JSONObject(body).getString("error"));
             }

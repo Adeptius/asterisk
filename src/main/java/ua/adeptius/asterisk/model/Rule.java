@@ -469,4 +469,26 @@ public class Rule {
                 ", user=" + user.getLogin() +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Rule rule = (Rule) o;
+
+        if (id != rule.id) return false;
+        if (login != null ? !login.equals(rule.login) : rule.login != null) return false;
+        if (name != null ? !name.equals(rule.name) : rule.name != null) return false;
+        return scenario != null ? scenario.equals(rule.scenario) : rule.scenario == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (login != null ? login.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (scenario != null ? scenario.hashCode() : 0);
+        return result;
+    }
 }

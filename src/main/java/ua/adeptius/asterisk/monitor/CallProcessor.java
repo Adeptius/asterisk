@@ -5,7 +5,7 @@ import org.asteriskjava.manager.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.controllers.TrackingController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.senders.AmoCallSender;
@@ -86,7 +86,7 @@ public class CallProcessor {
 //            }
 
         calls.put(newChannelEvent.getUniqueId(), call);
-        LOGGER.info("{}: Поступил новый звонок {} ->", login, call.getCalledFrom());
+        LOGGER.debug("{}: Поступил новый звонок {} ->", login, call.getCalledFrom());
         amoCallSender.send(call);
     }
 
@@ -113,7 +113,7 @@ public class CallProcessor {
             List<String> sips = Arrays.asList(value.substring(1, value.length() - 1).split(", "));
             call.setCalledTo(sips);
 
-            LOGGER.info("{}: Звонок перенаправлен на группу SIP {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
+            LOGGER.trace("{}: Звонок перенаправлен на группу SIP {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
             amoCallSender.send(call);
 
 
@@ -121,7 +121,7 @@ public class CallProcessor {
             value = value.substring(value.lastIndexOf("/") + 1);
             call.setCalledTo(Collections.singletonList(value));
             call.setCallPhase(ANSWERED);
-            LOGGER.info("{}: На звонок ответил {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
+            LOGGER.trace("{}: На звонок ответил {} -> {}", login, call.getCalledFrom(), call.getCalledTo());
             amoCallSender.send(call);
 
         }
@@ -132,6 +132,9 @@ public class CallProcessor {
     public static void processEvent(HangupEvent hangupEvent) {
         String uniqueId = hangupEvent.getUniqueId();
         Call call = calls.get(uniqueId);
+        if (calls.size() > numberOfInternalPhones){
+            LOGGER.warn("В списке calls {} звонков, а всего внутренних телефонов {}", calls.size(), numberOfInternalPhones);
+        }
         if (call == null) { // null тут может быть только если сервер запустился тогда, когда уже кто-то разговаривал
             return;
         }
@@ -150,21 +153,26 @@ public class CallProcessor {
             call.setCallState(CHANUNAVAIL);
         }
 
-        LOGGER.info("{}: Завершен разговор {} c {}", login, call.getCalledFrom(), call.getCalledTo());
+        LOGGER.debug("{}: Завершен разговор {} c {}", login, call.getCalledFrom(), call.getCalledTo());
         call.setCallPhase(ENDED);
-        MainController.onNewCall(call);
+        TrackingController.onNewCall(call);
         amoCallSender.send(call);
     }
 
+
+    private static int numberOfInternalPhones;
 
     public static void updatePhonesHashMap() {
         LOGGER.trace("Обновление карты Number <-> User");
         HashMap<String, User> newCache = new HashMap<>();
         for (User user : UserContainer.getUsers()) {
             List<String> numbers = new ArrayList<>();
-            numbers.addAll(user.getOuterPhones().stream().map(OuterPhone::getNumber).collect(Collectors.toList()));
-            numbers.addAll(user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList()));
+            List<String> outerNumbers = user.getOuterPhones().stream().map(OuterPhone::getNumber).collect(Collectors.toList());
+            numbers.addAll(outerNumbers);
+            List<String> innerNumbers = user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList());
+            numbers.addAll(innerNumbers);
             numbers.forEach(s -> newCache.put(s, user));
+            numberOfInternalPhones = innerNumbers.size();
         }
         phonesAndUsers = newCache;
     }

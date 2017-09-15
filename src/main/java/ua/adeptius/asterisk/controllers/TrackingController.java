@@ -9,16 +9,17 @@ import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.Call;
-import ua.adeptius.asterisk.senders.AmoCallSender;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
 
 import java.util.*;
 
+import static ua.adeptius.asterisk.model.Email.EmailType.NO_OUTER_PHONES_LEFT;
 
-public class MainController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(MainController.class.getSimpleName());
+public class TrackingController {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(TrackingController.class.getSimpleName());
 
     private static RoistatCallSender roistatCallSender = new RoistatCallSender();
     private static GoogleAnalitycsCallSender googleAnalitycsCallSender = new GoogleAnalitycsCallSender();
@@ -29,9 +30,11 @@ public class MainController {
         String standardNumber = site.getStandardNumber();
         String siteName = site.getName();
 
+
+
         //Проверка не находится ли пользователь в черном списке
         if (site.getBlackList().stream().anyMatch(s -> s.equals(ip))) {
-            LOGGER.trace("{}: пользователь с ip {} исключен. Выдан стандартный номер.", login, ip);
+//            LOGGER.trace("{}: пользователь с ip {} исключен. Выдан стандартный номер.", login, ip);
             return standardNumber;
         }
 
@@ -52,13 +55,13 @@ public class MainController {
         for (OuterPhone phone : phones) {
             if (ip.equals(phone.getIp())) {
                 String currentCustomerNumber = phone.getNumber();
-                LOGGER.trace("{}: пользователю c IP {} уже выдан номер {}", login, ip, currentCustomerNumber);
+//                LOGGER.trace("{}: пользователю c IP {} уже выдан номер {}", login, ip, currentCustomerNumber);
                 phone.extendTime();
                 return currentCustomerNumber;
             }
         }
 
-        LOGGER.debug("{}: запрос номера для нового пользователя ID: {}", login, googleId);
+//        LOGGER.debug("{}: запрос номера для нового пользователя ID: {}", login, googleId);
         for (OuterPhone phone : phones) {
             if (phone.isFree()) {
                 phone.setGoogleId(googleId);
@@ -70,13 +73,16 @@ public class MainController {
                 }else {
                     phone.setUtmRequest(pageRequest);
                 }
-                LOGGER.debug("{}: новому пользователю выдаётся номер: {}", login, newNumber);
+//                LOGGER.debug("{}: новому пользователю выдаётся номер: {}", login, newNumber);
                 return newNumber;
             }
         }
 
-        LOGGER.debug("{}: нет свободных номеров. Возвращаю стандартный {}", login, standardNumber);
-//        new Mail().checkTimeAndSendEmail(tracking, "Закончились свободные номера");todo email
+//        LOGGER.debug("{}: нет свободных номеров. Возвращаю стандартный {}", login, standardNumber);
+        if (site.didEnoughTimePassFromLastEmail()){
+            Email email = new Email(NO_OUTER_PHONES_LEFT, user.getEmail(), siteName, login);
+            Main.emailSender.send(email);
+        }
         return standardNumber;
     }
 

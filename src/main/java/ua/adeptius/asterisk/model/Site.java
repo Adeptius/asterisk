@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.Settings;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -104,11 +106,45 @@ public class Site {
         blackIps = sb.toString();
     }
 
+
+//    @Transient
+//    private List<OuterPhone> outerPhonesCache;
+//
+//    @JsonProperty
+//    public List<OuterPhone> getOuterPhones(){
+//        if (outerPhonesCache == null){
+//            outerPhonesCache = user.getOuterPhones().stream()
+//                    .filter(outerPhone -> name.equals(outerPhone.getSitename()))
+//                    .collect(Collectors.toList());
+//        }
+//        return outerPhonesCache;
+//    }
+//
+//    public void clearOuterPhonesCache(){
+//        outerPhonesCache = null;
+//    }
+
+
     @JsonProperty
     public List<OuterPhone> getOuterPhones(){
         return user.getOuterPhones().stream()
                 .filter(outerPhone -> name.equals(outerPhone.getSitename()))
                 .collect(Collectors.toList());
+    }
+
+    @Transient
+    private long lastEmailTime;
+
+    public boolean didEnoughTimePassFromLastEmail(){
+        if (lastEmailTime == 0){
+            lastEmailTime = System.currentTimeMillis();
+            return true;
+        }else {
+            long past = (System.currentTimeMillis() - lastEmailTime) / 60000; // минут
+            int mailAntispam = Main.settings.getMailAntiSpam();
+            lastEmailTime = System.currentTimeMillis();
+            return past > mailAntispam;
+        }
     }
 
     public void releaseAllPhones(){

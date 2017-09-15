@@ -72,6 +72,16 @@ public class HibernateDao {
         return user;
     }
 
+    public User getUserByEmail(String email){
+        Session session = sessionFactory.openSession();
+        String hql = "FROM User U WHERE U.email = :email";
+        Query query = session.createQuery(hql);
+        query.setParameter("email", email);
+        User user = (User) query.uniqueResult();
+        session.close();
+        return user;
+    }
+
 
     public void delete(User user) {
         LOGGER.info("Удаление пользователя {}", user.getLogin());
@@ -256,34 +266,32 @@ public class HibernateDao {
 //    }
 
     /**
-     * Telephony
+     * Rules
      */
 
-//    public static Telephony getTelephonyByUser(User user) {
-//        Session session = sessionFactory.openSession();
-//        String hql = "FROM Telephony T WHERE T.login = :login";
-//        Query query = session.createQuery(hql);
-//        query.setParameter("login", user.getLogin());
-//        Telephony telephony = (Telephony) query.uniqueResult();
-//        if (telephony != null) {
-//            telephony.setUser(user);
-//        }
-//        session.close();
-//        return telephony;
-//    }
 
-//    public static void removeTelephony(User user) {
-//        LOGGER.info("Удаление телефонии у пользователя {}", user.getLogin());
-//        Session session = sessionFactory.openSession();
-//        session.beginTransaction();
-//
-//        session.delete(user.getTelephony());
-//        user.setTelephony(null);
-//        session.update(user);
-//
-//        session.getTransaction().commit();
-//        session.close();
-//    }
+    public List<Rule> getRuleByUser(String login) throws Exception {
+        Session session = sessionFactory.openSession();
+        String hql = "FROM Rule R WHERE R.login = :login";
+        Query query = session.createQuery(hql);
+        query.setParameter("login", login);
+        List<Rule> list = query.list();
+        session.close();
+        return list;
+    }
+
+
+    public List<ChainElement> getChainsByUser(String login) throws Exception {
+        Session session = sessionFactory.openSession();
+        String hql = "FROM ChainElement C WHERE C.login = :login";
+        Query query = session.createQuery(hql);
+        query.setParameter("login", login);
+        List<ChainElement> list = query.list();
+        session.close();
+        return list;
+    }
+
+
 
     /**
      * Melodies

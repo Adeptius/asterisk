@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.webcontrollers;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.Set;
 
 @Controller
@@ -152,6 +154,13 @@ public class SiteWebController {
         if (sites == null || sites.size() == 0) {
             return new Message(Message.Status.Error, "User have no sites");
         }
+//        try {
+//            String s = new ObjectMapper().writeValueAsString(sites);
+//            return s;
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "error";
+//        }
         return sites;
     }
 

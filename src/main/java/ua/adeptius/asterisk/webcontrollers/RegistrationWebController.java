@@ -65,16 +65,12 @@ public class RegistrationWebController {
             return new Message(Error, "Email is wrong");
         }
 
-        user = UserContainer.getUserByEmail(email); // todo проверить
+//        user = HibernateController.getUserByEmail(email);
+        user = UserContainer.getUserByEmail(email);
         if (user != null) {
             LOGGER.info("Email {} уже зарегистрирован", email);
             return new Message(Error, "Email already registered");
         }
-
-//        if (UserContainer.pendingUsers.stream().anyMatch(pu -> pu.getEmail().equals(email))) {// todo проверить
-//            LOGGER.info("На еmail {} уже было отправлено письмо", email);
-//            return new Message(Error, "Email was sended already");
-//        }
 
         if (password.length() < 20) {
             return new Message(Error, "Password lenth less than 20");

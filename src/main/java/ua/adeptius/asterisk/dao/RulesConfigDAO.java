@@ -26,7 +26,6 @@ public class RulesConfigDAO {
 
 
     public static void writeAllNeededScenarios() throws Exception {
-        LOGGER.info("Подготовка сценариев на следующий час");
 
         // Список телефонов, на которых вообще назначены какие либо сценарии.
         List<OuterPhone> outerPhonesWithScenario = UserContainer.getUsers().stream()
@@ -91,7 +90,8 @@ public class RulesConfigDAO {
         for (Scenario scenario : scenarios) { // проходимся по всем сценариям и проверяем какие из них можно активировать на следующий час.
             Rule rule = scenario.getRuleByTime(day, hour);
             if (rule == null) {
-                LOGGER.error("{}: при поиске активного правила на {} день, {} час - вернулся null", scenario.getLogin(), day, hour);
+                LOGGER.error("{}: при поиске активного правила в сценарии {} на {} день, {} час - вернулся null",
+                        scenario.getLogin(), scenario.getName(), day, hour);
                 continue;
             }
 
@@ -104,9 +104,8 @@ public class RulesConfigDAO {
             }
 
             try {
-//                if (!rule.getLogin().equals("e404")){ // todo для тестов оставил, что бы не создавался файл e404.conf
-                    RulesConfigDAO.writeToFile(rule, fromNumbers);
-//                }
+                RulesConfigDAO.writeToFile(rule, fromNumbers);
+
             } catch (IOException e) {
                 LOGGER.error(scenario.getLogin() + ": не удалось записать сценарий (id=" + scenario.getId() + ") в файл", e);
             }

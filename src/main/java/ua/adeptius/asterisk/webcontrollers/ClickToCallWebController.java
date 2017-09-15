@@ -9,12 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.controllers.MainController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.monitor.AsteriskMonitor;
 import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 

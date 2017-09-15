@@ -70,7 +70,7 @@ public class RoistatPhoneCall {
         this.marker = call.getUtm();
 
 //        null or string     Номер заказа из CRM
-//        int amoDealId = call.getAmoDealId();//todo
+        int amoDealId = call.getAmoDealId();
 //        if (amoDealId != 0) {
 //            this.order_id = amoDealId;
 //        }

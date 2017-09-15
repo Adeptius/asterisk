@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ua.adeptius.asterisk.controllers.MainController;
+import ua.adeptius.asterisk.controllers.TrackingController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
@@ -45,7 +45,7 @@ public class RootWebController {
             return "BAD_REQUEST";
         }
 
-        return MainController.getFreeNumberFromSite(userObject, siteObject, googleid, ip, pagerequest);
+        return TrackingController.getFreeNumberFromSite(userObject, siteObject, googleid, ip, pagerequest);
     }
 
 

@@ -80,14 +80,14 @@ public class AmoWSMessageSender extends Thread {
             AmoAccount amoAccount = user.getAmoAccount();
             if (amoAccount == null) {
                 iterator.remove();
-                LOGGER.debug("{}: звонок от {} больше не отслеживается - оказалось нет амо акка", call.getUser().getLogin(), call.getCalledFrom());
+                LOGGER.trace("{}: звонок от {} больше не отслеживается - оказалось нет амо акка", call.getUser().getLogin(), call.getCalledFrom());
                 continue;
             }
 
             AmoOperatorLocation operatorLocation = user.getOperatorLocation();
             if (operatorLocation == null) {
                 iterator.remove();
-                LOGGER.debug("{}: звонок от {} больше не отслеживается - нет инфы о местоположении операторов", call.getUser().getLogin(), call.getCalledFrom());
+                LOGGER.trace("{}: звонок от {} больше не отслеживается - нет инфы о местоположении операторов", call.getUser().getLogin(), call.getCalledFrom());
                 continue;
             }
 

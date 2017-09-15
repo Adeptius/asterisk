@@ -51,58 +51,6 @@ public class Scheduler{
 
 
     /**
-     * Tracking phone Watcher
-     */
-    //todo сделать отдельным классом
-    @Scheduled(initialDelay = 10000, fixedRate = 3000) // каждые 3 секунды
-    private void checkAllPhones(){
-        List<Site> sites = UserContainer.getUsers().stream()
-                .flatMap(user -> user.getSites().stream())
-                .collect(Collectors.toList());
-
-        for (Site site : sites) {
-            List<OuterPhone> outerPhones = site.getOuterPhones();
-            for (OuterPhone outerPhone : outerPhones) {
-                if (!outerPhone.isFree()){
-                    processBusyPhone(site, outerPhone);
-                }
-            }
-        }
-    }
-
-    private void processBusyPhone(Site site, OuterPhone phone){
-        long currentTime = new GregorianCalendar().getTimeInMillis();
-        long phoneTime = phone.getUpdatedTime();
-
-        // продливаем время аренды номера
-        long past = currentTime - phoneTime;
-        int timeToDeleteOldPhones = Integer.parseInt(Settings.getSetting("SECONDS_TO_REMOVE_OLD_PHONES"))*1000;
-        if (past > timeToDeleteOldPhones) {
-//            MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": номер " + oldPhone.getNumber() + " освободился. Был занят " + oldPhone.getBusyTimeText());
-            phone.markFree();
-        }
-
-        if (phone.getUpdatedTime() != 0) {
-            // считаем сколько времени номер занят
-            past = currentTime - phone.getStartedBusy();
-            phone.setBusyTimeMillis(past);
-        }
-
-        long timeToBlock = site.getTimeToBlock()*60*1000;
-
-        if (past > timeToBlock){
-            try {
-//                MyLogger.log(NUMBER_FREE, tracking.getLogin() + ": IP " + oldPhone.getIp() + " заблокирован по времени.");
-                site.addIpToBlackList(phone.getIp());
-                phone.markFree();
-            } catch (Exception e) {
-//                MyLogger.log(DB_OPERATIONS, tracking.getLogin() + ": ошибка добавления " + oldPhone.getIp() + " в БД");
-            }
-        }
-    }
-
-
-    /**
      * Amo cookie cleaner
      */
     @Scheduled(initialDelay = 10000, fixedRate = 50000) // каждые 50 секунд
@@ -126,7 +74,7 @@ public class Scheduler{
     /**
      *  Call processor cleaning
      */
-    @Scheduled(cron = "0 0 1 * * ?") // ежедневно в час ночи
+    @Scheduled(cron = "0 0 4 * * ?") // ежедневно в 4 ночи
     private void startClean(){
 //        LOGGER.trace("Очистка карты number <-> Call");
 //        CallProcessor.calls.clear();
@@ -139,11 +87,11 @@ public class Scheduler{
     private static int scenarioTries = 0;
     @Scheduled(cron = "0 58 * * * ?") // в 55 минут каждого часа
     private void generateConfig(){
-        LOGGER.trace("Начинается запись всех конфигов астериска в файлы.");
+        LOGGER.info("Начинается запись всех конфигов астериска в файлы.");
 
         try {
             RulesConfigDAO.writeAllNeededScenarios();
-            LOGGER.trace("Конфиги записаны в файлы.");
+            LOGGER.info("Конфиги записаны в файлы.");
             scenarioTries = 0;
         } catch (Exception e) {
             scenarioTries++;

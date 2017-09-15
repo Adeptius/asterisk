@@ -193,10 +193,10 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(outerPhones);
     }
 
-    public void setOuterPhones(Set<OuterPhone> outerPhones) { // todo где это используется?
-        this.outerPhones = outerPhones;
-        outerPhonesCache = null;
-    }
+//    public void setOuterPhones(Set<OuterPhone> outerPhones) { Это как-то рисковано использовать
+//        this.outerPhones = outerPhones;
+//        outerPhonesCache = null;
+//    }
 
     public void addOuterPhones(Collection<OuterPhone> outerPhones) {
         this.outerPhones.addAll(outerPhones);
@@ -311,6 +311,14 @@ public class User implements Serializable{
 
     public void removeScenarioButLeaveIdInPhone(Scenario scenario) { // этот метод нужен при изменении сценария
         List<Rule> rulesInScenario = scenario.getRules(); // прежде чем удалить сценарий - сначала надо удалить все его правила
+//        for (Rule rule : rulesInScenario) {
+//            HashMap<Integer, ChainElement> chain = rule.getChain();// прежде чем удалить правило - надо удалить всю цепочку
+//
+//            for (ChainElement element : chain.values()) {
+//                removeChainElement(element);// удалили у пользователя
+//            }
+//            removeRule(rule);
+//        }
         rulesInScenario.forEach(rule -> {
             HashMap<Integer, ChainElement> chain = rule.getChain();// прежде чем удалить правило - надо удалить всю цепочку
             chain.values().forEach(element -> removeChainElement(element)); // удалили у пользователя
@@ -335,7 +343,7 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(rules);
     }
 
-    void saveInUsersRules(Rule rule) { // todo это должно быть в scenario
+    void saveInUsersRules(Rule rule) {
         rules.add(rule);
     }
 
@@ -350,7 +358,7 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(chainElements);
     }
 
-    void saveInUsersChains(ChainElement element) { //todo это должно быть в rule
+    void saveInUsersChains(ChainElement element) {
         chainElements.add(element);
     }
 

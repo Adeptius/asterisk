@@ -73,11 +73,18 @@ public class ScriptWebController {
                 "$.get(url,function(phone){$('.ct-phone').html(phone)});setTimeout(someRequest,TIMETOUPDATE000)}})})};" +
                 "loadScript(\"https://code.jquery.com/jquery-1.12.4.min.js\",runMyCodeAfterJQueryLoaded);";
 
-        script = script.replaceAll("SERVERADDRESS", settings.getServerAddress());
-        script = script.replaceAll("LOGIN", user.getLogin());
-        script = script.replaceAll("SITENAME", siteObject.getName());
-        script = script.replaceAll("GOOGLETRACKINGID", user.getTrackingId());
-        script = script.replaceAll("TIMETOUPDATE", ""+settings.getSecondsToUpdatePhoneOnWebPage());
+        String serverAddress = settings.getServerAddress();
+        String trackingId = user.getTrackingId();
+        if (trackingId == null){
+            trackingId = "";
+        }
+        int secondsToUpdatePhoneOnWebPage = settings.getSecondsToUpdatePhoneOnWebPage();
+
+        script = script.replaceAll("SERVERADDRESS", serverAddress);
+        script = script.replaceAll("LOGIN", login);
+        script = script.replaceAll("SITENAME", site);
+        script = script.replaceAll("GOOGLETRACKINGID", trackingId);
+        script = script.replaceAll("TIMETOUPDATE", ""+ secondsToUpdatePhoneOnWebPage);
         return script;
     }
 }

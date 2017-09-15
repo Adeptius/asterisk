@@ -141,8 +141,6 @@ public class Main {
 //        AsteriskLogAnalyzer.updatePhonesHashMap();
         CallProcessor.updatePhonesHashMap();
 
-
-
         try {
             RulesConfigDAO.writeAllNeededScenarios();
         } catch (Exception e) {
@@ -157,5 +155,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        new PhoneWatcher();
     }
 }

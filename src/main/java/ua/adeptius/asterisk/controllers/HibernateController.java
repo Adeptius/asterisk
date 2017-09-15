@@ -20,10 +20,6 @@ public class HibernateController {
     private static HibernateDao hibernateDao;
 
 
-
-
-
-
     @Autowired
     public void setHibernateDao(HibernateDao hibernateDao) {
         HibernateController.hibernateDao = hibernateDao;
@@ -60,6 +56,10 @@ public class HibernateController {
         User userByLogin = hibernateDao.getUserByLogin(login);
 //        time.add(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-t0));
         return userByLogin;
+    }
+
+    public static User getUserByEmail(String email){
+        return hibernateDao.getUserByEmail(email);
     }
 
     /**
@@ -197,6 +197,13 @@ public class HibernateController {
         hibernateDao.markOuterPhoneFree(numbersToRelease);
     }
 
+    public static List<Rule> getRuleByUser(String login) throws Exception {
+        return hibernateDao.getRuleByUser(login);
+    }
+
+    public static List<ChainElement> getChainsByUser(String login) throws Exception {
+        return hibernateDao.getChainsByUser(login);
+    }
 
     // Используется в тестах
     public static List<OuterPhone> getAllTestPhones() throws Exception {

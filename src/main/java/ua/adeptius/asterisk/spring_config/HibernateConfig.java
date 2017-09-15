@@ -60,11 +60,6 @@ public class HibernateConfig {
         properties.put("hibernate.connection.CharSet", "UTF-8");
         properties.put("hibernate.connection.useUnicode", true);
         properties.put("hibernate.connection.characterEncoding", "UTF-8");
-
-
-//    <property name="hibernate.connection.useUnicode">true</property>
-//    <property name="hibernate.connection.characterEncoding">UTF-8</property>
-//    <property name="hibernate.connection.charSet">UTF-8</property>
         return properties;
     }
 

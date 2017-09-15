@@ -41,7 +41,7 @@ public class UserContainer {
     }
 
     public static void removeUser(User user) {
-        LOGGER.debug("Удаление пользователя {}", user);
+        LOGGER.info("Удаление пользователя {}", user);
         getUsers().remove(user);
         hashes.remove(getHashOfUser(user));
         usersCache.remove(user.getLogin());
@@ -65,11 +65,10 @@ public class UserContainer {
         hashes.put(createMd5(user), user);
     }
 
-    //todo сделать мапу с именами и самими юзерами
 
+    // ленивая кеширующая мапа логин <-> пользователь
     private static HashMap<String, User> usersCache = new HashMap<>();
 
-    // todo это хрень
     public static User getUserByName(String name) {
         try {
             User user = usersCache.get(name);
@@ -85,7 +84,7 @@ public class UserContainer {
         }
     }
 
-    public static User getUserByEmail(String email) { // todo подобные вещи быстрее с БД вытащить наверное
+    public static User getUserByEmail(String email) {
         return users.stream().filter(user -> user.getEmail().equals(email)).findFirst().orElse(null);
     }
 

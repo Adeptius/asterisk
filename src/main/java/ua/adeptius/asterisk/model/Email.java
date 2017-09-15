@@ -6,6 +6,7 @@ public class Email {
     private String email;
     private String hash;
     private String userLogin;
+    private String siteName;
     private EmailType emailType;
 
     public Email(RegisterQuery registerQuery) {
@@ -22,9 +23,17 @@ public class Email {
         emailType = EmailType.RECOVER;
     }
 
+    public Email(EmailType emailType, String email, String sitename, String userLogin) {
+        this.email = email;
+        this.emailType = emailType;
+        this.siteName = sitename;
+        this.userLogin = userLogin;
+    }
+
     public static enum EmailType{
         REGISTRATION,
-        RECOVER
+        RECOVER,
+        NO_OUTER_PHONES_LEFT
     }
 
 
@@ -58,5 +67,13 @@ public class Email {
 
     public void setUserLogin(String userLogin) {
         this.userLogin = userLogin;
+    }
+
+    public String getSiteName() {
+        return siteName;
+    }
+
+    public void setSiteName(String siteName) {
+        this.siteName = siteName;
     }
 }

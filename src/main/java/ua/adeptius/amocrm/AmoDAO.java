@@ -91,7 +91,7 @@ public class AmoDAO {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
         String cookie = auth(amoAccount);
-        LOGGER.debug("{}: Тест на возможность добавления новой сделки в amo для {}", login, amoLogin);
+        LOGGER.trace("{}: Тест на возможность добавления новой сделки в amo для {}", login, amoLogin);
 
         String request = "{\"request\": {\"leads\": {\"add\": [{\"name\": \"Удалить\",\"tags\": \"Nextel\" }]}}}";
         HttpResponse<String> uniresp = Unirest
@@ -116,7 +116,7 @@ public class AmoDAO {
     public static JsonAmoAccount getAmoAccount(AmoAccount amoAccount) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: Запрос информации об аккаунте {}", login, amoLogin);
+        LOGGER.trace("{}: Запрос информации об аккаунте {}", login, amoLogin);
         JSONObject jResponse = getJResponse(true, amoAccount, "api/v2/json/accounts/current", null, null);
         String account = jResponse.getJSONObject("account").toString();
         return new JsonAmoAccount(account);
@@ -126,7 +126,7 @@ public class AmoDAO {
     public static JsonAmoContact getContactIdByPhoneNumber(AmoAccount amoAccount, String phoneNumber) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: Запрос id контакта {} для {}", login, phoneNumber, amoLogin);
+        LOGGER.trace("{}: Запрос id контакта {} для {}", login, phoneNumber, amoLogin);
         String url = "api/v2/json/contacts/list?query=" + phoneNumber;
         JSONObject jResponse = getJResponse(true, amoAccount, url, null, null);
         if (jResponse.toString().equals("{\"no content\":\"true\"}")) {
@@ -139,14 +139,14 @@ public class AmoDAO {
 
     public static void updateContact(AmoAccount amoAccount, JsonAmoContact jsonAmoContact) throws Exception {
         String userLogin = amoAccount.getAmoLogin();
-        LOGGER.debug("{}: Запрос обновления контакта {}", userLogin, jsonAmoContact.getName());
+        LOGGER.trace("{}: Запрос обновления контакта {}", userLogin, jsonAmoContact.getName());
         String request = "{\"request\":{\"contacts\":{\"update\":[" + jsonAmoContact + "]}}}";
         getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
     }
 
     public static void setResponsibleUserForContact(AmoAccount amoAccount, Call call, String amoUserId) throws Exception {
         String userLogin = amoAccount.getAmoLogin();
-        LOGGER.debug("{}: Запрос установки ответственного {} за контакт {}", userLogin, amoUserId, call.getAmoContactId());
+        LOGGER.trace("{}: Запрос установки ответственного {} за контакт {}", userLogin, amoUserId, call.getAmoContactId());
         String request = "{\"request\":{\"contacts\":{\"update\":[{"
                 +"\"id\":" + call.getAmoContactId()
                 +",\"last_modified\":" + call.getCalculatedModifiedTime()
@@ -161,7 +161,7 @@ public class AmoDAO {
         String login = amoAccount.getUser().getLogin();
         String phoneEnumId = amoAccount.getPhoneEnumId();
         String phoneId = amoAccount.getPhoneId();
-        LOGGER.debug("{}: Запрос добавления контакта {} в аккаунт {}", login, contactNumber, amoLogin);
+        LOGGER.trace("{}: Запрос добавления контакта {} в аккаунт {}", login, contactNumber, amoLogin);
 
         if (StringUtils.isAnyBlank(phoneEnumId, phoneId)) {
             LOGGER.error("{}: Отсутствует phoneEnumId и phoneId. AmoAccount {}", login, amoAccount);
@@ -196,7 +196,7 @@ public class AmoDAO {
     public static IdPairTime addNewDealAndGetBackIdAndTime(AmoAccount amoAccount, String tags, int leadId) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: Запрос добавления новой сделки в аккаунт {}", login, amoLogin);
+        LOGGER.trace("{}: Запрос добавления новой сделки в аккаунт {}", login, amoLogin);
 
         String request = "{\"request\": {\"leads\": {\"add\": [{\"name\": \"Новая сделка\",\"tags\": \"" + tags + "\""
                 + (leadId > 0 ? ",\"status_id\":" + leadId + "" : "") // добавляем этап сделки, если указан конкретный
@@ -213,7 +213,7 @@ public class AmoDAO {
         String login = amoAccount.getUser().getLogin();
         int amoContactId = call.getAmoContactId();
 
-        LOGGER.debug("{}: Запрос добавления входящего звонка в аккаунт {}, id контакта {}", login, amoLogin, amoContactId);
+        LOGGER.trace("{}: Запрос добавления входящего звонка в аккаунт {}, id контакта {}", login, amoLogin, amoContactId);
 
         String calledDate = call.getCalledDate();
         String asteriskId = call.getAsteriskId();
@@ -249,7 +249,7 @@ public class AmoDAO {
     public static void setTagsToDeal(AmoAccount amoAccount, @Nonnull String tags, int dealid, int dealTime) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: запрос изменения тэгов сделки {} для {}: {}", login, dealid, amoLogin, tags);
+        LOGGER.trace("{}: запрос изменения тэгов сделки {} для {}: {}", login, dealid, amoLogin, tags);
         String request = "{\"request\": {\"leads\": {\"update\": [{\"id\":" + dealid + ",\"tags\": \"" + tags + "\",\"last_modified\":" + dealTime + "}]}}}";
         getJResponse(false, amoAccount, "api/v2/json/leads/set", request, null);
     }
@@ -257,7 +257,7 @@ public class AmoDAO {
     public static void removeDeal(AmoAccount amoAccount, int dealId) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: Запрос удаления сделки {} в аккаунте {}", login, dealId, amoLogin);
+        LOGGER.trace("{}: Запрос удаления сделки {} в аккаунте {}", login, dealId, amoLogin);
         getJResponse(false, amoAccount, "deals/delete.php", null, "ID", "" + dealId, "ACTION", "DELETE", "pipeline", "Y");
     }
 
@@ -299,7 +299,7 @@ public class AmoDAO {
     public static List<JsonAmoDeal> getDealById(AmoAccount amoAccount, List<String> id) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: Запрос сделки в amo {} по id: {}", login, amoLogin, id);
+        LOGGER.trace("{}: Запрос сделки в amo {} по id: {}", login, amoLogin, id);
 
         String url = "api/v2/json/leads/list?id[]=" + id.get(0);
         for (int i = 1; i < id.size(); i++) {
@@ -322,7 +322,7 @@ public class AmoDAO {
     public static void addNewComent(AmoAccount amoAccount, int leadId, String coment, int time) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
-        LOGGER.debug("{}: Запрос добавления нового коментария в аккаунт {} сделка {}: {}", login, amoLogin, leadId, coment);
+        LOGGER.trace("{}: Запрос добавления нового коментария в аккаунт {} сделка {}: {}", login, amoLogin, leadId, coment);
 
         String stringedTime = "";
         if (time > 0) { // Если какое-то время указано

@@ -54,25 +54,25 @@ public class GoogleAnalitycsCallSender extends Thread {
     private void sendReport(Call call) {
         String login = call.getUser().getLogin();
         if (call.getDirection() != IN){ // если исходящий звонок - отбой
-            LOGGER.debug("{}: Звонок исходящий. Отмена отправки", login);
+            LOGGER.trace("{}: Звонок исходящий. Отмена отправки", login);
             return;
         }
 
         String userGoogleAnalitycsId = call.getUser().getTrackingId();// если не указан трекинг айди - отбой
         if (StringUtils.isBlank(userGoogleAnalitycsId)){
-            LOGGER.debug("{}: Не указан google analytics id у юзера. Отмена отправки", login);
+            LOGGER.trace("{}: Не указан google analytics id у юзера. Отмена отправки", login);
             return;
         }
 
         String clientGoogleId = call.getGoogleId();
         if (clientGoogleId == null) {
-            LOGGER.debug("{}: google ID в звонке пуст. Вероятно клиент давно закрыл страницу со скриптом. Отмена отправки", login);
+            LOGGER.trace("{}: google ID в звонке пуст. Вероятно клиент давно закрыл страницу со скриптом. Отмена отправки", login);
             return;
         }
 
         OuterPhone outerPhone = call.getOuterPhone();
         if (outerPhone == null) {
-            LOGGER.debug("{}: Вероятно в колл процессоре кэш не обновился еще, а у пользователя телефон уже нет.. Отмена отправки", login);
+            LOGGER.trace("{}: Вероятно в колл процессоре кэш не обновился еще, а у пользователя телефон уже нет.. Отмена отправки", login);
             return;
         }
 
@@ -92,7 +92,7 @@ public class GoogleAnalitycsCallSender extends Thread {
 
         try {
             String response = Unirest.post("http://www.google-analytics.com/collect").fields(map).asString().getBody();
-            LOGGER.trace("{}: Звонок отправлен в Google Analitycs. Ответ: {}", login, response);
+            LOGGER.info("{}: Звонок отправлен в Google Analitycs. Ответ: {}", login, response);
         } catch (UnirestException e) {
             LOGGER.error(login+": Ошибка отправки звонка в Google Analitycs", e);
         }

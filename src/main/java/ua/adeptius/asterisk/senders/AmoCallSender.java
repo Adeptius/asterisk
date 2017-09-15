@@ -60,7 +60,7 @@ public class AmoCallSender extends Thread {
     private void prepareCreateContactAndDeal(Call call) {
 
         if (!settings.isSenderAmoCallSenderEnabled()) {
-            LOGGER.debug("AmoCallSender отключен");
+            LOGGER.info("AmoCallSender отключен");
             return;
         }
 
@@ -90,7 +90,7 @@ public class AmoCallSender extends Thread {
             return;
         }
 
-        LOGGER.debug("{}: отправка в Amo {} звонка {}", login, domain, call);
+        LOGGER.info("{}: отправка в Amo {} звонка {}", login, domain, call);
 
         // Нужен phoneId и EnumId для создания контакта
         String phoneId = amoAccount.getPhoneId();
@@ -99,19 +99,19 @@ public class AmoCallSender extends Thread {
 
         if (StringUtils.isAnyBlank(phoneId, phoneEnumId, apiUserId)) {
             try {
-                LOGGER.trace("{}: Есть аккаунт Amo, но нет айдишников телефонов.", login);
+                LOGGER.debug("{}: Есть аккаунт Amo, но нет айдишников телефонов.", login);
                 JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
                 phoneId = jsonAmoAccount.getPhoneId();
                 phoneEnumId = jsonAmoAccount.getPhoneEnumId();
                 apiUserId = jsonAmoAccount.getCurrent_user_id();
-                LOGGER.trace("{}: Айдишники телефонов получены - сохраняю в аккаунте пользователя", login);
+                LOGGER.debug("{}: Айдишники телефонов получены - сохраняю в аккаунте пользователя", login);
                 //получили айдишники телефонов. Теперь сохраняем в бд
                 amoAccount.setPhoneId(phoneId);
                 amoAccount.setPhoneEnumId(phoneEnumId);
                 amoAccount.setApiUserId(apiUserId);
                 HibernateController.update(user);
             } catch (AmoWrongLoginOrApiKeyException e) {
-                LOGGER.debug("{}: Не правильный логин или пароль к AMO аккаунту {}", login, amoAccount);
+                LOGGER.warn("{}: Не правильный логин или пароль к AMO аккаунту {}", login, amoAccount);
                 return;
             } catch (Exception e) {
                 LOGGER.error(login + ": Не удалось получить айдишники телефонов или сохранить пользователя", e);
@@ -128,7 +128,7 @@ public class AmoCallSender extends Thread {
 
 
         if (callPhase == Call.CallPhase.NEW_CALL) {
-            LOGGER.info("{}: Только позвонили - это первый редирект. Создаём или привязываем сделку", login);
+            LOGGER.info("{}: Только позвонили - cоздаём или привязываем сделку", login);
             try {
                 createOrFindDeal(amoAccount, startedLeadId, user, call);
             } catch (Exception e) {
@@ -139,13 +139,12 @@ public class AmoCallSender extends Thread {
             call.setRule(AgiInProcessor.getPhoneNumbersAndRules().get(number));
 
         } else if (callPhase == Call.CallPhase.REDIRECTED) {
-            LOGGER.info("{}: Еще никто не ответил на звонок, просто выполнился еще один редирект", login);
             // Тут ничего не делаем потому что всю работу выполняет AmoWSMessageSender
 
 
         } else if (callPhase == Call.CallPhase.ANSWERED) {
             String calledTo = call.getCalledTo().get(0);
-            LOGGER.info("{}: На звонок только что ответили. Трубку поднял {}", login, calledTo);
+            LOGGER.debug("{}: На звонок только что ответили. Трубку поднял {}", login, calledTo);
 
             // Назначение ответственного за сделку того, кто поднял трубку
             // Но только если в данный момент назначены api user или responsible user
@@ -169,11 +168,11 @@ public class AmoCallSender extends Thread {
                     LOGGER.debug("{}: неизвестен id оператора на телефоне {}", login, calledTo);
                 }
             }else {
-                LOGGER.info("{}: Ответственный сотрудник за контакт {} уже назначен", login, calledTo);
+                LOGGER.debug("{}: Ответственный сотрудник за контакт {} уже назначен", login, calledTo);
             }
 
         } else if (callPhase == Call.CallPhase.ENDED) {
-            LOGGER.info("{}: Звонок завершен проверяем отвечен ли он или нет", login);
+            LOGGER.debug("{}: Звонок завершен проверяем отвечен ли он или нет", login);
             try {
                 AmoDAO.addCallToNotes(amoAccount, call);
             } catch (AmoTooManyRequestsException e) {
