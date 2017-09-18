@@ -10,14 +10,16 @@ import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.model.TimePairCookie;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
-import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.interceptors.AccessControlOriginInterceptor;
-import ua.adeptius.asterisk.model.OuterPhone;
 import ua.adeptius.asterisk.model.RegisterQuery;
 import ua.adeptius.asterisk.model.RecoverQuery;
-import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.Rule;
+import ua.adeptius.asterisk.model.telephony.Scenario;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -72,20 +74,105 @@ public class Scheduler{
 
 
     /**
-     *  Call processor cleaning
+     *  Asterisk reloading
      */
-    @Scheduled(cron = "0 0 4 * * ?") // ежедневно в 4 ночи
+    private static boolean needToSipReload;
+    private static boolean needToOuterReload;
+    private static Set<User> usersThatChangedRules = new HashSet<>();
+
+    public static void reloadSipOnNextScheduler() {
+        needToSipReload = true;
+    }
+
+    public static void reloadOuterOnNextScheduler() {
+        needToOuterReload = true;
+    }
+
+    public static void reloadDialPlanForThisUserAtNextScheduler(User user){
+        usersThatChangedRules.add(user);
+    }
+
+
+    @Scheduled(cron = "0 * * * * ?") // каждую минуту
     private void startClean(){
+        if (needToSipReload){
+            LOGGER.info("Выполняется плановая перезагрузка сип конфигов астериска");
+            try {
+                Process process = Runtime.getRuntime().exec("service asterisk reload");
+                BufferedReader errorInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                List<String> collect = errorInput.lines().collect(Collectors.toList());
+                errorInput.close();
+                for (String s : collect) {
+                    LOGGER.info("Ответ по комманде service asterisk reload: " + s);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            updatePhonesMapForCallProcessor();
+            needToSipReload = false;
+        }
+
+        int size = usersThatChangedRules.size();
+        if (size > 0){
+            LOGGER.info("{} пользователей изменили правила. Заменяем правила в AGI процессоре на новые", size);
+//            Main.monitor.reloadDialplan();
+//            needToDialPlanReload = false;
+
+            Iterator<User> iterator = usersThatChangedRules.iterator();
+            while (iterator.hasNext()){
+                User user = iterator.next();
+                Set<OuterPhone> outerPhones = user.getOuterPhones();
+                for (OuterPhone outerPhone : outerPhones) {
+                    String phoneNumber = outerPhone.getNumber();
+                    Integer scenarioId = outerPhone.getScenarioId();
+                    if (scenarioId == null){
+                        // если на номере не активирован сценарий - удаляем его с AGI
+                        AgiInProcessor.replacePhoneAndRule(phoneNumber, null);
+                        continue;
+                    }
+
+                    Scenario scenarioById = user.getScenarioById(scenarioId);
+                    if (scenarioById == null){
+                        LOGGER.warn("{}: в номере {} указан сценарий id {}, но такого не существует",
+                                user.getLogin(), phoneNumber, scenarioId);
+                        continue;
+                    }
+
+                    Rule rule = scenarioById.getRuleForNow();
+                    if (rule == null){
+                        LOGGER.warn("{}: брал правило на сейчас в сценарии id {}, но вернулся null",
+                                user.getLogin(), scenarioId);
+                        continue;
+                    }
+                    // на данный момент у нас есть номер телефона и правило, которое на нём должно прямо сейчас висеть. Меняем в AGI
+                    AgiInProcessor.replacePhoneAndRule(phoneNumber, rule);
+                }
+                LOGGER.info("{}: были изменены правила. Изменения применены в AGI", user.getLogin());
+                iterator.remove();
+            }
+        }
+
+        if (needToOuterReload){
+            LOGGER.info("Выполняется плановая перезагрузка внешних номеров");
+
+            updatePhonesMapForCallProcessor();
+            needToOuterReload = false;
+        }
+
 //        LOGGER.trace("Очистка карты number <-> Call");
 //        CallProcessor.calls.clear();
     }
+
+
+
 
 
     /**
      * Scenario writer
      */
     private static int scenarioTries = 0;
-    @Scheduled(cron = "0 58 * * * ?") // в 55 минут каждого часа
+    @Scheduled(cron = "0 59 * * * ?") // в 59 минут каждого часа
     private void generateConfig(){
         LOGGER.info("Начинается запись всех конфигов астериска в файлы.");
 
@@ -111,10 +198,12 @@ public class Scheduler{
         }
     }
 
-    @Scheduled(cron = "10 00 * * * ?") // в 0 минут каждого часа
+    @Scheduled(cron = "10 00 * * * ?") // в 10 секунд, 0 минут каждого часа
     private void updatePhonesMapForCallProcessor(){
         CallProcessor.updatePhonesHashMap();
     }
+
+
 
     @Scheduled(initialDelay = 1000 ,fixedDelay = 20000)
     private void initMonitor() {

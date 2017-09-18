@@ -10,7 +10,7 @@ import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.JsonHistoryResponse;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

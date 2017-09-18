@@ -7,12 +7,11 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public class PhoneWatcher extends Thread {

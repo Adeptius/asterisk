@@ -9,22 +9,14 @@ import org.asteriskjava.manager.response.ManagerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.dao.Settings;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
-import ua.adeptius.asterisk.model.Call;
-import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 
 public class AsteriskMonitor implements ManagerEventListener {
@@ -87,6 +79,29 @@ public class AsteriskMonitor implements ManagerEventListener {
         OriginateAction callToOutside = AsteriskActionsGenerator.callToOutsideFromOuter(outerPhone, destinationPhone, callerName);
         return managerConnection.sendAction(callToOutside, 30000);
     }
+
+    public void reloadAsteriskCore(){
+       sendCommand("core reload");
+    }
+
+    public void reloadSips(){
+        sendCommand("sip reload");
+    }
+
+    public void reloadDialplan(){
+        sendCommand("dialplan reload");
+    }
+
+    private void sendCommand(String command){
+        try{
+            CommandAction action = new CommandAction();
+            action.setCommand(command);
+            managerConnection.sendAction(action);
+        }catch (Exception e){
+            LOGGER.error("Не удалось выполнить команду астериска " + command, e);
+        }
+    }
+
 
 
     private void updateSipsState() throws IOException, TimeoutException {

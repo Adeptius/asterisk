@@ -1,6 +1,5 @@
 package ua.adeptius.asterisk;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -9,14 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ua.adeptius.asterisk.controllers.HibernateController;
-import ua.adeptius.asterisk.model.OuterPhone;
-import ua.adeptius.asterisk.model.Site;
-import ua.adeptius.asterisk.model.User;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 

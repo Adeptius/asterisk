@@ -8,7 +8,8 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
 import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import ua.adeptius.asterisk.senders.GoogleAnalitycsCallSender;
 import ua.adeptius.asterisk.senders.RoistatCallSender;
 

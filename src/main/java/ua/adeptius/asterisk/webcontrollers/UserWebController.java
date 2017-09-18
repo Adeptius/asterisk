@@ -8,8 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
-import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.json.JsonUser;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Email;
@@ -177,7 +177,7 @@ public class UserWebController {
             HibernateController.delete(user);
             UserContainer.removeUser(user);
             UserContainer.getHashes().remove(hash);
-            PhonesController.removeAllInnerNumbersConfigFiles(user);
+            SipConfigDao.removeAllInnerNumbersConfigFiles(user);
             return new Message(Message.Status.Success, "User removed");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления пользователя", e);

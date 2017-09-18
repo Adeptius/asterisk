@@ -4,12 +4,11 @@ define(['jquery'], function ($) {
         var isActiveTab = true;
         var domain = AMOCRM.constant("account").subdomain;
         var userId = AMOCRM.constant("user").id;
-        // var local = 'adeptius.pp.ua';
-        var local = 'cstat.nextel.com.ua';
-        var wsUrl = 'wss://'+local+':8443/tracking/ws/' + domain + '/' + userId;
+        var local = 'adeptius.pp.ua';
+        // var local = 'cstat.nextel.com.ua';
+        var wsUrl = 'wss://' + local + ':8443/tracking/ws/' + domain + '/' + userId;
         // var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
         var ws;
-
 
 
         this.callbacks = {
@@ -161,33 +160,63 @@ define(['jquery'], function ($) {
 
         var incomingCall = function (incomingMessage) {
             var calledFrom = incomingMessage.from;
-            var dealId = incomingMessage.dealId;
+            // var dealId = incomingMessage.dealId;
             var callPhase = incomingMessage.callPhase;
 
             jQuery.get('//' + window.location.host + '/private/api/v2/json/contacts/list/?type=all&query=' + calledFrom, function (res) {
                 var contactId, contactName, companyName, companyId;
-                if (res != undefined && res.response != undefined && res.response.contacts != undefined) {
+                if (res !== undefined && res.response !== undefined && res.response.contacts !== undefined) {
                     var contact = res.response.contacts[0];
                     contactId = contact.id;
                     contactName = contact.name;
                     companyName = contact.company_name;
                     companyId = contact.linked_company_id;
+                    var leads = contact.linked_leads_id;
+
+                    var urlToFindDeal = "/private/api/v2/json/leads/list?";
+                    for (var i = 0; i < leads.length; i++) {
+                        if (i !== 0){
+                            urlToFindDeal += "&";
+                        }
+                        urlToFindDeal += "id[]=" + leads[i];
+                    }
+                }else {
+
+                    contactName = calledFrom;
+                    urlToFindDeal = "/private/api/v2/json/leads/list?id[]=-1";
+
                 }
 
-                jQuery.get('//' + window.location.host + '/private/api/v2/json/leads/list?id=' + dealId, function (res) {
-                    var dealName;
-                    if (res != undefined && res.response != undefined && res.response.leads != undefined) {
-                        var deal = res.response.leads[0];
-                        dealName = deal.name;
+                jQuery.get('//' + window.location.host + urlToFindDeal, function (res) {
+                    var activeDeal;
+                    if (res !== undefined && res.response !== undefined && res.response.leads !== undefined) {
+                        var deals = res.response.leads;
+
+                        for (var i = 0; i < deals.length; i++) {
+                            var obj = deals[i];
+                            var statusId = obj.status_id;
+                            if (statusId !== '142' && statusId !== '143'){
+                                activeDeal = obj;
+                            }
+                        }
                     }
 
-                    var body = '<p><a  href="/contacts/detail/' + contactId + '">' + contactName + '</a>';
-                    if (companyId) {
+                    var body;
+                    if (contactId !== undefined && contactId !== null && contactId.length>1) {
+                        body = '<p><a  href="/contacts/detail/' + contactId + '">' + contactName + '</a>';
+                    }else {
+                        body = '<p>' + contactName + '</a>';
+                    }
+
+                    if (companyId !== undefined && companyId !== null && companyId.length>1) {
                         body += ', <a  href="/companies/detail/' + companyId + '">' + companyName + '</a></p>';
                     } else {
                         body += '</p>';
                     }
-                    body += '<p><a  href="/leads/detail/' + dealId + '">' + dealName + '</a></p>';
+
+                    if (activeDeal !== undefined && activeDeal !== null){
+                        body += '<p><a  href="/leads/detail/' + activeDeal.id + '">' + activeDeal.name + '</a></p>';
+                    }
 
                     var header = '';
                     var shake = false;
@@ -197,7 +226,7 @@ define(['jquery'], function ($) {
                     if (callPhase === 'dial') {
                         header = 'Входящий звонок';
                         shake = true;
-                        autoClose = 2.5;
+                        autoClose = 3;
                         needToShowIncoming = true;
 
                     } else if (callPhase === 'answer') {
@@ -332,7 +361,6 @@ define(['jquery'], function ($) {
             }, 200);
 
 
-
             var delay = autoClose * 1000;
             setTimeout(function () {
                 $newNotification.slideUp(250, function () {
@@ -342,7 +370,7 @@ define(['jquery'], function ($) {
         };
 
         //TwinMax shaking
-        function shakeAnimation(element){
+        function shakeAnimation(element) {
             TweenMax.to(element, .1, {
                 x: -7,
                 ease: Quad.easeInOut

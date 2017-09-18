@@ -6,9 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
-import ua.adeptius.asterisk.model.OuterPhone;
-import ua.adeptius.asterisk.model.Rule;
-import ua.adeptius.asterisk.model.Scenario;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.Rule;
+import ua.adeptius.asterisk.model.telephony.Scenario;
 import ua.adeptius.asterisk.monitor.AgiInProcessor;
 
 import java.io.BufferedWriter;
@@ -25,6 +25,7 @@ public class RulesConfigDAO {
     private static String folder = Main.settings.getFolderRules();
 
 
+    @SuppressWarnings("Duplicates")
     public static void writeAllNeededScenarios() throws Exception {
 
         // Список телефонов, на которых вообще назначены какие либо сценарии.

@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

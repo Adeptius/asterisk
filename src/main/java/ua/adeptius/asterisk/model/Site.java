@@ -2,14 +2,12 @@ package ua.adeptius.asterisk.model;
 
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
-import ua.adeptius.asterisk.dao.Settings;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 
 import javax.persistence.*;
 import javax.persistence.Entity;

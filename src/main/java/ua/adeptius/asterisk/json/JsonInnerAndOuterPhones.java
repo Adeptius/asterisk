@@ -1,10 +1,9 @@
 package ua.adeptius.asterisk.json;
 
 
-import ua.adeptius.asterisk.model.InnerPhone;
-import ua.adeptius.asterisk.model.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.InnerPhone;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 
-import java.util.List;
 import java.util.Set;
 
 public class JsonInnerAndOuterPhones {

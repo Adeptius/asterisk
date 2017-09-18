@@ -8,10 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.json.RoistatPhoneCall;
 import ua.adeptius.asterisk.model.RoistatAccount;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
 
 import java.util.concurrent.*;
 
@@ -23,9 +25,14 @@ public class RoistatCallSender extends Thread {
     private static final ExecutorService EXECUTOR = new ThreadPoolExecutor(
             1,10,60, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(30), new ThreadFactoryBuilder().setNameFormat("RoistatCallSender-Pool-%d").build());
+    Settings settings = Main.settings;
 
 
     public void send(Call call) {
+        if (!settings.isCallToRoistatEnabled()){
+            LOGGER.debug("RoistatCallSender отключен в настройках");
+            return;
+        }
         try {
             blockingQueue.put(call);
         } catch (InterruptedException ignored) {

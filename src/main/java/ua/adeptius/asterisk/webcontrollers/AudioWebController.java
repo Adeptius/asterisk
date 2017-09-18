@@ -10,9 +10,9 @@ import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.model.Rule;
+import ua.adeptius.asterisk.model.telephony.Rule;
 import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.UserAudio;
+import ua.adeptius.asterisk.model.telephony.UserAudio;
 import ua.adeptius.asterisk.utils.AudioConverter;
 
 import javax.servlet.http.HttpServletRequest;

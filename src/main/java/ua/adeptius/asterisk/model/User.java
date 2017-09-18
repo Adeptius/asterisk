@@ -1,16 +1,29 @@
 package ua.adeptius.asterisk.model;
 
+//import com.fasterxml.jackson.annotation.JsonAutoDetect;
+//import com.fasterxml.jackson.annotation.JsonProperty;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//
+//
+//import javax.annotation.Nonnull;
+//import javax.persistence.*;
+//import javax.persistence.CascadeType;
+//import javax.persistence.Entity;
+//import javax.persistence.Table;
+//import java.io.Serializable;
+//import java.util.*;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import ua.adeptius.asterisk.model.telephony.*;
+import ua.adeptius.asterisk.monitor.Scheduler;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -20,7 +33,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @Entity
 @Table(name = "users", schema = "calltrackdb")
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
-public class User implements Serializable{
+public class User implements Serializable {
 
     private static Logger LOGGER = LoggerFactory.getLogger(User.class.getSimpleName());
 
@@ -54,7 +67,7 @@ public class User implements Serializable{
     private String email;
 
     @JsonProperty
-    @Column(name = "trackingId")
+    @Column(name = "tracking_id")
     private String trackingId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "nextelLogin", fetch = FetchType.EAGER, orphanRemoval = true)
@@ -93,7 +106,7 @@ public class User implements Serializable{
     private Set<ChainElement> chainElements;
 
     //    @JoinColumn(name = "login", referencedColumnName = "login")
-    @OneToMany(cascade = CascadeType.ALL,  mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<UserAudio> userAudio;
 
     /**
@@ -193,10 +206,6 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(outerPhones);
     }
 
-//    public void setOuterPhones(Set<OuterPhone> outerPhones) { Это как-то рисковано использовать
-//        this.outerPhones = outerPhones;
-//        outerPhonesCache = null;
-//    }
 
     public void addOuterPhones(Collection<OuterPhone> outerPhones) {
         this.outerPhones.addAll(outerPhones);
@@ -204,6 +213,8 @@ public class User implements Serializable{
             outerPhone.setBusy(login);
         }
         outerPhonesCache = null;
+        // изменено количество внешних номеров. Обновляем Кэши
+        Scheduler.reloadOuterOnNextScheduler();
     }
 
 
@@ -213,6 +224,8 @@ public class User implements Serializable{
             outerPhone.setBusy(null);
         }
         outerPhonesCache = null;
+        // изменено количество внешних номеров. Обновляем Кэши
+        Scheduler.reloadOuterOnNextScheduler();
     }
 
 
@@ -236,17 +249,10 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(innerPhones);
     }
 
-//    public void setInnerPhones(Set<InnerPhone> innerPhones) {
-//        this.innerPhones = innerPhones;
-//        innerPhonesCache = null;
-//    }
-
-
     public void addInnerPhones(Collection<InnerPhone> innerPhones) {
         this.innerPhones.addAll(innerPhones);
         innerPhonesCache = null;
     }
-
 
     public void removeInnerPhones(Collection<InnerPhone> innerPhonesToRemove) {
         this.innerPhones.removeAll(innerPhonesToRemove);
@@ -307,23 +313,30 @@ public class User implements Serializable{
     public void addScenario(Scenario scenario) {
         scenario.setUser(this);
         scenarios.add(scenario);
+        Scheduler.reloadDialPlanForThisUserAtNextScheduler(this);
     }
 
-    public void removeScenarioButLeaveIdInPhone(Scenario scenario) { // этот метод нужен при изменении сценария
+    /*
+    * Этот метод нужен при изменении сценария. Он оставляет айдишник сценария в телефоне,
+    * что бы после создания нового сценария (взамен удалённому) он по-прежнему ссылался на него
+    */
+    public void removeScenarioButLeaveIdInPhone(Scenario scenario) {
         List<Rule> rulesInScenario = scenario.getRules(); // прежде чем удалить сценарий - сначала надо удалить все его правила
-//        for (Rule rule : rulesInScenario) {
-//            HashMap<Integer, ChainElement> chain = rule.getChain();// прежде чем удалить правило - надо удалить всю цепочку
-//
-//            for (ChainElement element : chain.values()) {
-//                removeChainElement(element);// удалили у пользователя
-//            }
-//            removeRule(rule);
-//        }
-        rulesInScenario.forEach(rule -> {
+
+        for (Rule rule : rulesInScenario) {
             HashMap<Integer, ChainElement> chain = rule.getChain();// прежде чем удалить правило - надо удалить всю цепочку
-            chain.values().forEach(element -> removeChainElement(element)); // удалили у пользователя
+
+            for (ChainElement element : chain.values()) {
+                removeChainElement(element);// удалили у пользователя
+            }
             removeRule(rule);
-        });
+        }
+
+//        rulesInScenario.forEach(rule -> {
+//            HashMap<Integer, ChainElement> chain = rule.getChain();// прежде чем удалить правило - надо удалить всю цепочку
+//            chain.values().forEach(element -> removeChainElement(element)); // удалили у пользователя
+//            removeRule(rule);
+//        });
         scenarios.remove(scenario);
     }
 
@@ -332,6 +345,7 @@ public class User implements Serializable{
         getOuterPhones().stream()
                 .filter(phone -> (phone.getScenarioId() != null && phone.getScenarioId() == scenario.getId()))
                 .forEach(phone -> phone.setScenarioId(null));
+        Scheduler.reloadDialPlanForThisUserAtNextScheduler(this);
     }
 
 
@@ -343,12 +357,23 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(rules);
     }
 
-    void saveInUsersRules(Rule rule) {
+    public Set<Rule> getRules() { // TODO УБРАТЬ!!!!!
+        return rules;
+    }
+
+    public void saveInUsersRules(Rule rule) {
         rules.add(rule);
     }
 
-    void removeRule(Rule rule) {
+    private void removeRule(Rule rule) {
+//        System.out.println("попытка удаления правила " + rule);
+//        System.out.println("rules.contains(rule) " + rules.contains(rule));
+//        for (Rule rule1 : rules) {
+//            System.out.println("правило " + rule1 + " и правило " + rule + " equals = " + rule1.equals(rule));
+//        }
+//        boolean remove =
         rules.remove(rule);
+//        System.out.println("rules.remove(rule) вернул " + remove);
     }
 
     /**
@@ -358,7 +383,7 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(chainElements);
     }
 
-    void saveInUsersChains(ChainElement element) {
+    public void saveInUsersChains(ChainElement element) {
         chainElements.add(element);
     }
 
@@ -373,15 +398,14 @@ public class User implements Serializable{
         return Collections.unmodifiableSet(userAudio);
     }
 
-    public void addUserAudio(UserAudio audio){
+    public void addUserAudio(UserAudio audio) {
         audio.setLogin(login);
         userAudio.add(audio);
     }
 
-    public void removeUserAudio(UserAudio audio){
+    public void removeUserAudio(UserAudio audio) {
         userAudio.remove(audio);
     }
-
 
 
     public String getLogin() {

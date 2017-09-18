@@ -32,6 +32,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         InternalResourceViewResolver resolver = new InternalResourceViewResolver();
         resolver.setPrefix("/");
         resolver.setSuffix(".html");
+        System.out.println("             _            _   _           \n" +
+                "    /\\      | |          | | (_)          \n" +
+                "   /  \\   __| | ___ _ __ | |_ _ _   _ ___ \n" +
+                "  / /\\ \\ / _` |/ _ \\ '_ \\| __| | | | / __|\n" +
+                " / ____ \\ (_| |  __/ |_) | |_| | |_| \\__ \\\n" +
+                "/_/    \\_\\__,_|\\___| .__/ \\__|_|\\__,_|___/\n" +
+                "                   | |                    \n" +
+                "                   |_|                    \n");
         return resolver;
     }
 

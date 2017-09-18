@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.telephony;
+package ua.adeptius.asterisk.model.telephony;
 
 
 

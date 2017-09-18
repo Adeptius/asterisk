@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.model;
+package ua.adeptius.asterisk.model.telephony;
 
 public enum RuleType {
 

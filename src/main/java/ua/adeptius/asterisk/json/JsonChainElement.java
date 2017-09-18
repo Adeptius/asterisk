@@ -2,9 +2,6 @@ package ua.adeptius.asterisk.json;
 
 
 
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
-
 import java.util.List;
 
 public class JsonChainElement {

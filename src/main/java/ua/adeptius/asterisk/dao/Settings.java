@@ -56,7 +56,7 @@ public class Settings implements SettingsMBean {
                 prop.setProperty(entry.getKey(), entry.getValue());
             }
             prop.store(output, null);
-            System.out.println(key + " " + value);
+//            System.out.println(key + " " + value);
         } catch (Exception io) {
             io.printStackTrace();
         }
@@ -75,24 +75,51 @@ public class Settings implements SettingsMBean {
     private int secondsToRemoveOldPhones = 7;
     private int mailAntiSpam = 60;
 
-    private boolean senderAmoWSMessageSenderEnabled = true;
-    private boolean senderAmoSenderEnabled = true;
+    private boolean callToAmoWSEnabled = true;
+    private boolean callToAmoEnabled = true;
+    private boolean callToGoogleAnalyticsEnabled = true;
+    private boolean callToRoistatEnabled = true;
+    private boolean callToDBEnabled = true;
 
 
-    public boolean isSenderAmoWSMessageSenderEnabled() {
-        return senderAmoWSMessageSenderEnabled;
+    public boolean isCallToDBEnabled() {
+        return callToDBEnabled;
     }
 
-    public void setSenderAmoWSMessageSenderEnabled(boolean senderAmoWSMessageSenderEnabled) {
-        this.senderAmoWSMessageSenderEnabled = senderAmoWSMessageSenderEnabled;
+    public void setCallToDBEnabled(boolean callToDBEnabled) {
+        this.callToDBEnabled = callToDBEnabled;
     }
 
-    public boolean isSenderAmoCallSenderEnabled() {
-        return senderAmoSenderEnabled;
+    public boolean isCallToRoistatEnabled() {
+        return callToRoistatEnabled;
     }
 
-    public void setSenderAmoCallSenderEnabled(boolean senderAmoSenderEnabled) {
-        this.senderAmoSenderEnabled = senderAmoSenderEnabled;
+    public void setCallToRoistatEnabled(boolean callToRoistatEnabled) {
+        this.callToRoistatEnabled = callToRoistatEnabled;
+    }
+
+    public boolean isCallToGoogleAnalyticsEnabled() {
+        return callToGoogleAnalyticsEnabled;
+    }
+
+    public void setCallToGoogleAnalyticsEnabled(boolean callToGoogleAnalyticsEnabled) {
+        this.callToGoogleAnalyticsEnabled = callToGoogleAnalyticsEnabled;
+    }
+
+    public boolean isCallToAmoWSEnabled() {
+        return callToAmoWSEnabled;
+    }
+
+    public void setCallToAmoWSEnabled(boolean callToAmoWSEnabled) {
+        this.callToAmoWSEnabled = callToAmoWSEnabled;
+    }
+
+    public boolean isCallToAmoEnabled() {
+        return callToAmoEnabled;
+    }
+
+    public void setCallToAmoEnabled(boolean senderAmoSenderEnabled) {
+        this.callToAmoEnabled = senderAmoSenderEnabled;
     }
 
     public boolean isRemoteServerIsUp() {

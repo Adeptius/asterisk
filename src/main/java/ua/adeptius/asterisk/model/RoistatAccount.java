@@ -22,20 +22,20 @@ public class RoistatAccount {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "nextelLogin")
+    @Column(name = "nextel_login")
     private String nextelLogin;
 
     @JsonProperty
-    @Column(name = "projectNumber")
+    @Column(name = "project_number")
     private String projectNumber;
 
     @JsonProperty
-    @Column(name = "apiKey")
+    @Column(name = "api_key")
     private String apiKey;
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "nextelLogin",  insertable = false, updatable = false)
+    @JoinColumn(name = "nextel_login",  insertable = false, updatable = false)
     private User user;
 
 //    public String getNextelLogin() {

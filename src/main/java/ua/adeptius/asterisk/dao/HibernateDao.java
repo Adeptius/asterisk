@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.telephony.SipConfig;
+import ua.adeptius.asterisk.model.telephony.*;
 
 
 import java.util.Collection;

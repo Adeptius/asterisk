@@ -1,12 +1,11 @@
-package ua.adeptius.asterisk.model;
+package ua.adeptius.asterisk.model.telephony;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
+import ua.adeptius.asterisk.model.User;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
@@ -42,21 +41,21 @@ public class ChainElement {
     @Column(name = "position")
     private Integer position;
 
-    @Column(name = "toNumbers")
+    @Column(name = "to_numbers")
     private String toNumbers;
 
     @JsonProperty
-    @Column(name = "forwardType")
+    @Column(name = "forward_type")
     @Enumerated(EnumType.STRING)
     private ForwardType forwardType;
 
     @JsonProperty
-    @Column(name = "destinationType")
+    @Column(name = "destination_type")
     @Enumerated(EnumType.STRING)
     private DestinationType destinationType;
 
     @JsonProperty
-    @Column(name = "awaitingTime")
+    @Column(name = "awaiting_time")
     private int awaitingTime;
 
     @ManyToOne
@@ -215,25 +214,35 @@ public class ChainElement {
         login = user.getLogin();
     }
 
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//
+//        ChainElement element = (ChainElement) o;
+//
+//        if (id != element.id) return false;
+//        if (login != null ? !login.equals(element.login) : element.login != null) return false;
+//        if (rule != null ? !rule.equals(element.rule) : element.rule != null) return false;
+//        return position != null ? position.equals(element.position) : element.position == null;
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        int result = login != null ? login.hashCode() : 0;
+//        result = 31 * result + (rule != null ? rule.hashCode() : 0);
+//        result = 31 * result + (position != null ? position.hashCode() : 0);
+//        return result;
+//    }
+
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ChainElement that = (ChainElement) o;
-
-        if (id != that.id) return false;
-        if (login != null ? !login.equals(that.login) : that.login != null) return false;
-        if (rule != null ? !rule.equals(that.rule) : that.rule != null) return false;
-        return position != null ? position.equals(that.position) : that.position == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id;
-        result = 31 * result + (login != null ? login.hashCode() : 0);
-        result = 31 * result + (rule != null ? rule.hashCode() : 0);
-        result = 31 * result + (position != null ? position.hashCode() : 0);
-        return result;
+    public String toString() {
+        return "ChainElement{" +
+                "id=" + id +
+                ", login='" + login + '\'' +
+                ", rule='" + rule + '\'' +
+                ", position=" + position +
+                '}';
     }
 }

@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.model;
+package ua.adeptius.asterisk.model.telephony;
 
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -9,18 +9,17 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.exceptions.JsonParseException;
 import ua.adeptius.asterisk.json.JsonChainElement;
 import ua.adeptius.asterisk.json.JsonRule;
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
+import ua.adeptius.asterisk.model.User;
 
 import javax.persistence.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
-import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
-import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.GSM;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.QUEUE;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.TO_ALL;
 
 
 @Entity
@@ -137,11 +136,11 @@ public class Rule {
     private RuleType type;
 
     @JsonProperty
-    @Column(name = "startTime")
+    @Column(name = "start_time")
     private Integer startHour;
 
     @JsonProperty
-    @Column(name = "endTime")
+    @Column(name = "end_time")
     private Integer endHour;
 
     @JsonProperty
@@ -470,25 +469,24 @@ public class Rule {
                 '}';
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Rule rule = (Rule) o;
-
-        if (id != rule.id) return false;
-        if (login != null ? !login.equals(rule.login) : rule.login != null) return false;
-        if (name != null ? !name.equals(rule.name) : rule.name != null) return false;
-        return scenario != null ? scenario.equals(rule.scenario) : rule.scenario == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id;
-        result = 31 * result + (login != null ? login.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (scenario != null ? scenario.hashCode() : 0);
-        return result;
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//
+//        Rule rule = (Rule) o;
+//
+//        if (id != rule.id) return false;
+//        if (login != null ? !login.equals(rule.login) : rule.login != null) return false;
+//        if (name != null ? !name.equals(rule.name) : rule.name != null) return false;
+//        return scenario != null ? scenario.equals(rule.scenario) : rule.scenario == null;
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        int result = login != null ? login.hashCode() : 0;
+//        result = 31 * result + (name != null ? name.hashCode() : 0);
+//        result = 31 * result + (scenario != null ? scenario.hashCode() : 0);
+//        return result;
+//    }
 }

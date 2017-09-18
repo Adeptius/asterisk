@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ua.adeptius.amocrm.javax_web_socket.MessageCallPhase;
+import ua.adeptius.amocrm.javax_web_socket.WebSocket;
+import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.asterisk.annotations.AfterSpringLoadComplete;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
@@ -19,6 +22,8 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
+
+import static ua.adeptius.amocrm.javax_web_socket.MessageEventType.incomingCall;
 
 
 @Component
@@ -88,7 +93,7 @@ public class Main {
                         .header("content-type", "application/json")
                         .asString();
                 if (response.getStatus() == 200) {
-                    System.out.println("!!!!!!!!!!!!!!!!!!!ВНИМАНИЕ! ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!!!!!!!!!!!");
+                    LOGGER.warn("ЗАПУЩЕНА КОПИЯ НА УДАЛЁННОМ СЕРВЕРЕ!!!");
                     remoteServerIsUp = true;
                     settings.setRemoteServerIsUp(true);
                 }
@@ -157,5 +162,49 @@ public class Main {
         }
 
         new PhoneWatcher();
+
+
+//        new Thread(() -> {
+//            while (true){
+//                try {
+//                    Thread.sleep(4000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                try{
+//
+//                    WsMessage message = new WsMessage(incomingCall);
+//                    message.setFrom("0934027182");
+//                    message.setCallPhase(MessageCallPhase.dial);
+//                    WebSocket.sendMessage("1559047", message);// отправляем
+//                    WebSocket.sendMessage("1704316", message);// отправляем
+//                    WebSocket.sendMessage("1704310", message);// отправляем
+//
+//                    Thread.sleep(2000);
+//
+//                    message = new WsMessage(incomingCall);
+//                    message.setFrom("0934027182");
+//                    message.setCallPhase(MessageCallPhase.dial);
+//                    WebSocket.sendMessage("1559047", message);// отправляем
+//                    WebSocket.sendMessage("1704316", message);// отправляем
+//                    WebSocket.sendMessage("1704310", message);// отправляем
+//
+//                    Thread.sleep(2000);
+//
+//                    message = new WsMessage(incomingCall);
+//                    message.setFrom("0934027182");
+//                    message.setCallPhase(MessageCallPhase.answer);
+//                    WebSocket.sendMessage("1559047", message);// отправляем
+//                    WebSocket.sendMessage("1704316", message);// отправляем
+//                    WebSocket.sendMessage("1704310", message);// отправляем
+//
+//
+//
+//
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.adeptius.asterisk.dao.HibernateDao;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.telephony.SipConfig;
+import ua.adeptius.asterisk.model.telephony.*;
 
 import java.util.ArrayList;
 import java.util.List;

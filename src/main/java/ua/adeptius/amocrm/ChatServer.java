@@ -23,7 +23,7 @@ public class ChatServer extends WebSocketServer {
     }
 
     public ChatServer( InetSocketAddress address ) {
-        super( address );
+        super(address);
     }
 
     @Override

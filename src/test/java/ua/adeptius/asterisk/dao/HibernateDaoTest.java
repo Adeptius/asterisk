@@ -9,17 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.telephony.ForwardType;
-import ua.adeptius.asterisk.telephony.SipConfig;
+import ua.adeptius.asterisk.model.telephony.*;
 
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.TO_ALL;
 
 public class HibernateDaoTest {
 
@@ -354,6 +352,22 @@ public class HibernateDaoTest {
         rule.addChainElement(chainElement);
         return chainElement;
     }
+
+    @Test
+    public void registerQueryTest() throws Exception {
+        RegisterQuery registerQuery = new RegisterQuery("hibernate", "pass", "hibernate@gmail.com");
+        String hash = registerQuery.getHash();
+        HibernateController.saveOrUpdate(registerQuery);
+        RegisterQuery registerQueryByKey = HibernateController.getRegisterQueryByKey(hash);
+        assertNotNull(registerQueryByKey);
+
+        HibernateController.removeRegisterQuery(registerQueryByKey);
+        registerQueryByKey = HibernateController.getRegisterQueryByKey(hash);
+        assertNull(registerQueryByKey);
+
+
+    }
+
 
     @AfterClass
     public static void cleaningDb() throws Exception {

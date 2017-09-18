@@ -30,15 +30,19 @@ public class HelloManager {
     public void call() throws IOException, AuthenticationFailedException, TimeoutException, InterruptedException {
 
 
-        long t0 = System.nanoTime();
+//        long t0 = System.nanoTime();
         CommandAction action = new CommandAction();
         action.setCommand("dialplan reload");
+//        action.setCommand("core reload");
 //        action.setCommand("sip reload");
 //        action.setCommand("core show help");
+//        action.setCommand("config reload core");
+//        action.setCommand("service asterisk reload");
+//        action.setCommand("config list ");
 ////        action.setCommand("core show hanguphandlers all");
         CommandResponse response = (CommandResponse) managerConnection.sendAction(action);
         List<String> list = response.getResult();
-        System.out.println(TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - t0));
+//        System.out.println(TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - t0));
 
         list.forEach(System.err::println);
 

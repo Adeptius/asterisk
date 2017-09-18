@@ -5,15 +5,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
-import ua.adeptius.asterisk.controllers.PhonesController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.json.JsonInnerAndOuterPhones;
 import ua.adeptius.asterisk.json.JsonPhoneCount;
 import ua.adeptius.asterisk.json.Message;
-import ua.adeptius.asterisk.model.InnerPhone;
-import ua.adeptius.asterisk.model.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.InnerPhone;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.monitor.Scheduler;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -111,8 +112,8 @@ public class PhonesWebController {
                 // чтож, их достаточно. берём новое количество
                 List<OuterPhone> newPhone = freeOuterPhones.stream().limit(needMoreCount).collect(Collectors.toList());
                 user.addOuterPhones(newPhone);
-//                outerPhones.addAll(newPhone);
                 LOGGER.debug("{}: Добавлено {} внешних номеров. Теперь их {}", login, newPhone.size(), outerPhones.size());
+
 
             } else if (neededOuterNumberCount < currentOuterNumberCount) {
                 int redutrantCount = currentOuterNumberCount - neededOuterNumberCount;
@@ -127,6 +128,9 @@ public class PhonesWebController {
 //                outerPhones.removeAll(redutrantNumbers);
                 LOGGER.debug("{}: Удалено {} внешних номеров. Теперь их {}", login, redutrantNumbers.size(), outerPhones.size());
 
+                // изменено количество внешних номеров. Обновляем Кэши
+                Scheduler.reloadOuterOnNextScheduler();
+
             } else {
                 LOGGER.debug("{}: Количество внешних номеров не меняется", login);
             }
@@ -137,7 +141,7 @@ public class PhonesWebController {
                 int needMoreCount = neededInnerNumberCount - currentInnerNumberCount;
                 LOGGER.debug("{}: Нужно дополнительно {} внутренних номеров.", login, needMoreCount);
 
-                List<InnerPhone> moreSipNumbers = PhonesController.createMoreSipNumbers(needMoreCount, login);
+                List<InnerPhone> moreSipNumbers = SipConfigDao.createMoreSipNumbers(needMoreCount, login);
                 user.addInnerPhones(moreSipNumbers);
 //                innerPhones.addAll(moreSipNumbers);
                 LOGGER.debug("{}: Добавлено {} внутренних номеров. Теперь их {}", login, moreSipNumbers.size(), innerPhones.size());
@@ -152,7 +156,7 @@ public class PhonesWebController {
                         .collect(Collectors.toList());
 //                innerPhones.removeAll(redutrantNumbers);
                 user.removeInnerPhones(redutrantNumbers);
-//                PhonesController.removeSipNumbersConfigs(redutrantNumbers);
+                SipConfigDao.removeSipNumbersConfigs(redutrantNumbers);
                 LOGGER.debug("{}: Удалено {} внутренних номеров. Теперь их {}", login, redutrantNumbers.size(), innerPhones.size());
 
             } else {

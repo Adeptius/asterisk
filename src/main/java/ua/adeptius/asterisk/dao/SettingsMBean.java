@@ -22,6 +22,13 @@ public interface SettingsMBean {
     String getAsteriskLogin();
     String getAsteriskUrl();
 
+
+    boolean isCallToRoistatEnabled();
+    void setCallToRoistatEnabled(boolean callToRoistatEnabled);
+
+    boolean isCallToGoogleAnalyticsEnabled();
+    void setCallToGoogleAnalyticsEnabled(boolean callToGoogleAnalyticsEnabled);
+
     int getSecondsToUpdatePhoneOnWebPage();
     void setSecondsToUpdatePhoneOnWebPage(int secondsToUpdatePhoneOnWebPage);
 
@@ -34,8 +41,8 @@ public interface SettingsMBean {
     boolean isShowProfilingResultNow();
     void setShowProfilingResultNow(boolean showProfilingResultNow);
 
-    boolean isSenderAmoWSMessageSenderEnabled();
-    void setSenderAmoWSMessageSenderEnabled(boolean senderAmoWSMessageSenderEnabled);
-    boolean isSenderAmoCallSenderEnabled();
-    void setSenderAmoCallSenderEnabled(boolean senderAmoSenderEnabled);
+    boolean isCallToAmoWSEnabled();
+    void setCallToAmoWSEnabled(boolean callToAmoWSEnabled);
+    boolean isCallToAmoEnabled();
+    void setCallToAmoEnabled(boolean senderAmoSenderEnabled);
 }

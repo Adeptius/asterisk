@@ -3,10 +3,9 @@ package ua.adeptius.asterisk.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import ua.adeptius.asterisk.controllers.HibernateController;
-import ua.adeptius.asterisk.model.InnerPhone;
-import ua.adeptius.asterisk.model.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.InnerPhone;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 
 import java.util.ArrayList;
 import java.util.HashMap;

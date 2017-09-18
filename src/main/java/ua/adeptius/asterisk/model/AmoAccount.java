@@ -9,6 +9,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.*;
+//import javax.persistence.*;
 import java.io.Serializable;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -34,31 +35,31 @@ public class AmoAccount implements Serializable {
     private int id;
 
 
-    @Column(name = "nextelLogin")
+    @Column(name = "nextel_login")
     private String nextelLogin;
 
     @JsonProperty
-    @Column(name = "amoLogin")
+    @Column(name = "amo_login")
     private String amoLogin;
 
     @JsonProperty
-    @Column(name = "apiKey")
+    @Column(name = "api_key")
     private String apiKey;
 
     @JsonProperty
     @Column(name = "domain")
     private String domain;
 
-    @Column(name = "phoneId")
+    @Column(name = "phone_id")
     private String phoneId;
 
-    @Column(name = "phoneEnumId")
+    @Column(name = "phone_enum_id")
     private String phoneEnumId;
 
-    @Column(name = "apiUserId")
+    @Column(name = "api_user_id")
     private String apiUserId;
 
-    @Column(name = "leadId")
+    @Column(name = "lead_id")
     private int leadId;//todo хрень
 
     @JsonProperty
@@ -66,7 +67,7 @@ public class AmoAccount implements Serializable {
     private Boolean cling;
 
     @ManyToOne
-    @JoinColumn(name = "nextelLogin", insertable = false, updatable = false)
+    @JoinColumn(name = "nextel_login", insertable = false, updatable = false)
     private User user;
 
     @Nullable

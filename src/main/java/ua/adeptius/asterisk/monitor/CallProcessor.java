@@ -4,19 +4,21 @@ package ua.adeptius.asterisk.monitor;
 import org.asteriskjava.manager.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.TrackingController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.model.telephony.Call;
+import ua.adeptius.asterisk.model.telephony.InnerPhone;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import ua.adeptius.asterisk.senders.AmoCallSender;
 import ua.adeptius.asterisk.senders.AmoWSMessageSender;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ua.adeptius.asterisk.model.Call.CallPhase.*;
-import static ua.adeptius.asterisk.model.Call.CallState.*;
-import static ua.adeptius.asterisk.model.Call.Direction.IN;
+import static ua.adeptius.asterisk.model.telephony.Call.CallPhase.*;
+import static ua.adeptius.asterisk.model.telephony.Call.CallState.*;
+import static ua.adeptius.asterisk.model.telephony.Call.Direction.IN;
 import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 
@@ -56,7 +58,7 @@ public class CallProcessor {
 
 //            System.err.println(makePrettyLog(event));
         String login = user.getLogin();
-        if (from.length() == 7 && from.startsWith("2") && to.length() == 7 && to.startsWith("2")) {
+        if (from.length() >= 5 && to.length() <= 8) {
             LOGGER.info("{}: Обнаружен внутренний звонок. {} -> {}. Не регистрируем...", login, from, to);
             return;
         }
@@ -77,13 +79,13 @@ public class CallProcessor {
         call.setDirection(direction);
         call.setCallPhase(NEW_CALL);
 
-        if (direction == IN && !Main.remoteServerIsUp) {
-            amoWSMessageSender.addCallToSender(call);
-        }
+//        if (direction == IN && !Main.remoteServerIsUp) {
+//            amoWSMessageSender.addCallToSender(call);
+//        }
 
-//            if (direction == IN){
-//                amoWSMessageSender.addCallToSender(call);
-//            }
+            if (direction == IN){
+                amoWSMessageSender.addCallToSender(call);
+            }
 
         calls.put(newChannelEvent.getUniqueId(), call);
         LOGGER.debug("{}: Поступил новый звонок {} ->", login, call.getCalledFrom());

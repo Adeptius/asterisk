@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.json;
 
-import ua.adeptius.asterisk.model.OuterPhone;
-import ua.adeptius.asterisk.model.Scenario;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.Scenario;
 
 import java.util.HashMap;
 import java.util.Set;

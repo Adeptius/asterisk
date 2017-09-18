@@ -5,7 +5,7 @@
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %highlightex(%-5level) %highlightex([%30logger]) - %highlightex(%msg%n)</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %highlightex(%-5level) %highlightex([%20logger]) - %highlightex(%msg%n)</pattern>
             <!--<pattern>[%thread] %highlightex(%-5level) %logger{15} - %highlightex(%msg) %n</pattern>-->
             <!--<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>-->
         </encoder>

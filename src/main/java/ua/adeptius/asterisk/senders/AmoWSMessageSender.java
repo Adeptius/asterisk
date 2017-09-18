@@ -7,10 +7,9 @@ import ua.adeptius.amocrm.javax_web_socket.WebSocket;
 import ua.adeptius.amocrm.javax_web_socket.WsMessage;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.Settings;
-import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.AmoOperatorLocation;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
 import ua.adeptius.asterisk.model.User;
 
 import java.util.*;
@@ -63,11 +62,11 @@ public class AmoWSMessageSender extends Thread {
     }
 
     public void addCallToSender(Call call) {
-        if (settings.isSenderAmoWSMessageSenderEnabled()){
-            queue.offer(call);
-        } else {
-            LOGGER.debug("AmoWSMessageSender отключен");
+        if (!settings.isCallToAmoWSEnabled()){
+            LOGGER.debug("AmoWSMessageSender отключен в настройках");
+            return;
         }
+        queue.offer(call);
     }
 
     private void sendMessages() throws Exception {
@@ -99,15 +98,15 @@ public class AmoWSMessageSender extends Thread {
 
 
             } else if (callPhase == Call.CallPhase.ANSWERED) {
-                if (!call.isSendedAnswerWsMessage()) {
-//                    LOGGER.debug("{}: отправляю сообщение оператору на телефоне {}, что он ответил на звонок",
-//                            call.getUser().getLogin(), call.getCalledTo().get(0));
-
-                    sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.answer);
-                    // использую метод ToAll так как при ответе там всегда только 1 элемент
-                    call.setSendedAnswerWsMessage(true);
-
-                }
+//                if (!call.isSendedAnswerWsMessage()) {
+////                    LOGGER.debug("{}: отправляю сообщение оператору на телефоне {}, что он ответил на звонок",
+////                            call.getUser().getLogin(), call.getCalledTo().get(0));
+//
+//                    sendWsMessageOutgoingCall(amoAccount, call, MessageCallPhase.answer);
+//                    // использую метод ToAll так как при ответе там всегда только 1 элемент
+//                    call.setSendedAnswerWsMessage(true);
+//
+//                }
 
             } else if (callPhase == Call.CallPhase.ENDED) {
 
@@ -132,8 +131,7 @@ public class AmoWSMessageSender extends Thread {
                 String login = amoAccount.getUser().getLogin();
                 WsMessage message = new WsMessage(incomingCall);
                 message.setFrom(call.getCalledFrom());
-                message.setDealId("" + call.getAmoDealId());
-                message.setCallId(call.getAsteriskId());
+//                message.setDealId("" + call.getAmoDealId());
                 message.setCallPhase(callPhase);
                 WebSocket.sendMessage(workersId, message);// отправляем
                 if (callPhase == noanswer) {

@@ -10,7 +10,8 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.exceptions.JsonParseException;
 import ua.adeptius.asterisk.json.*;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.telephony.DestinationType;
+import ua.adeptius.asterisk.model.telephony.*;
+import ua.adeptius.asterisk.monitor.Scheduler;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,9 +20,9 @@ import java.util.stream.Collectors;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
 import static ua.adeptius.asterisk.json.Message.Status.Success;
-import static ua.adeptius.asterisk.model.RuleType.NORMAL;
-import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
-import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.model.telephony.RuleType.NORMAL;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.GSM;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.SIP;
 
 @Controller
 @RequestMapping(value = "/scenario", produces = "application/json; charset=UTF-8")
@@ -345,6 +346,8 @@ public class ScenarioWebController {
             Integer scenarioId = newBindings.get(outerPhone.getNumber());
             outerPhone.setScenarioId(scenarioId);// если ключа в мапе нет - вернётся тгдд и телефон освободится.
         }
+
+        Scheduler.reloadDialPlanForThisUserAtNextScheduler(user);
 
         try {
             HibernateController.update(user);

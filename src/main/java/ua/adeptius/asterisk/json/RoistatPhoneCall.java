@@ -3,12 +3,12 @@ package ua.adeptius.asterisk.json;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
 
 import java.text.SimpleDateFormat;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-import static ua.adeptius.asterisk.model.Call.CallState.ANSWER;
+import static ua.adeptius.asterisk.model.telephony.Call.CallState.ANSWER;
 
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
 public class RoistatPhoneCall {

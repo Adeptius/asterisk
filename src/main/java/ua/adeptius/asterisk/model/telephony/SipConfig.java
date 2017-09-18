@@ -1,4 +1,4 @@
-package ua.adeptius.asterisk.telephony;
+package ua.adeptius.asterisk.model.telephony;
 
 
 import java.util.Random;
@@ -57,7 +57,7 @@ public class SipConfig {
                 .append("qualifyfreq=60\n")
                 .append("transport=udp\n")
                 .append("avpf=no\n")
-                .append("maxlen=0\n")
+                .append("maxlen=2\n")
                 .append("force_avp=no\n")
                 .append("icesupport=no\n")
                 .append("encryption=no\n")

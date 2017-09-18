@@ -91,7 +91,7 @@ public class EmailSender extends Thread {
         final String toEmail = email.getEmail();
         String login = email.getUserLogin();
         String siteName = email.getSiteName();
-        LOGGER.debug("{}: Отправка письма \"закончились номера\" на {}", login, toEmail);
+        LOGGER.info("{}: Отправка письма \"закончились номера\" на {}", login, toEmail);
 
         try {
             String basicHtmlNoPhonesBody = readResourceAsString("noPhonesMail.html")
@@ -108,7 +108,7 @@ public class EmailSender extends Thread {
         final String toEmail = email.getEmail();
         String recoverUrl = "https://" + serverAddress + "/tracking/recover.html?key=" + email.getHash();
         String login = email.getUserLogin();
-        LOGGER.debug("{}: Отправка письма восстановления пароля на {}", login, toEmail);
+        LOGGER.info("{}: Отправка письма восстановления пароля на {}", login, toEmail);
 
         try {
             String basicHtmlRecoverBody = readResourceAsString("recoverMail.html")
@@ -127,7 +127,7 @@ public class EmailSender extends Thread {
         final String toEmail = email.getEmail(); // can be any email id
         String registrationUrl = "https://" + serverAddress + "/tracking/registerresult.html?key=" + email.getHash();
         String login = email.getUserLogin();
-        LOGGER.debug("{}: Отправка регистрационного письма на {}", login, toEmail);
+        LOGGER.info("{}: Отправка регистрационного письма на {}", login, toEmail);
 
         try {
             String registrationHtmlBody = readResourceAsString("registrationMail.html")

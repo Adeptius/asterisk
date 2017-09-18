@@ -7,14 +7,15 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.adeptius.asterisk.model.OuterPhone;
-import ua.adeptius.asterisk.model.User;
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.Main;
+import ua.adeptius.asterisk.dao.Settings;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
+import ua.adeptius.asterisk.model.telephony.Call;
 
 import java.util.HashMap;
 import java.util.concurrent.*;
 
-import static ua.adeptius.asterisk.model.Call.Direction.IN;
+import static ua.adeptius.asterisk.model.telephony.Call.Direction.IN;
 
 public class GoogleAnalitycsCallSender extends Thread {
 
@@ -23,15 +24,19 @@ public class GoogleAnalitycsCallSender extends Thread {
     private static final ExecutorService EXECUTOR = new ThreadPoolExecutor(
             1,10,60, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(30), new ThreadFactoryBuilder().setNameFormat("GoogleAnalitycsCallSender-Pool-%d").build());
+    Settings settings = Main.settings;
 
     public void send(Call call) {
+        if (!settings.isCallToGoogleAnalyticsEnabled()){
+            LOGGER.debug("GoogleAnalitycsCallSender отключен в настройках");
+            return;
+        }
         try {
             blockingQueue.put(call);
         } catch (InterruptedException ignored) {
 //            Этого никогда не произойдёт
         }
     }
-
 
     public GoogleAnalitycsCallSender() {
         setName("GoogleAnalitycsCallSender-Manager");

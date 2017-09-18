@@ -1,7 +1,8 @@
-package ua.adeptius.asterisk.model;
+package ua.adeptius.asterisk.model.telephony;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ua.adeptius.asterisk.model.User;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

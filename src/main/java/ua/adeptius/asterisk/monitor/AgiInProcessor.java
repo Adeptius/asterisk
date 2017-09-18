@@ -7,16 +7,15 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
 import ua.adeptius.asterisk.model.*;
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
+import ua.adeptius.asterisk.model.telephony.*;
 
 import java.util.*;
 
-import static ua.adeptius.asterisk.telephony.DestinationType.GSM;
-import static ua.adeptius.asterisk.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.telephony.ForwardType.QUEUE;
-import static ua.adeptius.asterisk.telephony.ForwardType.RANDOM;
-import static ua.adeptius.asterisk.telephony.ForwardType.TO_ALL;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.GSM;
+import static ua.adeptius.asterisk.model.telephony.DestinationType.SIP;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.QUEUE;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.RANDOM;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.TO_ALL;
 import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 public class AgiInProcessor extends BaseAgiScript {
@@ -27,6 +26,11 @@ public class AgiInProcessor extends BaseAgiScript {
     private static Random random = new Random();
     private static ThreadLocal<String> threadLocalMelody = new ThreadLocal<>();
     private static ThreadLocal<String> threadLocalLogin = new ThreadLocal<>();
+
+    public static void replacePhoneAndRule(String phone, Rule rule){
+        LOGGER.debug("В AGI передан номер {} и правило {}", phone, rule);
+        phoneNumbersAndRules.put(phone, rule);
+    }
 
 
     public void service(AgiRequest request, AgiChannel channel) {
@@ -44,7 +48,8 @@ public class AgiInProcessor extends BaseAgiScript {
 //
             Rule rule = phoneNumbersAndRules.get(toNumber);
             if (rule == null) {
-                LOGGER.trace("Правило по номеру {} не найдено", toNumber);
+                LOGGER.trace("Правило по номеру {} не найдено. Сбрасываю звонок.", toNumber);
+                hangup(); // правило не найдено
                 return;
             }
 
@@ -285,7 +290,7 @@ public class AgiInProcessor extends BaseAgiScript {
      * Звонки
      */
     private void autodetectTypeAndDialToNumber(String number) throws AgiException {
-        if (number.length() == 7 && number.startsWith("2")) {//оператор на сипке сидит
+        if (number.length() <= 8) {//оператор на сипке сидит
             HashMap<String, Boolean> sipsState = AsteriskMonitor.getSipsFree();
             boolean operatorIsFree = sipsState.get(number);
             if (!operatorIsFree) { // оператор занят.

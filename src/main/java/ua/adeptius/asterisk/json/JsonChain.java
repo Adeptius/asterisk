@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.json;
 
-import ua.adeptius.asterisk.telephony.DestinationType;
-import ua.adeptius.asterisk.telephony.ForwardType;
+import ua.adeptius.asterisk.model.telephony.DestinationType;
+import ua.adeptius.asterisk.model.telephony.ForwardType;
 
 public class JsonChain {
 

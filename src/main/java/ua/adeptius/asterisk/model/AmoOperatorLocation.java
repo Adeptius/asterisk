@@ -38,10 +38,6 @@ public class AmoOperatorLocation {
     @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
 
-//    @ManyToOne
-//    @JoinColumn(name = "login")
-//    private User user;
-
     @Transient
     private HashMap<String, String> amoUserIdAndInnerNumber = null;
 

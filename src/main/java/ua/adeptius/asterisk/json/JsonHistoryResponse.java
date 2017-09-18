@@ -1,7 +1,7 @@
 package ua.adeptius.asterisk.json;
 
 
-import ua.adeptius.asterisk.model.Call;
+import ua.adeptius.asterisk.model.telephony.Call;
 
 import java.util.List;
 
