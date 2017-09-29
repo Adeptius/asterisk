@@ -69,6 +69,7 @@ public class CallProcessor {
         if (direction == IN) {
             OuterPhone outerPhone = user.getOuterPhoneByNumber(to);
             call.setOuterPhone(outerPhone);
+            call.setOuterNumber(to);
         }
 
         call.setAsteriskId(newChannelEvent.getUniqueId());
@@ -134,8 +135,9 @@ public class CallProcessor {
     public static void processEvent(HangupEvent hangupEvent) {
         String uniqueId = hangupEvent.getUniqueId();
         Call call = calls.get(uniqueId);
-        if (calls.size() > numberOfInternalPhones){
-            LOGGER.warn("В списке calls {} звонков, а всего внутренних телефонов {}", calls.size(), numberOfInternalPhones);
+        if (calls.size() > 10){
+//            LOGGER.warn("В списке calls {} звонков, а всего внутренних телефонов {}", calls.size(), numberOfInternalPhones);
+            LOGGER.warn("В списке calls {} звонков, возможно что-то не удаляется", calls.size());
         }
         if (call == null) { // null тут может быть только если сервер запустился тогда, когда уже кто-то разговаривал
             return;
@@ -162,7 +164,7 @@ public class CallProcessor {
     }
 
 
-    private static int numberOfInternalPhones;
+//    private static int numberOfInternalPhones;
 
     public static void updatePhonesHashMap() {
         LOGGER.trace("Обновление карты Number <-> User");
@@ -174,7 +176,7 @@ public class CallProcessor {
             List<String> innerNumbers = user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList());
             numbers.addAll(innerNumbers);
             numbers.forEach(s -> newCache.put(s, user));
-            numberOfInternalPhones = innerNumbers.size();
+//            numberOfInternalPhones = innerNumbers.size();
         }
         phonesAndUsers = newCache;
     }

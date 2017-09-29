@@ -7,6 +7,7 @@ public class Email {
     private String hash;
     private String userLogin;
     private String siteName;
+    private String errorMessage;
     private EmailType emailType;
 
     public Email(RegisterQuery registerQuery) {
@@ -30,12 +31,26 @@ public class Email {
         this.userLogin = userLogin;
     }
 
+    public Email(EmailType emailType, String errorMessage) {
+        this.emailType = emailType;
+        this.errorMessage = errorMessage;
+    }
+
     public static enum EmailType{
         REGISTRATION,
         RECOVER,
-        NO_OUTER_PHONES_LEFT
+        NO_OUTER_PHONES_LEFT,
+        ERROR_REPORT
     }
 
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 
     public EmailType getEmailType() {
         return emailType;

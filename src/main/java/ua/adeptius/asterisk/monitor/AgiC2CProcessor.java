@@ -6,22 +6,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.model.json.JsonAmoContact;
-import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.model.AmoAccount;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.telephony.*;
 
 import java.util.*;
 
 import static ua.adeptius.asterisk.model.telephony.DestinationType.GSM;
 import static ua.adeptius.asterisk.model.telephony.DestinationType.SIP;
-import static ua.adeptius.asterisk.model.telephony.ForwardType.QUEUE;
-import static ua.adeptius.asterisk.model.telephony.ForwardType.RANDOM;
-import static ua.adeptius.asterisk.model.telephony.ForwardType.TO_ALL;
+import static ua.adeptius.asterisk.model.telephony.ForwardType.*;
 import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 
 @SuppressWarnings("Duplicates")
-public class AgiInProcessor extends BaseAgiScript {
+public class AgiC2CProcessor extends BaseAgiScript {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(AgiInProcessor.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(AgiC2CProcessor.class.getSimpleName());
 
     private static HashMap<String, Rule> phoneNumbersAndRules = new HashMap<>();
     private static Random random = new Random();
@@ -47,6 +46,9 @@ public class AgiInProcessor extends BaseAgiScript {
             String toNumber = addZero(request.getExtension());
             String fromNumber = addZero(request.getCallerIdNumber());
 //
+
+            dialToSipGroup(Collections.singletonList("2001037"),10);
+
             Rule rule = phoneNumbersAndRules.get(toNumber);
             if (rule == null) {
                 LOGGER.trace("Правило по номеру {} не найдено. Сбрасываю звонок.", toNumber);
@@ -201,7 +203,7 @@ public class AgiInProcessor extends BaseAgiScript {
     }
 
     public static void setPhoneNumbersAndRules(HashMap<String, Rule> phoneNumbersAndRules) {
-        AgiInProcessor.phoneNumbersAndRules = phoneNumbersAndRules;
+        AgiC2CProcessor.phoneNumbersAndRules = phoneNumbersAndRules;
     }
 
     /**

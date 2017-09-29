@@ -1,36 +1,34 @@
 package ua.adeptius.asterisk.json;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Message {
+
+    public Message(String json) throws JSONException {
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            status = Status.valueOf(jsonObject.getString("status"));
+            message = jsonObject.getString("message");
+        }catch (JSONException e){
+            throw new JSONException("Неверный формат message. JSON: " + json);
+        }
+    }
 
     public Message(Status status, String message) {
         this.status = status;
         this.message = message;
     }
 
-//    public Message(Status status, Object data) {
-//        this.data = data;
-//        this.status = status;
-//    }
-
     private Status status;
 
     private String message;
 
-//    private Object data;
 
     public enum Status {
         Success, Error
     }
-
-
-//    public Object getData() {
-//        return data;
-//    }
-
-//    public void setData(Object data) {
-//        this.data = data;
-//    }
 
     public Status getStatus() {
         return status;

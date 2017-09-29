@@ -26,30 +26,9 @@ public class ScriptWebController {
     private static Logger LOGGER = LoggerFactory.getLogger(ScriptWebController.class.getSimpleName());
     private static Settings settings = Main.settings;
 
-    @PostMapping(value = "/get", produces = "application/json; charset=UTF-8")
-    public Message getScript(HttpServletRequest request, @RequestParam String siteName) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid");
-        }
-        Set<Site> sites = user.getSites();
-        if (sites == null || sites.isEmpty()) {
-            return new Message(Message.Status.Error, "User have no this site");
-        }
-        Site site = user.getSiteByName(siteName);
-        if (site == null){
-            return new Message(Message.Status.Error, "User have no this site");
-        }
-
-        String serverAddress = settings.getServerAddress();
-        String login = user.getLogin();
-
-        String script = "<script src=\"https://"+ serverAddress +"/tracking/script/"+login+"/"+siteName+"\"></script>";
-        return new Message(Message.Status.Success, script);
-    }
 
     @GetMapping(value = "/{login}/{site}", produces = "text/html; charset=UTF-8")
-    public String getScript2(@PathVariable String login, @PathVariable String site) {
+    public String getFullScript(@PathVariable String login, @PathVariable String site) {
         User user = UserContainer.getUserByName(login);
         if (user == null) {
             return "{\"Status\":\"Error\",\"Message\":\"No such user\"}";

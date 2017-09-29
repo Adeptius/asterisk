@@ -16,9 +16,13 @@ import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.telephony.Call;
 
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.concurrent.*;
 
 import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.answer;
+import static ua.adeptius.amocrm.javax_web_socket.MessageCallPhase.answeredSomeoneElse;
 
 @SuppressWarnings("Duplicates")
 public class AmoCallSender extends Thread {
@@ -68,10 +72,10 @@ public class AmoCallSender extends Thread {
             return; // пока что занимаемся только входящими.
         }
 
-//        if (Main.remoteServerIsUp){
-//            LOGGER.info("Работа локально. AmoCallSender отключен");
-//            return;
-//        }
+        if (Main.remoteServerIsUp) {
+            LOGGER.info("Работа локально. AmoCallSender отключен");
+            return;
+        }
 
         User user = call.getUser();
         AmoAccount amoAccount = user.getAmoAccount();
@@ -154,62 +158,24 @@ public class AmoCallSender extends Thread {
             AmoWSMessageSender.sendWsMessageOutgoingCall(amoAccount, call, answer);
 
 
-            // Назначение ответственного за сделку того, кто поднял трубку
-            // Но только если в данный момент назначены api user или responsible user
-//            String amoResponsibleId = call.getRule().getAmoResponsibleId();
-//            String responsibleUserNow = call.getAmoContactResponsibleId();
-//            boolean responsibleApiUser = responsibleUserNow.equals(apiUserId);
-//            boolean responsibleRuleUser = responsibleUserNow.equals(amoResponsibleId);
-//
-//            if (responsibleApiUser) {// ответственный стандартный пользователь или из правил - поэтому меняем
-//                String workersId = amoAccount.getWorkersId(calledTo);
-//                if (workersId != null) {
-//                    // мы знаем айдишник ответившего сотрудника в амо
-//                    try {
-//                        AmoDAO.setResponsibleUserForContact(amoAccount, call, workersId);
-//                        call.setAmoContactResponsibleId(workersId);
-//                        LOGGER.debug("{}: назначили {} ответственным за контакт {}", login, workersId, calledTo);
-//                    } catch (Exception e) {
-//                        LOGGER.error(login + ": ошибка назначения ответственного за контакт", e);
-//                    }
-//                } else {
-//                    LOGGER.debug("{}: неизвестен id оператора на телефоне {}", login, calledTo);
-//                }
-//            }else {
-//                LOGGER.debug("{}: Ответственный сотрудник за контакт {} уже назначен", login, calledTo);
-//            }
-
         } else if (callPhase == Call.CallPhase.ENDED) {
-            LOGGER.debug("{}: Звонок завершен проверяем отвечен ли он или нет", login);
             try {
-                // тут необходимо, в случае если никто не ответил найти контакт и сделку
-                int amoContactId = call.getAmoContactId(); // берём их сначала с Call. Если там их нет - значит,
-                // вероятно никто не ответил, но не факт - мог быть просто сбой.
+                if (call.getCallState() == Call.CallState.ANSWER) {
+                    LOGGER.debug("{}: Звонок завершен. На него ответили и сделка в Амо уже была создана", login);
+                } else {
+                    LOGGER.debug("{}: Звонок завершен. На него не ответили. Создаём контакт или сделку, если отсутствуют.", login);
+                    int dayOfWeek = LocalDate.now().getDayOfWeek().getValue();
+                    String responsibleWorker = amoAccount.getResponsibleUserSchedule()[dayOfWeek -1];
+                    LOGGER.debug("{}: Сегодня {} день недели. Ответственным будет оператор {}.", login, dayOfWeek, responsibleWorker);
 
-                if (amoContactId == 0) { // пробуем достать id
-                    JsonAmoContact contactIdByPhoneNumber = AmoDAO.getContactIdByPhoneNumber(amoAccount, calledFrom);
-                    if (contactIdByPhoneNumber != null) {
-                        amoContactId = contactIdByPhoneNumber.getId();
+                    if (responsibleWorker == null) {
+                        responsibleWorker = apiUserId;
+                        LOGGER.debug("{}: Ответственный оператор не указан. Им будет владелец API {}.", login, responsibleWorker);
                     }
+                    createOrFindDeal(amoAccount, startedLeadId, user, call, responsibleWorker);
                 }
-
-                if (amoContactId == 0) { // если и сейчас не нашли - значит контакт отсутствует. И темболее - сделка. Надо создать
-                    // для начала выясняем кто будет ответственный.
-                    // todo пока что ответственный владелец апи. Переделать на ответственных.
-                    String responsibleWorker = apiUserId;
-
-                    int id = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", startedLeadId, responsibleWorker).getId();
-                    call.setAmoDealId(id);
-
-                    amoContactId = AmoDAO.addNewContactNewMethod(amoAccount, calledFrom, id,
-                            "Nextel", "Контакт " + calledFrom, responsibleWorker);
-                }
-
-                call.setAmoContactId(amoContactId);// нужно для отправки записи звонка
                 AmoDAO.addCallToNotes(amoAccount, call);
-//            } catch (AmoTooManyRequestsException e) {
-//                LOGGER.warn("{}: Очень много запросов на добавления звонка в АМО", login);
-            } catch (Exception e) {
+            }catch (Exception e){
                 e.printStackTrace();
             }
         }

@@ -18,12 +18,13 @@ public class RegisterQuery implements Serializable {
     public RegisterQuery() {
     }
 
-    public RegisterQuery(@Nonnull String login, @Nonnull String password, @Nonnull String email) {
+    public RegisterQuery(@Nonnull String login, @Nonnull String password, @Nonnull String email, @Nonnull String userPhoneNumber) {
         this.login = login;
         this.password = password;
         this.email = email;
         hash = MyStringUtils.generateRandomKey();
         date = new Date();
+        this.userPhoneNumber = userPhoneNumber;
     }
 
     @Id
@@ -42,6 +43,9 @@ public class RegisterQuery implements Serializable {
     @Column(name = "date")
     private Date date;
 
+    @Column(name = "user_phone_number")
+    private String userPhoneNumber;
+
     @Override
     public String toString() {
         return "RegisterQuery{" +
@@ -53,6 +57,14 @@ public class RegisterQuery implements Serializable {
                 '}';
     }
 
+
+    public String getUserPhoneNumber() {
+        return userPhoneNumber;
+    }
+
+    public void setUserPhoneNumber(String userPhoneNumber) {
+        this.userPhoneNumber = userPhoneNumber;
+    }
 
     public Date getDate() {
         return date;

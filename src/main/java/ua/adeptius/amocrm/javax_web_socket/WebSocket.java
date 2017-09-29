@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.senders.AmoWSMessageSender;
@@ -94,7 +95,7 @@ public class WebSocket {
             LOGGER.debug("{}: пользователь {} использует click2call для звонка на {}", amoDomain, userId, callTo);
             try {
                 callTo = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(callTo);
-            } catch (IllegalArgumentException e) {
+            } catch (UkrainianNumberParseException e) {
                 sendMessage(userId, new WsMessage(wrongToNumber, callTo));
                 return;
             }

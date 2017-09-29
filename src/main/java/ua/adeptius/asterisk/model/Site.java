@@ -12,6 +12,7 @@ import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,6 +62,11 @@ public class Site {
     LinkedList<String> blackLinkedList;
 
     @JsonProperty
+    public String getScript(){
+        return "<script src=\"https://cstat.nextel.com.ua:8443/tracking/script/"+login+"/"+name+"\"></script>";
+    }
+
+    @JsonProperty
     public LinkedList<String> getBlackList() {
         if (blackLinkedList == null) {
             blackLinkedList = new LinkedList<>();
@@ -73,6 +79,18 @@ public class Site {
             }
         }
         return blackLinkedList;
+    }
+
+    // при задании сайта через контроллер, перезаписываем текучий список
+    public void setBlackLinkedList(ArrayList<String> blackList) {
+        blackIps = ""; // очищаем текущий список
+        blackLinkedList = null; // удаляем кеш
+        for (String s : blackList) {
+            if (s.length() > 15){
+                continue;
+            }
+            addIpToBlackList(s);
+        }
     }
 
     public void addIpToBlackList(String ip) {

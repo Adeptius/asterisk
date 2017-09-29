@@ -71,7 +71,7 @@ public class OuterPhone {
         if (!s.contains("=")) { // если почему-то не пусто но и параметра нет
             return "";
         }
-        String[] keys = new String[]{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "pm_source", "pm_block", "pm_position"};
+        String[] keys = new String[]{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"};
         String result = "";
         if (s.contains("&")) { // если параметров несколько
             String[] splitted = s.split("&");

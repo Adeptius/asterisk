@@ -107,7 +107,7 @@ public class SipConfigDao {
         Scheduler.reloadSipOnNextScheduler();
     }
 
-    private static void removeFile(String number) throws IOException {
+    public static void removeFile(String number) throws IOException {
         Files.deleteIfExists(Paths.get(folder + number + ".conf"));
         Scheduler.reloadSipOnNextScheduler();
     }

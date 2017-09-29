@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Email;
 import ua.adeptius.asterisk.model.RegisterQuery;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import java.util.regex.Pattern;
 
@@ -36,8 +38,9 @@ public class RegistrationWebController {
 
 
     @PostMapping("/register")
-        public Message register(String login, String email, String password) {
-        LOGGER.info("Запрос регистрации для {}, email: {}, длинна пароля: {}", login, email, password.length());
+        public Message register(String login, String email, String password, String phone) {
+        LOGGER.info("Запрос регистрации для {}, email: {}, телефон: {} длинна пароля: {}",
+                login, email, phone, password !=null? password.length():"NULL");
 
         // Проверка логина
         if (login.length() < 4) {
@@ -45,13 +48,10 @@ public class RegistrationWebController {
             return new Message(Error, "Login is short");
         }
 
-        String str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        for (int i = 0; i < login.length(); i++) {
-            String s = login.substring(i, i + 1);
-            if (!str.contains(s)) {
-                LOGGER.info("Логин {} содержит спец символы", login);
-                return new Message(Error, "Login contains non-eng symbols");
-            }
+
+        if (!MyStringUtils.isLoginValid(login)){
+            LOGGER.info("Логин {} содержит недопустимые символы", login);
+            return new Message(Error, "Login contains wrong symbols");
         }
 
         User user = UserContainer.getUserByName(login);
@@ -65,7 +65,6 @@ public class RegistrationWebController {
             return new Message(Error, "Email is wrong");
         }
 
-//        user = HibernateController.getUserByEmail(email);
         user = UserContainer.getUserByEmail(email);
         if (user != null) {
             LOGGER.info("Email {} уже зарегистрирован", email);
@@ -84,7 +83,14 @@ public class RegistrationWebController {
             }
         }
 
-        RegisterQuery registerQuery = new RegisterQuery(login, password, email);
+        try{
+            phone = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(phone);
+        }catch (UkrainianNumberParseException e){
+            LOGGER.info("Номер телефона {} не приводится к Украинскому", phone);
+            return new Message(Error, "Phone number is not Ukrainian");
+        }
+
+        RegisterQuery registerQuery = new RegisterQuery(login, password, email, phone);
         try {
             HibernateController.saveOrUpdate(registerQuery);
             Main.emailSender.send(new Email(registerQuery));
@@ -105,6 +111,7 @@ public class RegistrationWebController {
        }
        try {
            User newUser = new User(registerQuery.getLogin(), registerQuery.getPassword(), registerQuery.getEmail(), null);
+           newUser.setUserPhoneNumber(registerQuery.getUserPhoneNumber());
            HibernateController.saveUser(newUser);
            UserContainer.putUser(newUser);
            HibernateController.removeRegisterQueryByLogin(registerQuery.getLogin());
@@ -115,5 +122,4 @@ public class RegistrationWebController {
            return new Message(Error, "Internal error");
        }
     }
-    // todo Восстановление пароля
 }

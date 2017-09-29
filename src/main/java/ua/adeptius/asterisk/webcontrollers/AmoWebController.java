@@ -11,18 +11,17 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.*;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
+import ua.adeptius.amocrm.model.json.JsonPipeline;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.*;
+import ua.adeptius.asterisk.senders.ErrorsMailSender;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static ua.adeptius.asterisk.json.Message.Status.Error;
 
@@ -63,6 +62,7 @@ public class AmoWebController {
         String amoLogin = jsonAmoAccount.getAmoLogin();
         String apiKey = jsonAmoAccount.getApiKey();
         boolean cling = jsonAmoAccount.isCling();
+        String[] responsibleUserSchedule = jsonAmoAccount.getResponsibleUserSchedule();
 
         if (StringUtils.isAnyBlank(domain, amoLogin, apiKey)) {
             return new Message(Error, "Some params are blank!");
@@ -80,6 +80,7 @@ public class AmoWebController {
         amoAccount.setPhoneId(null);
         amoAccount.setPhoneEnumId(null);
         amoAccount.setCling(cling);
+        amoAccount.setResponsibleUserSchedule(responsibleUserSchedule);
         user.setAmoAccount(amoAccount);
 
         try {
@@ -89,7 +90,7 @@ public class AmoWebController {
             LOGGER.error(user.getLogin() + ": ошибка изменения амо аккаунта: ", e);
             return new Message(Error, "Internal error");
         } finally {
-            if (safeMode){
+            if (safeMode) {
 
             }
         }
@@ -149,7 +150,7 @@ public class AmoWebController {
             LOGGER.error(user.getLogin() + ": ошибка удаления амо аккаунта. Возвращаем амо обратно.", e);
             return new Message(Error, "Internal error");
         } finally {
-            if (safeMode){
+            if (safeMode) {
 
             }
         }
@@ -171,7 +172,7 @@ public class AmoWebController {
         try {
             // Загружаем из Amo список работников пользователя
             JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-            return jsonAmoAccount.getUsersNameAndId();
+            return jsonAmoAccount.getUsersIdAndName();
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": Ошибка при отправке списка сотрудников", e);
             return new Message(Error, "Internal error");
@@ -192,30 +193,12 @@ public class AmoWebController {
 
         HashMap<String, String> workerIdAndPhones; // получаем текуший список
         AmoOperatorLocation operatorLocation = user.getOperatorLocation();
-        if (operatorLocation != null){
+        if (operatorLocation != null) {
             workerIdAndPhones = operatorLocation.getAmoUserIdAndInnerNumber();
-        }else {
+        } else {
             workerIdAndPhones = new HashMap<>();
         }
-
-        try {
-            // Загружаем из Amo список работников пользователя
-            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-            HashMap<String, String> users = jsonAmoAccount.getUsersIdAndName();
-
-            // Теперь комбинируем 2 мапы в третью, что бы пользователь видел имена работников и их номера телефонов.
-            HashMap<String, String> completeMap = new HashMap<>();
-            for (Map.Entry<String, String> entry : users.entrySet()) {
-                String id = entry.getKey();
-                String name = entry.getValue();
-                completeMap.put(name, workerIdAndPhones.get(id));
-            }
-
-            return completeMap;
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок", e);
-            return new Message(Error, "Internal error");
-        }
+        return workerIdAndPhones;
     }
 
     @PostMapping("/setBindings")
@@ -230,11 +213,11 @@ public class AmoWebController {
             return new Message(Error, "User have not connected Amo account");
         }
 
-        LOGGER.debug("{}: запрос сохранения привязок {}",user.getLogin(), newBindings);
+        LOGGER.debug("{}: запрос сохранения привязок {}", user.getLogin(), newBindings);
 
         try {
             JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-            HashMap<String, String> usersNameAndId = jsonAmoAccount.getUsersNameAndId();
+            HashMap<String, String> usersIdAndName = jsonAmoAccount.getUsersIdAndName();
 
 //            Формируем окончательную мапу userID <-> phone number
             HashMap<String, String> newHashAmoBindings = new HashMap<>();
@@ -243,19 +226,14 @@ public class AmoWebController {
             Set<String> nameCheck = new HashSet<>();
 
             for (Map.Entry<String, String> entry : newBindings.entrySet()) {
-                String worker = entry.getKey();
+                String workerId = entry.getKey();
                 String phone = entry.getValue();
 
-                if (StringUtils.isAnyBlank(worker, phone)) {
-                    continue;
+                if (usersIdAndName.get(workerId) == null) {
+                    return new Message(Error, "User '" + workerId + "' not found in amo account.");
                 }
 
-                String workerId = usersNameAndId.get(worker);
-                if (workerId == null) {
-                    return new Message(Error, "User '" + worker + "' not found in amo account.");
-                }
-
-                if (user.getInnerPhoneByNumber(phone) == null){
+                if (user.getInnerPhoneByNumber(phone) == null) {
                     try {
                         phone = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(phone);
                     } catch (IllegalArgumentException e) {
@@ -263,9 +241,9 @@ public class AmoWebController {
                     }
                 }
 
-                if (nameCheck.add(phone)){
+                if (nameCheck.add(phone)) {
                     newHashAmoBindings.put(workerId, phone);
-                }else {
+                } else {
                     return new Message(Error, "Found duplicates of number " + phone);
                 }
             }
@@ -281,6 +259,51 @@ public class AmoWebController {
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок " + newBindings, e);
             return new Message(Error, "Internal error");
+        }
+    }
+
+    @PostMapping("/getPipelines")
+    public Object getPipelines(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid");
+        }
+
+        AmoAccount amoAccount = user.getAmoAccount();
+        if (amoAccount == null) {
+            return new Message(Error, "User have not connected Amo account");
+        }
+
+        try {
+            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
+            return jsonAmoAccount.getPipelines();
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": Ошибка при отправке инфы об амо акке", e);
+            return new Message(Error, "Internal error");
+        }
+    }
+
+
+    @PostMapping(value = "/widDovovorAndEmail", produces = "text/html; charset=UTF-8")
+    public Object widDovovorAndEmail(String dogovor, String email) {
+
+        if (StringUtils.isAnyBlank(dogovor, email)){
+            return "Договор или email не указан";
+        }
+
+        try {
+            User user = new User();
+            user.setLogin("WID_AMO_TEST");
+            AmoAccount amoAccount = new AmoAccount();
+            amoAccount.setUser(user);
+            amoAccount.setDomain("wid");
+            amoAccount.setApiKey("a99ead2f473e150091360d25aecc2878");
+            amoAccount.setAmoLogin("adeptius@wid.ua");
+            return AmoDAO.doChangeMailForWidOnly(amoAccount, dogovor, email);
+        }catch (Exception e){
+            LOGGER.error("WID-MAIL: ошибка. Договор "+dogovor+" email " + email, e);
+            ErrorsMailSender.send("WID-MAIL: ошибка. Договор "+dogovor+" email " + email, e);
+            return "Спасибо!";
         }
     }
 }

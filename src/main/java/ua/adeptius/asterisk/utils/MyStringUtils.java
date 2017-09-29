@@ -2,10 +2,13 @@ package ua.adeptius.asterisk.utils;
 
 
 import org.asteriskjava.manager.event.ManagerEvent;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.json.Message;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static ua.adeptius.asterisk.json.Message.Status.Error;
 
 public class MyStringUtils {
 
@@ -47,9 +50,20 @@ public class MyStringUtils {
         return true;
     }
 
-    public static String cleanAndValidateUkrainianPhoneNumber(String number) throws IllegalArgumentException {
+    public static boolean isLoginValid(String login){
+        String str = "0123456789abcdefghijklmnopqrstuvwxyz-_";
+        for (int i = 0; i < login.length(); i++) {
+            String s = login.substring(i, i + 1);
+            if (!str.contains(s)) {
+               return false;
+            }
+        }
+        return true;
+    }
+
+    public static String cleanAndValidateUkrainianPhoneNumber(String number) throws UkrainianNumberParseException {
         if (number == null) {
-            throw new IllegalArgumentException();
+            throw new UkrainianNumberParseException();
         }
         number = number.replaceAll("\\D+", "");
 
@@ -62,7 +76,7 @@ public class MyStringUtils {
         if (number.length() == 10 && number.startsWith("0")) {
             return number;
         }
-        throw new IllegalArgumentException();
+        throw new UkrainianNumberParseException();
     }
 
     public static String addZero(String source) {

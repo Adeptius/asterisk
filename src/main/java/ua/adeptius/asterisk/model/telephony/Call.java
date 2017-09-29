@@ -2,9 +2,11 @@ package ua.adeptius.asterisk.model.telephony;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 import ua.adeptius.asterisk.model.User;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -15,44 +17,45 @@ import static ua.adeptius.asterisk.utils.MyStringUtils.addZero;
 public class Call {
 
     @JsonProperty
+    private int id;
+    @JsonProperty
     private String calledFrom;
-
     @JsonProperty
     private List<String> calledTo;
-
     @JsonProperty
     private CallState callState;
-
     @JsonProperty
     private Direction direction;
-
     @JsonProperty
     private String asteriskId;
-
-    @JsonProperty
-    private String utm;
-
     @JsonProperty
     private String googleId;
-
-    private User user;
-
     @JsonProperty
     private String calledDate;
-
     @JsonProperty
     private long calledMillis;
-
     @JsonProperty
-//    private int secondsToAnswer = -1; // Значение задаётся только 1 раз, если оно изначально -1. Астериск присылает 2 раза сообщение об ответе. Это просто защита.
     private int secondsFullTime;
-
     @JsonProperty
     private int secondsTalk;
+    @JsonProperty
+    private String utmSource;
+    @JsonProperty
+    private String utmMedium;
+    @JsonProperty
+    private String utmCampaign;
+    @JsonProperty
+    private String utmTerm;
+    @JsonProperty
+    private String utmContent;
+    @JsonProperty
+    private String outerNumber;
+    @JsonProperty
+    private String comment;
+    @JsonProperty
+    private boolean newLead;
 
-//    @JsonProperty
-//    private int secondsFullTime;
-
+    private User user;
     private int amoDealId;
     private int amoContactId;
     private String amoContactResponsibleId;
@@ -60,7 +63,6 @@ public class Call {
     private int lastOperationTime;
     private OuterPhone outerPhone;
     private CallPhase callPhase;
-    private boolean sendedAnswerWsMessage; // чисто для AmoWSMessageSender что бы он знал отправлял или нет
 
     private Rule rule;
 
@@ -75,6 +77,14 @@ public class Call {
         return rule;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public void setRule(Rule rule) {
         this.rule = rule;
     }
@@ -85,14 +95,6 @@ public class Call {
 
     public void setCallPhase(CallPhase callPhase) {
         this.callPhase = callPhase;
-    }
-
-    public boolean isSendedAnswerWsMessage() {
-        return sendedAnswerWsMessage;
-    }
-
-    public void setSendedAnswerWsMessage(boolean sendedAnswerWsMessage) {
-        this.sendedAnswerWsMessage = sendedAnswerWsMessage;
     }
 
     public int getCalculatedModifiedTime() { // нужно для амо который требует last_modified (добавление комента или тегов). Метод вычисляет для него значение
@@ -171,15 +173,6 @@ public class Call {
     public enum Direction {
         IN, OUT
     }
-
-    public String getUtm() {
-        return utm;
-    }
-
-    public void setUtm(String utm) {
-        this.utm = utm;
-    }
-
 
     public String getGoogleId() {
         return googleId;
@@ -265,20 +258,141 @@ public class Call {
         this.amoContactResponsibleId = amoContactResponsibleId;
     }
 
+    public void setUtm(String urlQuery) {
+        if (StringUtils.isBlank(urlQuery)) {
+            return;
+        }
+
+        String[] parameters;
+        if (!urlQuery.contains("&")) { // если параметр один
+            parameters = new String[]{urlQuery};
+        }else { // если параметров много
+            parameters = urlQuery.split("&");
+        }
+
+        for (int i = 0; i < parameters.length; i++) { // фильтруем параметры
+            String parameter = parameters[i];
+            if (!parameter.contains("=")){// если не содержит равно
+                continue;
+            }
+
+            String[] splittedParam = parameter.split("=");
+            if (splittedParam.length <2){ // если ключ или значение отсутствует
+                continue;
+            }
+
+            String key = splittedParam[0];
+            String value = splittedParam[1];
+
+            if (key.startsWith("utm_source")){
+                setUtmSource(value);
+            }else if (key.startsWith("utm_medium")){
+                setUtmMedium(value);
+            }else if (key.startsWith("utm_campaign")){
+                setUtmCampaign(value);
+            }else if (key.startsWith("utm_content")){
+                setUtmContent(value);
+            }else if (key.startsWith("utm_term")){
+                setUtmTerm(value);
+            }
+        }
+    }
+
+    public String getUtmSource() {
+        return utmSource;
+    }
+
+    public void setUtmSource(String utmSource) {
+        this.utmSource = utmSource;
+    }
+
+    public String getUtmMedium() {
+        return utmMedium;
+    }
+
+    public void setUtmMedium(String utmMedium) {
+        this.utmMedium = utmMedium;
+    }
+
+    public String getUtmCampaign() {
+        return utmCampaign;
+    }
+
+    public void setUtmCampaign(String utmCampaign) {
+        this.utmCampaign = utmCampaign;
+    }
+
+    public String getUtmTerm() {
+        return utmTerm;
+    }
+
+    public void setUtmTerm(String utmTerm) {
+        this.utmTerm = utmTerm;
+    }
+
+    public String getUtmContent() {
+        return utmContent;
+    }
+
+    public void setUtmContent(String utmContent) {
+        this.utmContent = utmContent;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getOuterNumber() {
+        return outerNumber;
+    }
+
+    public void setOuterNumber(String outerNumber) {
+        this.outerNumber = outerNumber;
+    }
+
+    public boolean isNewLead() {
+        return newLead;
+    }
+
+    public void setNewLead(boolean newLead) {
+        this.newLead = newLead;
+    }
+
     @Override
     public String toString() {
         return "Call{" +
-                ", calledFrom='" + calledFrom + '\'' +
-                ", calledTo='" + calledTo + '\'' +
-                ", callState=" + callState +
-                ", direction=" + direction +
-                ", asteriskId='" + asteriskId + '\'' +
-                ", user=" + user.getLogin() +
-                ", calledDate='" + calledDate + '\'' +
-                ", calledMillis=" + calledMillis +
-                ", secondsTalk=" + secondsTalk +
-                ", secondsFullTime=" + secondsFullTime +
-                ", outerPhone=" + outerPhone +
-                "}";
+//                "calledFrom='" + calledFrom + '\'' +
+//                ", calledTo=" + calledTo +
+//                ", callState=" + callState +
+//                ", direction=" + direction +
+//                ", asteriskId='" + asteriskId + '\'' +
+//                ", utm='" + utm + '\'' +
+//                ", googleId='" + googleId + '\'' +
+//                ", user=" + user.getLogin() +
+//                ", calledDate='" + calledDate + '\'' +
+//                ", calledMillis=" + calledMillis +
+//                ", secondsFullTime=" + secondsFullTime +
+//                ", secondsTalk=" + secondsTalk +
+                ", utmSource='" + utmSource + '\'' +
+                ", utmMedium='" + utmMedium + '\'' +
+                ", utmCampaign='" + utmCampaign + '\'' +
+                ", utmTerm='" + utmTerm + '\'' +
+                ", utmContent='" + utmContent + '\'' +
+//                ", outer_number='" + outer_number + '\'' +
+//                ", comment='" + comment + '\'' +
+//                ", new_lead=" + new_lead +
+//                ", amoDealId=" + amoDealId +
+//                ", amoContactId=" + amoContactId +
+//                ", amoContactResponsibleId='" + amoContactResponsibleId + '\'' +
+//                ", lastOperationTime=" + lastOperationTime +
+//                ", outerPhone=" + outerPhone +
+//                ", callPhase=" + callPhase +
+//                ", sendedAnswerWsMessage=" + sendedAnswerWsMessage +
+//                ", rule=" + rule +
+                '}';
     }
 }

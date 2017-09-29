@@ -10,6 +10,7 @@ import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.SipConfigDao;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.json.JsonUser;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Email;
@@ -50,9 +51,15 @@ public class UserWebController {
         }
 
         String name = login;
-        if (name == null || name.length() < 4 || !MyStringUtils.validateThatContainsOnlyEngLettersAndNumbers(name)) {
+
+        if (name == null || name.length() < 4) {
             return new Message(Error, "Invalid name, or too short");
         }
+
+        if (!MyStringUtils.isLoginValid(login)) {
+            return new Message(Error, "Invalid name, or too short");
+        }
+
 
         if (login.contains("test")) {
             return new Message(Error, "Invalid name. Cant use 'test' in name");
@@ -118,20 +125,33 @@ public class UserWebController {
 
     @SuppressWarnings("Duplicates")
     @PostMapping("/set")
-    public Message getUser(@RequestBody JsonUser setUser, HttpServletRequest request) {
+    public Message setUser(@RequestBody JsonUser setUser, HttpServletRequest request) {
         String oldHash = request.getHeader("Authorization");
         User user = UserContainer.getUserByHash(oldHash);
         if (user == null) {
             return new Message(Error, "Authorization invalid");
         }
 
+        LOGGER.debug("{}: запрос изменения профиля пользователя: {}", user.getLogin(), setUser);
+
         String email = setUser.getEmail();
         if (email == null || !emailRegex.matcher(email).find()) {
             return new Message(Error, "Email is wrong.");
         }
 
+        String userPhoneNumber = setUser.getUserPhoneNumber();
+        try {
+            userPhoneNumber = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(userPhoneNumber);
+        } catch (UkrainianNumberParseException e) {
+            return new Message(Error, "Phone number is not Ukrainian");
+        }
+
         user.setEmail(email);
         user.setTrackingId(setUser.getTrackingId());
+        user.setFirstName(setUser.getFirstName());
+        user.setLastName(setUser.getLastName());
+        user.setMiddleName(setUser.getMiddleName());
+        user.setUserPhoneNumber(userPhoneNumber);
 
         try {
             HibernateController.update(user);
@@ -154,18 +174,18 @@ public class UserWebController {
         return new JsonUser(user);
     }
 
-    @PostMapping("/getFull")
-    public Object getFullUser(HttpServletRequest request) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Error, "Authorization invalid");
-        }
-
-        return user;
-    }
+//    @PostMapping("/getFull")
+//    public Object getFullUser(HttpServletRequest request) {
+//        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+//        if (user == null) {
+//            return new Message(Error, "Authorization invalid");
+//        }
+//
+//        return user;
+//    }
 
     @PostMapping("/remove")
-    public Message remove(HttpServletRequest request) {
+    public Message removeUser(HttpServletRequest request) {
         String hash = request.getHeader("Authorization");
         User user = UserContainer.getUserByHash(hash);
         if (user == null) {

@@ -1,6 +1,7 @@
 package ua.adeptius.asterisk.dao;
 
 
+import com.google.gson.stream.JsonWriter;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +10,11 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.telephony.Call;
 
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class MySqlStatisticDao {
 
-    private static Logger LOGGER =  LoggerFactory.getLogger(MySqlStatisticDao.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(MySqlStatisticDao.class.getSimpleName());
 
     private static ComboPooledDataSource statisticDataSource;
 
@@ -60,19 +64,7 @@ public class MySqlStatisticDao {
     }
 
 
-    public static int getCountStatisticOfRange(String user, String startDate, String endDate, String direction) throws Exception {
-        LOGGER.trace("{}: запрос количества строк статистики с {} по {} направление {}", user,startDate, endDate, direction);
-        String directionQuery = "direction = '" + direction + "' AND ";
-        if (direction.equals("BOTH")){
-            directionQuery = "";
-        }
-
-        String sql = "SELECT COUNT(*) FROM " + user +
-                " WHERE " +
-                directionQuery +
-                "calledDate BETWEEN STR_TO_DATE('" + startDate +
-                "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
-                "', '%Y-%m-%d %H:%i:%s')";
+    public static int getCountStatisticOfRange(String sql) throws Exception {
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
@@ -81,51 +73,96 @@ public class MySqlStatisticDao {
                 count = set.getInt("COUNT(*)");
             }
             return count;
-        } catch (Exception e) {
-            LOGGER.error(user+": ошибка получения количества строк истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
         }
-        throw new Exception("Ошибка при загрузке количества статистики с БД");
     }
 
 
-    public static List<Call> getStatisticOfRange(String user, String startDate, String endDate, String direction,
-                                                 int limit, int offset) throws Exception {
-        LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
-        String directionQuery = "direction = '" + direction + "' AND ";
-        if (direction.equals("BOTH")){
-            directionQuery = "";
-        }
-
-        String sql = "SELECT * FROM " + user +
-                " WHERE " +
-                directionQuery +
-                "calledDate BETWEEN STR_TO_DATE('" + startDate +
-                "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
-                "', '%Y-%m-%d %H:%i:%s')  LIMIT "+limit+" OFFSET "+offset;
+    public static List<Call> getStatisticOfRange(String sql) throws Exception {
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
             ResultSet set = statement.executeQuery(sql);
             List<Call> statisticList = new ArrayList<>();
             while (set.next()) {
                 Call call = new Call();
-                call.setCalledDate(set.getString("calledDate"));
+                call.setId(set.getInt("id"));
+                call.setCalledDate(set.getString("called_date"));
                 call.setDirection(Call.Direction.valueOf(set.getString("direction")));
-                call.setCalledFrom(set.getString("calledFrom"));
-                call.setCalledTo(Arrays.asList(set.getString("calledTo")));
-                call.setCallState(Call.CallState.valueOf(set.getString("callState")));
-                call.setSecondsFullTime(set.getInt("secondsFullTime"));
-                call.setSecondsTalk(set.getInt("secondsTalk"));
+                call.setCalledFrom(set.getString("called_from"));
+                call.setCalledTo(Arrays.asList(set.getString("called_to")));
+                call.setCallState(Call.CallState.valueOf(set.getString("call_state")));
+                call.setSecondsFullTime(set.getInt("seconds_full_time"));
+                call.setSecondsTalk(set.getInt("seconds_talk"));
                 call.setAsteriskId(set.getString("call_id"));
                 call.setGoogleId(set.getString("google_id"));
-                call.setUtm(set.getString("utm"));
+                call.setUtmSource(set.getString("utm_source"));
+                call.setUtmMedium(set.getString("utm_medium"));
+                call.setUtmCampaign(set.getString("utm_campaign"));
+                call.setUtmTerm(set.getString("utm_term"));
+                call.setUtmContent(set.getString("utm_content"));
+                call.setOuterNumber(set.getString("outer_number"));
+                call.setComment(set.getString("comment"));
+                call.setNewLead(set.getBoolean("new_lead"));
                 statisticList.add(call);
             }
             return statisticList;
-        } catch (Exception e) {
-            LOGGER.error(user+": ошибка получения истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
         }
-        throw new Exception("Ошибка при загрузке статистики с БД");
     }
+
+
+//    public static List<Call> getStatisticOfRangeOutputStream(String user, String startDate, String endDate, String direction,
+//                                                             int limit, int offset, OutputStream stream) throws Exception {
+//        LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
+//        String directionQuery = "direction = '" + direction + "' AND ";
+//        if (direction.equals("BOTH")){
+//            directionQuery = "";
+//        }
+//
+//        String sql = "SELECT * FROM " + user +
+//                " WHERE " +
+//                directionQuery +
+//                "calledDate BETWEEN STR_TO_DATE('" + startDate +
+//                "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
+//                "', '%Y-%m-%d %H:%i:%s')  LIMIT "+limit+" OFFSET "+offset;
+//        try (Connection connection = getStatisticConnection();
+//             Statement statement = connection.createStatement()) {
+//            ResultSet rs = statement.executeQuery(sql);
+//            List<Call> statisticList = new ArrayList<>();
+////            while (set.next()) {
+////                Call call = new Call();
+////                call.setCalledDate(set.getString("calledDate"));
+////                call.setDirection(Call.Direction.valueOf(set.getString("direction")));
+////                call.setCalledFrom(set.getString("calledFrom"));
+////                call.setCalledTo(Arrays.asList(set.getString("calledTo")));
+////                call.setCallState(Call.CallState.valueOf(set.getString("callState")));
+////                call.setSecondsFullTime(set.getInt("secondsFullTime"));
+////                call.setSecondsTalk(set.getInt("secondsTalk"));
+////                call.setAsteriskId(set.getString("call_id"));
+////                call.setGoogleId(set.getString("google_id"));
+////                call.setUtm(set.getString("utm"));
+////                statisticList.add(call);
+////            }
+//
+//            JsonWriter writer = new JsonWriter(new OutputStreamWriter(stream, "UTF-8"));
+//            writer.beginArray();
+//            ResultSetMetaData rsmd = rs.getMetaData();
+//            while(rs.next()) {
+//                writer.beginObject();
+//                // loop rs.getResultSetMetadata columns
+//                for(int idx=1; idx<=rsmd.getColumnCount(); idx++) {
+//                    writer.name(rsmd.getColumnLabel(idx)); // write key:value pairs
+//                    writer.value(rs.getString(idx));
+//                }
+//                writer.endObject();
+//            }
+//            writer.endArray();
+//            writer.close();
+//            stream.flush();
+//            return statisticList;
+//        } catch (Exception e) {
+//            LOGGER.error(user+": ошибка получения истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
+//        }
+//        throw new Exception("Ошибка при загрузке статистики с БД");
+//    }
 
     public static void deleteTables(List<String> tablesToDelete) {
         for (String s : tablesToDelete) {
@@ -136,7 +173,7 @@ public class MySqlStatisticDao {
                 statement.execute(sql);
                 LOGGER.debug("Таблица статистики {} была удалена.", s);
             } catch (Exception e) {
-                LOGGER.error("Ошибка удаления таблицы "+s, e);
+                LOGGER.error("Ошибка удаления таблицы " + s, e);
             }
         }
     }
@@ -146,23 +183,30 @@ public class MySqlStatisticDao {
             LOGGER.trace("Создание таблицы {}", s);
             String sql = "CREATE TABLE `" + s + "` (  " +
                     "`id` INT NOT NULL AUTO_INCREMENT,  " +
-                    "`calledDate` VARCHAR(20) NOT NULL,  " +
+                    "`called_date` VARCHAR(20) NOT NULL,  " +
                     "`direction` VARCHAR(3) NOT NULL,  " +
-                    "`calledFrom` VARCHAR(45) NULL,  " +
-                    "`calledTo` VARCHAR(45) NULL,  " +
-                    "`callState` VARCHAR(15) NOT NULL,  " +
-                    "`secondsFullTime` INT NULL,  " +
-                    "`secondsTalk` INT NULL,  " +
-                    "`call_id` VARCHAR(45) NULL,  " +
-                    "`google_id` VARCHAR(45) NULL,  " +
-                    "`utm` VARCHAR(600) NULL,  " +
+                    "`called_from` VARCHAR(13) NULL,  " +
+                    "`called_to` VARCHAR(45) NULL,  " +
+                    "`call_state` VARCHAR(11) NOT NULL,  " +
+                    "`seconds_full_time` TINYINT(4) NULL,  " +
+                    "`seconds_talk` TINYINT(4) NULL,  " +
+                    "`call_id` VARCHAR(18) NULL,  " +
+                    "`google_id` VARCHAR(24) NULL,  " +
+                    "`utm_source` VARCHAR(45) NULL,  " +
+                    "`utm_medium` VARCHAR(45) NULL,  " +
+                    "`utm_campaign` VARCHAR(45) NULL,  " +
+                    "`utm_term` VARCHAR(45) NULL,  " +
+                    "`utm_content` VARCHAR(45) NULL,  " +
+                    "`outer_number` VARCHAR(13) NULL,  " +
+                    "`comment` VARCHAR(100) NULL,  " +
+                    "`new_lead` TINYINT(1) NOT NULL,  " +
                     "PRIMARY KEY (`id`));";
             try (Connection connection = getStatisticConnection();
                  Statement statement = connection.createStatement()) {
                 statement.execute(sql);
                 LOGGER.debug("Таблица статистики {} была создана.", s);
             } catch (Exception e) {
-                LOGGER.error("Ошибка создания таблицы"+s, e);
+                LOGGER.error("Ошибка создания таблицы" + s, e);
             }
         }
     }
@@ -178,12 +222,19 @@ public class MySqlStatisticDao {
         int secondsFullTime = call.getSecondsFullTime();
         String asteriskId = call.getAsteriskId();
         String googleId = call.getGoogleId();
-        String utm = call.getUtm();
+        String utmSource = call.getUtmSource();
+        String utmMedium = call.getUtmMedium();
+        String utmCampaign = call.getUtmCampaign();
+        String utmTerm = call.getUtmTerm();
+        String utmContent = call.getUtmContent();
+        String outerNumber = call.getOuterNumber();
+        String comment = call.getComment();
+        boolean newLead = call.isNewLead();
 
         LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", login, calledFrom, calledTo);
         StringBuilder sb = new StringBuilder(28);
         sb.append("INSERT INTO `").append(login)
-                .append("` (`calledDate`, `direction`, `calledFrom`, `calledTo`, `callState`, `secondsFullTime`, `secondsTalk`, `call_id`, `google_id`, `utm`) VALUES ('")
+                .append("` (`called_date`, `direction`, `called_from`, `called_to`, `call_state`, `seconds_full_time`, `seconds_talk`, `call_id`, `google_id`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `outer_number`, `comment`, `new_lead`) VALUES ('")
                 .append(calledDate).append("', '")
                 .append(direction).append("', '")
                 .append(calledFrom).append("', '")
@@ -193,22 +244,61 @@ public class MySqlStatisticDao {
                 .append(secondsTalk).append("', '")
                 .append(asteriskId).append("',");
 
-        if (googleId != null){
-                    sb.append(" '").append(googleId).append("',");
-        }else {
+        if (googleId != null) {
+            sb.append(" '").append(googleId).append("',");
+        } else {
             sb.append(" null,");
         }
 
-        if (utm != null){
-            sb.append(" '").append(utm).append("');");
-        }else {
-            sb.append(" null);");
+        if (utmSource != null) {
+            sb.append(" '").append(utmSource).append("',");
+        } else {
+            sb.append(" null,");
         }
+
+        if (utmMedium != null) {
+            sb.append(" '").append(utmMedium).append("',");
+        } else {
+            sb.append(" null,");
+        }
+
+        if (utmCampaign != null) {
+            sb.append(" '").append(utmCampaign).append("',");
+        } else {
+            sb.append(" null,");
+        }
+
+        if (utmTerm != null) {
+            sb.append(" '").append(utmTerm).append("',");
+        } else {
+            sb.append(" null,");
+        }
+
+        if (utmContent != null) {
+            sb.append(" '").append(utmContent).append("',");
+        } else {
+            sb.append(" null,");
+        }
+
+        if (outerNumber != null) {
+            sb.append(" '").append(outerNumber).append("',");
+        } else {
+            sb.append(" null,");
+        }
+
+        if (comment != null) {
+            sb.append(" '").append(comment).append("',");
+        } else {
+            sb.append(" null,");
+        }
+
+        sb.append(" '").append(newLead ? 1 : 0).append("');");
+
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sb.toString());
         } catch (Exception e) {
-            LOGGER.error(login +": ошибка сохранения звонка "+calledFrom+" -> "+ calledTo, e);
+            LOGGER.error(login + ": ошибка сохранения звонка " + calledFrom + " -> " + calledTo, e);
         }
     }
 

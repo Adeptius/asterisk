@@ -1,10 +1,11 @@
-package ua.adeptius.asterisk;
+package ua;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Random;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
+@Ignore
 public class RemotePerformanceTest {
 
     private static Logger LOGGER = LoggerFactory.getLogger("-=TESTING=-");

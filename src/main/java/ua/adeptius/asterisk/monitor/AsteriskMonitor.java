@@ -11,12 +11,17 @@ import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 import org.asteriskjava.manager.*;
 import org.asteriskjava.manager.action.StatusAction;
+import ua.adeptius.asterisk.dao.Settings;
 import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class AsteriskMonitor implements ManagerEventListener {
@@ -53,7 +58,7 @@ public class AsteriskMonitor implements ManagerEventListener {
         public void run() {
             while (true) {
                 try {
-                    Thread.sleep(250);
+                    Thread.sleep(800);
                     updateSipsState();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -81,7 +86,22 @@ public class AsteriskMonitor implements ManagerEventListener {
     }
 
     public void reloadAsteriskCore(){
-       sendCommand("core reload");
+        if (!Main.settings.isItsLinux()){
+            LOGGER.warn("Плановой перезагрузки астериска не будет - это винда.");
+            return;
+        }
+        try {
+            Process process = Runtime.getRuntime().exec("/etc/cron.hourly/asterisk_reload.sh");
+            BufferedReader errorInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            List<String> collect = errorInput.lines().collect(Collectors.toList());
+            errorInput.close();
+            for (String s : collect) {
+                LOGGER.info("Плановая перезагрузка ядра астериска: " + s);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Ошибка плановой перезагрузки астериска", e);
+        }
+//       sendCommand("core reload");
     }
 
     public void reloadSips(){
@@ -122,6 +142,9 @@ public class AsteriskMonitor implements ManagerEventListener {
             sipsFreeMap.put(number, !busy);
             sipsFreeOrRingingMap.put(number, busy && ringing || !busy && !ringing);
         }
+//        for (Map.Entry<String, Boolean> entry : sipsFreeOrRingingMap.entrySet()) {
+//            System.out.println(entry.getKey() + " = " + entry.getValue());
+//        }
         sipsFree = sipsFreeMap;
         sipsFreeOrRinging = sipsFreeOrRingingMap;
     }

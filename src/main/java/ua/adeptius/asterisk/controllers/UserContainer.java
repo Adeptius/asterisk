@@ -62,7 +62,8 @@ public class UserContainer {
     public static void putUser(User user) {
         LOGGER.debug("Добавление пользователя {}", user);
         users.add(user);
-        hashes.put(createMd5(user), user);
+        String md5 = createMd5(user);
+        hashes.put(md5, user);
     }
 
 

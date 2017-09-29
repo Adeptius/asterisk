@@ -11,6 +11,8 @@ import org.asteriskjava.manager.ManagerConnectionFactory;
 import org.asteriskjava.manager.TimeoutException;
 import org.asteriskjava.manager.action.*;
 import org.asteriskjava.manager.response.CommandResponse;
+import org.asteriskjava.manager.response.ManagerResponse;
+import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
 
 public class HelloManager {
 
@@ -28,27 +30,34 @@ public class HelloManager {
     }
 
     public void call() throws IOException, AuthenticationFailedException, TimeoutException, InterruptedException {
-
-
-//        long t0 = System.nanoTime();
-        CommandAction action = new CommandAction();
-        action.setCommand("dialplan reload");
+//        CommandAction action = new CommandAction();
+//        action.setCommand("dialplan reload");
 //        action.setCommand("core reload");
 //        action.setCommand("sip reload");
 //        action.setCommand("core show help");
+//        action.setCommand("sip show peers");
 //        action.setCommand("config reload core");
-//        action.setCommand("service asterisk reload");
 //        action.setCommand("config list ");
 ////        action.setCommand("core show hanguphandlers all");
-        CommandResponse response = (CommandResponse) managerConnection.sendAction(action);
-        List<String> list = response.getResult();
-//        System.out.println(TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - t0));
 
-        list.forEach(System.err::println);
+//        action.setCommand("dialplan add extension 6000001,1,Dial into pa-call-file");
+//        CommandResponse response = (CommandResponse) managerConnection.sendAction(action);
+//        List<String> list = response.getResult();
+//        list.forEach(System.err::println);
+
+        OriginateAction action = new OriginateAction();
+        action.setChannel("SIP/Intertelekom_main/0934027182");
+        action.setExten("2001036");
+        action.setCallerId("0934027182");
+        action.setContext("from-internal");
+        action.setPriority(1);
+        action.setApplication("AGI");
+        action.setData("agi://78.159.55.63/in_c2c_processor.agi");
+
 
 //        OriginateAction action = AsteriskActionsGenerator.callToOutside("2001036", "0934027182", "Vova");
-//        ManagerResponse originateResponse = managerConnection.sendAction(action, 20000);
-//        System.err.println(originateResponse);
+        ManagerResponse originateResponse = managerConnection.sendAction(action, 20000);
+        System.err.println(originateResponse);
         managerConnection.logoff();
     }
 }

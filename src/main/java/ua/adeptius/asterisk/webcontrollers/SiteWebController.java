@@ -1,7 +1,5 @@
 package ua.adeptius.asterisk.webcontrollers;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +11,12 @@ import ua.adeptius.asterisk.json.JsonSite;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import ua.adeptius.asterisk.utils.MyStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Set;
 
 @Controller
@@ -24,97 +24,114 @@ import java.util.Set;
 @RequestMapping(value = "/sites", produces = "application/json; charset=UTF-8")
 public class SiteWebController {
     //    private static boolean safeMode = true;
-    private static Logger LOGGER =  LoggerFactory.getLogger(SiteWebController.class.getSimpleName());
+    private static Logger LOGGER = LoggerFactory.getLogger(SiteWebController.class.getSimpleName());
     private boolean safeMode = true;
 
 
-    @PostMapping("/add")
-    public Message add(@RequestBody JsonSite jsonSite, HttpServletRequest request) {
+    @PostMapping("/set")
+    public Message set(@RequestBody JsonSite jsonSite, HttpServletRequest request) {
         User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
         }
 
-        String newName = jsonSite.getName();
-        String newStandardNumber = jsonSite.getStandardNumber().replaceAll("\\D+", "");;
+        String siteName = jsonSite.getName();
+        String newStandardNumber = jsonSite.getStandardNumber();
         Integer newtimeToBlock = jsonSite.getTimeToBlock();
+        ArrayList<String> blackList = jsonSite.getBlackList();
 
-        if (!MyStringUtils.validateThatContainsOnlyEngLettersAndNumbers(newName)){
-            return new Message(Message.Status.Error, "Invalid name, must contains only english letter or numbers");
+        if (blackList != null && blackList.size() > 100) {
+            LOGGER.debug("{}: черный список содержит более 100 записей ", user.getLogin());
+            return new Message(Message.Status.Error, "BlackList size limit");
         }
 
+        if (StringUtils.isBlank(siteName) || !MyStringUtils.isLoginValid(siteName)) {
+            LOGGER.debug("{}: неправильное название сайта {}", user.getLogin(), jsonSite.getName());
+            return new Message(Message.Status.Error, "Invalid name");
+        }
 
         if (StringUtils.isBlank(newStandardNumber)) {
+            LOGGER.debug("{}: не указан стандартный номер.", user.getLogin());
             return new Message(Message.Status.Error, "Wrong standart number");
         }
-
+        newStandardNumber = newStandardNumber.replaceAll("\\D+", "");
 
         if (newtimeToBlock == null || newtimeToBlock == 0) {
             newtimeToBlock = 120;
         }
 
-        if (user.getSiteByName(newName) != null){
-            return new Message(Message.Status.Error, "Site already exists");
+        // Проверяем свободны ли номера, которые будем привязывать.
+        ArrayList<String> futureConnectedPhones = jsonSite.getConnectedPhones();
+        if (futureConnectedPhones == null) {
+            futureConnectedPhones = new ArrayList<>();
         }
 
 
-        Site site = new Site();
-        site.setName(newName);
+        for (String futureConnectedPhone : futureConnectedPhones) { // проверяем каждый желаемый номер по очереди
+            // находим телефон по этому номеру.
+            OuterPhone outerPhoneByNumber = user.getOuterPhoneByNumber(futureConnectedPhone);
+            if (outerPhoneByNumber == null) { // такого номера у пользователя нет - ошибка на сайте
+                return new Message(Message.Status.Error, "Invalid number " + futureConnectedPhone);
+            }
+            String phoneConnectedSite = outerPhoneByNumber.getSitename();
+            if (phoneConnectedSite == null) {// этот телефон свободен - можно будет его привязывать. Продолжаем.
+                continue;
+            } else { // этот телефон занят. Если этим же сайтом - то все хорошо, а если другим - сообщаем.
+                if (!phoneConnectedSite.equals(siteName)) {
+                    return new Message(Message.Status.Error, "Number is busy " + futureConnectedPhone);
+                }
+            }
+        }
+
+
+        Site site = user.getSiteByName(siteName);
+        if (site == null) {
+            LOGGER.info("{}: запрос добавления сайта {}", user.getLogin(), jsonSite);
+            site = new Site();
+            site.setName(siteName);
+            user.addSite(site);
+        } else {
+            LOGGER.info("{}: запрос изменения сайта {}", user.getLogin(), jsonSite);
+        }
+
         site.setStandardNumber(convertPhone(newStandardNumber));
         site.setTimeToBlock(newtimeToBlock);
 
-
-        try {
-            user.addSite(site);
-            HibernateController.update(user);
-            return new Message(Message.Status.Success, "Site added");
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка добавление сайта: "+jsonSite, e);
-            return new Message(Message.Status.Error, "Internal error");
-        }
-//        finally {
-//            if (safeMode)
-//                user.reloadTrackingFromDb();
-//        }
-    }
-
-    @PostMapping("/edit")
-    public Message edit(HttpServletRequest request, @RequestBody JsonSite jsonSite) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Message.Status.Error, "Authorization invalid");
+        if (blackList != null) {
+            site.setBlackLinkedList(blackList);
         }
 
-        String jName = jsonSite.getName();
-        String jStandardNumber = jsonSite.getStandardNumber().replaceAll("\\D+", "");
-        Integer jTimeToBlock = jsonSite.getTimeToBlock();
+        // назначаем номера на сайт. Надо освободить номера, если их число уменьшилось.
+        Set<OuterPhone> outerPhones = user.getOuterPhones();
+        for (OuterPhone outerPhone : outerPhones) {
+            String number = outerPhone.getNumber();
+            if (futureConnectedPhones.contains(number)){ // если это тот номер, который мы привязываем
+                outerPhone.setSitename(siteName);
 
-        Site site = user.getSiteByName(jName);
-        if (site == null) {
-            return new Message(Message.Status.Error, "User have no such site");
-        }
-
-        if (!StringUtils.isBlank(jStandardNumber)) {
-            site.setStandardNumber(convertPhone(jStandardNumber));
-        }
-
-        if (jTimeToBlock != null && jTimeToBlock != 0) {
-            site.setTimeToBlock(jTimeToBlock);
-        }
-
-        try {
-            HibernateController.update(user);
-            return new Message(Message.Status.Success, "Site updated");
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка обновления сайта " + jsonSite, e);
-            return new Message(Message.Status.Error, "Internal error");
-        }
-        finally {
-            if (safeMode){
-
+            }else { // остальные номера надо проверить. Возможно надо от этого сайта их отвязать.
+                String currentSiteName = outerPhone.getSitename();
+                if (currentSiteName != null && currentSiteName.equals(siteName)){
+                    // если телефон сейчас привязан к этому сайту - отвязываем, так как его нет в списке будущих привязок.
+                    outerPhone.setSitename(null);
+                }
             }
         }
+
+
+        for (String futureConnectedPhone : futureConnectedPhones) {
+            user.getOuterPhoneByNumber(futureConnectedPhone).setSitename(siteName);
+        }
+
+        try {
+            HibernateController.update(user);
+            LOGGER.debug("{}: сайт добавлен или изменён", user.getLogin());
+            return new Message(Message.Status.Success, "Site setted");
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": ошибка добавление сайта: " + jsonSite, e);
+            return new Message(Message.Status.Error, "Internal error");
+        }
     }
+
 
     @PostMapping("/remove")
     public Message removeSite(HttpServletRequest request, @RequestParam String siteName) {
@@ -122,27 +139,30 @@ public class SiteWebController {
         if (user == null) {
             return new Message(Message.Status.Error, "Authorization invalid");
         }
+
+        LOGGER.info("{}: запрос удаления сайта {}", user.getLogin(), siteName);
+
         Site site = user.getSiteByName(siteName);
         if (site == null) {
+            LOGGER.debug("{}: такого сайта у пользователя нет", user.getLogin());
             return new Message(Message.Status.Error, "User have no such site");
         }
 
         try {
             site.releaseAllPhones();
-            user.getSites().remove(site);
+            user.removeSite(site);
             HibernateController.update(user);
+            LOGGER.debug("{}: сайт {} удалён", user.getLogin(), siteName);
             return new Message(Message.Status.Success, "Site removed");
         } catch (Exception e) {
-            LOGGER.error(user.getLogin()+": ошибка удаления трекинга", e);
+            LOGGER.error(user.getLogin() + ": ошибка удаления трекинга", e);
             return new Message(Message.Status.Error, "Internal error");
-        }
-        finally {
-            if (safeMode){
+        } finally {
+            if (safeMode) {
 
             }
         }
     }
-
 
     @PostMapping("/get")
     public Object getBlackList(HttpServletRequest request) {
@@ -154,14 +174,28 @@ public class SiteWebController {
         if (sites == null || sites.size() == 0) {
             return new Message(Message.Status.Error, "User have no sites");
         }
-//        try {
-//            String s = new ObjectMapper().writeValueAsString(sites);
-//            return s;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return "error";
-//        }
         return sites;
+    }
+
+
+    @PostMapping("/sendScript")
+    public Object sendScriptInstruction(HttpServletRequest request, String email, String comment, String siteName){
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Message.Status.Error, "Authorization invalid");
+        }
+
+        Site site = user.getSiteByName(siteName);
+        if (site == null) {
+            LOGGER.debug("{}: такого сайта у пользователя нет", user.getLogin());
+            return new Message(Message.Status.Error, "User have no such site");
+        }
+
+
+        String error = "Wrong email";
+        String error2 = "Internal error";
+
+        return new Message(Message.Status.Success, "Mail sended");
     }
 
 

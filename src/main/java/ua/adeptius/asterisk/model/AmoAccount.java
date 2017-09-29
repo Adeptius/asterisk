@@ -1,8 +1,6 @@
 package ua.adeptius.asterisk.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -59,6 +57,9 @@ public class AmoAccount implements Serializable {
     @Column(name = "api_user_id")
     private String apiUserId;
 
+    @Column(name = "responsible_string")
+    private String responsibleUserScheduleString;
+
     @Column(name = "lead_id")
     private int leadId;//todo хрень
 
@@ -69,6 +70,35 @@ public class AmoAccount implements Serializable {
     @ManyToOne
     @JoinColumn(name = "nextel_login", insertable = false, updatable = false)
     private User user;
+
+    @JsonProperty
+    public String[] getResponsibleUserSchedule(){
+        if (responsibleUserScheduleString == null){
+            return new String[7];
+        }
+        String[] split = responsibleUserScheduleString.split(",");
+        if (split.length < 7){
+            return new String[7];
+        }else {
+            return split;
+        }
+    }
+
+    public void setResponsibleUserSchedule(String[] schedule){
+        if (schedule == null){
+            responsibleUserScheduleString = null;
+            return;
+        }
+        String result = "";
+        for (String s : schedule) {
+            result += "," + s;
+        }
+        if (result.length() > 1){
+            result = result.substring(1);
+        }
+        responsibleUserScheduleString = result;
+    }
+
 
     @Nullable
     public String getWorkersPhone(String workerId){

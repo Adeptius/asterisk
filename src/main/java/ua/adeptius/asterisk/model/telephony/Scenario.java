@@ -79,6 +79,9 @@ public class Scenario {
         return getRuleByTime(day, hour);
     }
 
+    /**
+     * day 1-понедельник, 7-воскресенье
+     */
     public Rule getRuleByTime(int day, int hour){
         List<Rule> rules = getRules();
         Rule ruleToReturn = null;
@@ -88,7 +91,7 @@ public class Scenario {
                 defaultRule = rule;
                 continue;
             }
-            if (rule.getDays()[day] && rule.getStartHour() <= hour && rule.getEndHour() > hour){
+            if (rule.getDays()[day-1] && rule.getStartHour() <= hour && rule.getEndHour() > hour){
                 ruleToReturn = rule;
                 break;
             }

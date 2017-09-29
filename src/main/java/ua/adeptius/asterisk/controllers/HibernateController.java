@@ -41,6 +41,10 @@ public class HibernateController {
         hibernateDao.saveUser(user);
     }
 
+    public static void saveOrUpdateUser(User user) throws Exception {
+        hibernateDao.saveOrUpdateUser(user);
+    }
+
     public static void delete(User user) {
         hibernateDao.delete(user);
     }
@@ -225,4 +229,12 @@ public class HibernateController {
     public static List<Rule> getAllRules(){
        return hibernateDao.getAllRules();
     }
+
+//    public static void removeTestUserFromDBAndContainerIfExist() throws Exception {
+//        hibernateDao.removeTestUserIfExist();
+//        User hibernate = UserContainer.getUserByName("hibernate");
+//        if (hibernate != null) {
+//            UserContainer.removeUser(hibernate);
+//        }
+//    }
 }

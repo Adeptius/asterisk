@@ -4,12 +4,14 @@ package ua.adeptius.asterisk.webcontrollers;
 import org.asteriskjava.manager.TimeoutException;
 import org.asteriskjava.manager.action.OriginateAction;
 import org.asteriskjava.manager.response.ManagerResponse;
+import org.hibernate.boot.jaxb.SourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.utils.AsteriskActionsGenerator;
@@ -32,61 +34,32 @@ public class ClickToCallWebController {
         usersCache.clear();
     }
 
-    @GetMapping(value = "/{user}/{number}")
+    @GetMapping(value = "/{username}/{number}/{siteName}")
     @ResponseBody
-    public Object plaintext(@PathVariable String user, @PathVariable String number) {
-        User userObject = UserContainer.getUserByName(user);
-        if (userObject == null) {
+    public Object plaintext(@PathVariable String username, @PathVariable String number, @PathVariable String siteName) {
+        User user = UserContainer.getUserByName(username);
+        if (user == null) {
             return "BAD_REQUEST";
         }
 
         try {
             number = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(number);
-        } catch (IllegalArgumentException e) {
+        } catch (UkrainianNumberParseException e) {
             return new Message(Message.Status.Error, "Wrong number");
         }
 
-        OriginateAction originateAction = AsteriskActionsGenerator.callToOutsideFromOuter("0443211118", number, "C2C "+number);
+//        OriginateAction originateAction = AsteriskActionsGenerator.callToOutsideFromOuter("0443211118", number, "C2C "+number);
+        OriginateAction originateAction = AsteriskActionsGenerator
+                .callToOutside("2001036", number, "C2C " + siteName + " " + number);
         // todo нужно сделать какую-то внутреннюю линию
         try {
             ManagerResponse managerResponse = Main.monitor.sendAction(originateAction, 10);
             System.out.println(managerResponse);
         } catch (IOException e) {
-//            e.printStackTrace();
-        } catch (TimeoutException e) {
-//            e.printStackTrace();
+            e.printStackTrace();
+        } catch (TimeoutException ignored){
+            System.out.println("Timeout");
         }
         return new Message(Message.Status.Success, "Success");
     }
-
-
-//    @GetMapping(value = "/", produces = "text/html; charset=UTF-8")
-//    public String main() {
-//        return "main";
-//    }
-//
-//
-//    @GetMapping(value = "/login", produces = "text/html; charset=UTF-8")
-//    public String login() {
-//        return "login";
-//    }
-
-
-//    @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")
-//    @ResponseBody
-//    public Object checkLogin(@RequestParam String login, @RequestParam String password) {
-//        User user = UserContainer.getUserByName(login);
-//        if (user == null) {
-//            return new Message(Message.Status.Error, "Wrong login or password");
-//        }
-//        if (!user.getPassword().equals(password)) {
-//            return new Message(Message.Status.Error, "Wrong login or password");
-//        }
-//        String hash = UserContainer.getHashOfUser(user);
-//        if (hash == null) {
-//            return new Message(Message.Status.Error, "Wrong login or password");
-//        }
-//
-//        return "{\"token\":\"" + hash + "\"}";
-//    }
 }

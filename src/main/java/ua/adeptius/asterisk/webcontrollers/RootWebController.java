@@ -48,19 +48,6 @@ public class RootWebController {
         return TrackingController.getFreeNumberFromSite(userObject, siteObject, googleid, ip, pagerequest);
     }
 
-
-//    @GetMapping(value = "/", produces = "text/html; charset=UTF-8")
-//    public String main() {
-//        return "main";
-//    }
-//
-//
-//    @GetMapping(value = "/login", produces = "text/html; charset=UTF-8")
-//    public String login() {
-//        return "login";
-//    }
-
-
     @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public Message checkLogin(@RequestParam String login, @RequestParam String password) {
@@ -77,15 +64,5 @@ public class RootWebController {
         }
 
         return new Message(Success, hash);
-//        return "{\"token\":\"" + hash + "\"}";
     }
-
-
-    @RequestMapping(value = "/404")
-    public String checkLogin() {
-        return "error404";
-    }
-
-
-
 }

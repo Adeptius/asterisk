@@ -67,7 +67,7 @@ public class RoistatPhoneCall {
         this.visit_id = null;
 
 //        null or string Маркер рекламного канала
-        this.marker = call.getUtm();
+//        this.marker = call.getUtm(); // todo utm
 
 //        null or string     Номер заказа из CRM
         int amoDealId = call.getAmoDealId();

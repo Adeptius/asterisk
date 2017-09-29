@@ -129,7 +129,6 @@ public class PhonesWebController {
                 LOGGER.debug("{}: Удалено {} внешних номеров. Теперь их {}", login, redutrantNumbers.size(), outerPhones.size());
 
                 // изменено количество внешних номеров. Обновляем Кэши
-                Scheduler.reloadOuterOnNextScheduler();
 
             } else {
                 LOGGER.debug("{}: Количество внешних номеров не меняется", login);
@@ -176,35 +175,6 @@ public class PhonesWebController {
                 } catch (Exception e) {
                     LOGGER.error(user.getLogin() + ": ошибка синхронизации после изменения количества номеров", e);
                 }
-        }
-    }
-
-
-    @PostMapping("/setBindings")
-    public Message getBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newAssign) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Error, "Authorization invalid");
-        }
-
-        // проверим все ли присланные имена сайтов существуют
-        for (String sitename : newAssign.values()) {
-            if (user.getSiteByName(sitename) == null){
-                return new Message(Error, "No site with name " + sitename);
-            }
-        }
-
-        for (OuterPhone outerPhone : user.getOuterPhones()) {
-            String site = newAssign.get(outerPhone.getNumber());
-            outerPhone.setSitename(site);// если ключа в мапе нет - вернётся null и телефон освободится.
-        }
-
-        try {
-            HibernateController.update(user);
-            return new Message(Success, "Bindings saved");
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + " ошибка сохранения назначения телефонов к сайтам: " + newAssign, e);
-            return new Message(Error, "Internal error");
         }
     }
 }

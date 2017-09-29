@@ -77,38 +77,37 @@ public class Scheduler{
      *  Asterisk reloading
      */
     private static boolean needToSipReload;
-    private static boolean needToOuterReload;
+//    private static boolean needToOuterReload;
     private static Set<User> usersThatChangedRules = new HashSet<>();
+    private static Set<User> usersThatChangedOuterNumbersOrBindings = new HashSet<>();
 
     public static void reloadSipOnNextScheduler() {
         needToSipReload = true;
     }
 
-    public static void reloadOuterOnNextScheduler() {
-        needToOuterReload = true;
-    }
+//    public static void reloadOuterOnNextScheduler() {
+//        needToOuterReload = true;
+//    }
 
     public static void reloadDialPlanForThisUserAtNextScheduler(User user){
         usersThatChangedRules.add(user);
     }
 
 
+    public static void rewriteRulesFilesForThisUserAtNextScheduler(User user){
+        usersThatChangedOuterNumbersOrBindings.add(user);
+    }
+
+
     @Scheduled(cron = "0 * * * * ?") // каждую минуту
     private void startClean(){
+        // что бы в этом методе по 2-3 раза не бутать ядро - делаем это один раз в конце, если true
+        boolean needToReloadCoreAfterThisMethodEnds = false;
+
+
         if (needToSipReload){
             LOGGER.info("Выполняется плановая перезагрузка сип конфигов астериска");
-            try {
-                Process process = Runtime.getRuntime().exec("service asterisk reload");
-                BufferedReader errorInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                List<String> collect = errorInput.lines().collect(Collectors.toList());
-                errorInput.close();
-                for (String s : collect) {
-                    LOGGER.info("Ответ по комманде service asterisk reload: " + s);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            needToReloadCoreAfterThisMethodEnds = true;
             updatePhonesMapForCallProcessor();
             needToSipReload = false;
         }
@@ -153,15 +152,21 @@ public class Scheduler{
             }
         }
 
-        if (needToOuterReload){
-            LOGGER.info("Выполняется плановая перезагрузка внешних номеров");
-
-            updatePhonesMapForCallProcessor();
-            needToOuterReload = false;
+        int outerSize = usersThatChangedOuterNumbersOrBindings.size();
+        if (outerSize > 0){
+            LOGGER.info("{} пользователей удалили внешний номер или назначили сценарии на правила", outerSize);
+            Iterator<User> iterator = usersThatChangedOuterNumbersOrBindings.iterator();
+            while (iterator.hasNext()){
+                User user = iterator.next();
+                RulesConfigDAO.writeUsersRuleFile(user);
+                iterator.remove();
+            }
+            needToReloadCoreAfterThisMethodEnds = true;
         }
 
-//        LOGGER.trace("Очистка карты number <-> Call");
-//        CallProcessor.calls.clear();
+        if (needToReloadCoreAfterThisMethodEnds){
+            Main.monitor.reloadAsteriskCore();
+        }
     }
 
 
@@ -172,7 +177,7 @@ public class Scheduler{
      * Scenario writer
      */
     private static int scenarioTries = 0;
-    @Scheduled(cron = "0 59 * * * ?") // в 59 минут каждого часа
+    @Scheduled(cron = "20 59 * * * ?") // в 20 секунд, 59 минут каждого часа
     private void generateConfig(){
         LOGGER.info("Начинается запись всех конфигов астериска в файлы.");
 

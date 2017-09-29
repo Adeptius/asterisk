@@ -215,26 +215,25 @@ public class ChainElement {
     }
 
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        ChainElement element = (ChainElement) o;
-//
-//        if (id != element.id) return false;
-//        if (login != null ? !login.equals(element.login) : element.login != null) return false;
-//        if (rule != null ? !rule.equals(element.rule) : element.rule != null) return false;
-//        return position != null ? position.equals(element.position) : element.position == null;
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        int result = login != null ? login.hashCode() : 0;
-//        result = 31 * result + (rule != null ? rule.hashCode() : 0);
-//        result = 31 * result + (position != null ? position.hashCode() : 0);
-//        return result;
-//    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ChainElement element = (ChainElement) o;
+
+        if (login != null ? !login.equals(element.login) : element.login != null) return false;
+        if (rule != null ? !rule.equals(element.rule) : element.rule != null) return false;
+        return position != null ? position.equals(element.position) : element.position == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = login != null ? login.hashCode() : 0;
+        result = 31 * result + (rule != null ? rule.hashCode() : 0);
+        result = 31 * result + (position != null ? position.hashCode() : 0);
+        return result;
+    }
 
     @Override
     public String toString() {

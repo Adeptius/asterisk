@@ -18,15 +18,9 @@ import java.util.Properties;
 //@PropertySource({ "classpath:config.properties" })
 public class HibernateConfig {
 
-
-
-//    @Value("${jdbc.url}")
     private String url = Main.settings.getDbUrl() + "calltrackdb";
-//    @Value("${jdbc.username}")
     private String username = Main.settings.getDbUsername();
-//    @Value("${jdbc.password}")
     private String password = Main.settings.getDbPassword();
-
 
     @Bean
     public DataSource dataSource() throws Exception{
@@ -44,7 +38,6 @@ public class HibernateConfig {
 
     @Bean
     public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
-//    public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
         sessionFactory.setPackagesToScan("ua.adeptius.asterisk.model"); // Где лежат сущности
@@ -56,6 +49,8 @@ public class HibernateConfig {
         Properties properties = new Properties();
         properties.put(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQLDialect");
         properties.put(AvailableSettings.SHOW_SQL, false);
+        properties.put(AvailableSettings.FORMAT_SQL, false);
+        properties.put(AvailableSettings.USE_SQL_COMMENTS, false);
         properties.put(AvailableSettings.CURRENT_SESSION_CONTEXT_CLASS, "org.springframework.orm.hibernate5.SpringSessionContext");
         properties.put("hibernate.connection.CharSet", "UTF-8");
         properties.put("hibernate.connection.useUnicode", true);

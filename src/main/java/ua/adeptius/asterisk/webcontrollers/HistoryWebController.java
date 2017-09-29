@@ -6,12 +6,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.MySqlStatisticDao;
+import ua.adeptius.asterisk.exceptions.JsonHistoryQueryValidationException;
 import ua.adeptius.asterisk.json.JsonHistoryQuery;
 import ua.adeptius.asterisk.json.JsonHistoryResponse;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.telephony.Call;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -28,8 +30,8 @@ import java.util.stream.Collectors;
 @ResponseBody
 public class HistoryWebController {
 
-    //TODO offset, count
-    private static Logger LOGGER =  LoggerFactory.getLogger(HistoryWebController.class.getSimpleName());
+
+    private static Logger LOGGER = LoggerFactory.getLogger(HistoryWebController.class.getSimpleName());
 
     @PostMapping("/get")
     public Object getHistory(@RequestBody JsonHistoryQuery query, HttpServletRequest request) {
@@ -39,47 +41,26 @@ public class HistoryWebController {
         }
 
         String login = user.getLogin();
+        LOGGER.debug("{}: запрос истории: {}", login, query);
 
-        String dateFrom = query.getDateFrom();
-        String dateTo = query.getDateTo();
-        String direction = query.getDirection();
-        int limit = query.getLimit();
-        int offset = query.getOffset();
-
-        if ( 1 > limit || limit > 300){
-            return new Message(Message.Status.Error, "Limit range is 1-300");
-        }
-
-        if (offset < 0){
-            return new Message(Message.Status.Error, "Offset is less than 0");
-        }
-
-        if (!direction.equals("IN") && !direction.equals("OUT") && !direction.equals("BOTH")) {
-            return new Message(Message.Status.Error, "Wrong direction");
-        }
-
-        if (!Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}").matcher(dateFrom).find()) {
-            return new Message(Message.Status.Error, "Wrong FROM date");
-        }
-
-        if (!Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}").matcher(dateTo).find()) {
-            return new Message(Message.Status.Error, "Wrong TO date");
+        if (query == null) {
+            return new Message(Message.Status.Error, "Query null");
         }
 
         try {
+            String sqlCount = query.buildSqlQueryCount(login);
+            String sqlResult = query.buildSqlQueryResult(login);
 
-        // если offset 0 то с ответом передаём количество записей с помощью второго запроса
-            int count = -1;
-            if (offset == 0){
-                count = MySqlStatisticDao.getCountStatisticOfRange(login, dateFrom, dateTo, direction);
-            }
+            int count = MySqlStatisticDao.getCountStatisticOfRange(sqlCount);
+            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(sqlResult);
 
-            LOGGER.debug("{}: запрос истории c {} по {}, направление {}", login, dateFrom, dateTo, direction);
-            List<Call> calls = MySqlStatisticDao.getStatisticOfRange(login, dateFrom, dateTo, direction, limit, offset);
+            return new JsonHistoryResponse(query.getLimit(), query.getOffset(), calls, count);
+        } catch (JsonHistoryQueryValidationException valEx) {
+            LOGGER.debug("{}: запрос истории неправильный: {}",login, valEx.getMessage());
+            return new Message(Message.Status.Error, valEx.getMessage());
 
-            return new JsonHistoryResponse(limit,offset, calls, count);
         } catch (Exception e) {
-            LOGGER.error(login +": ошибка запроса истории c "+dateFrom+" по "+dateTo+", направление "+direction, e);
+            LOGGER.error(login + ": ошибка запроса истории", e);
             return new Message(Message.Status.Error, "Internal error");
         }
     }
@@ -92,13 +73,13 @@ public class HistoryWebController {
         String day = date.substring(8, 10);
 
         try {
-            LOGGER.trace("Запрос записи звонка ID {}, Date {}",id, date);
+            LOGGER.trace("Запрос записи звонка ID {}, Date {}", id, date);
             File file = findFile(year, month, day, id);
             response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
             Files.copy(file.toPath(), response.getOutputStream());
             response.flushBuffer();
         } catch (Exception e) {
-            LOGGER.error("Ошибка получения записи ID "+id+" Date "+date, e);
+            LOGGER.error("Ошибка получения записи ID " + id + " Date " + date, e);
             throw new RuntimeException("File not found");
         }
     }

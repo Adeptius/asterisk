@@ -17,6 +17,7 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.*;
 import ua.adeptius.asterisk.monitor.*;
 import ua.adeptius.asterisk.senders.EmailSender;
+import ua.adeptius.asterisk.senders.ErrorsMailSender;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -142,8 +143,6 @@ public class Main {
         }
 
         LOGGER.info("Кеширование номеров и пользователей");
-//        CallProcessor.updatePhonesHashMap(); // обновляем мапу для того что бы знать с кем связан номер
-//        AsteriskLogAnalyzer.updatePhonesHashMap();
         CallProcessor.updatePhonesHashMap();
 
         try {
@@ -152,7 +151,6 @@ public class Main {
             e.printStackTrace();
         }
 
-        new Cli().start(); // Запуск AGI интерфейса астериска
 
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
         try {
@@ -161,50 +159,9 @@ public class Main {
             e.printStackTrace();
         }
 
+        new Cli().start(); // Запуск AGI интерфейса астериска
         new PhoneWatcher();
+        new ErrorsMailSender();
 
-
-//        new Thread(() -> {
-//            while (true){
-//                try {
-//                    Thread.sleep(4000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                try{
-//
-//                    WsMessage message = new WsMessage(incomingCall);
-//                    message.setFrom("0934027182");
-//                    message.setCallPhase(MessageCallPhase.dial);
-//                    WebSocket.sendMessage("1559047", message);// отправляем
-//                    WebSocket.sendMessage("1704316", message);// отправляем
-//                    WebSocket.sendMessage("1704310", message);// отправляем
-//
-//                    Thread.sleep(2000);
-//
-//                    message = new WsMessage(incomingCall);
-//                    message.setFrom("0934027182");
-//                    message.setCallPhase(MessageCallPhase.dial);
-//                    WebSocket.sendMessage("1559047", message);// отправляем
-//                    WebSocket.sendMessage("1704316", message);// отправляем
-//                    WebSocket.sendMessage("1704310", message);// отправляем
-//
-//                    Thread.sleep(2000);
-//
-//                    message = new WsMessage(incomingCall);
-//                    message.setFrom("0934027182");
-//                    message.setCallPhase(MessageCallPhase.answer);
-//                    WebSocket.sendMessage("1559047", message);// отправляем
-//                    WebSocket.sendMessage("1704316", message);// отправляем
-//                    WebSocket.sendMessage("1704310", message);// отправляем
-//
-//
-//
-//
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
     }
 }

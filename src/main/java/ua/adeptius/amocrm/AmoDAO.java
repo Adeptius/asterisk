@@ -21,6 +21,7 @@ import ua.adeptius.amocrm.model.json.JsonAmoDeal;
 import ua.adeptius.asterisk.model.AmoAccount;
 import ua.adeptius.asterisk.model.telephony.Call;
 import ua.adeptius.asterisk.model.IdPairTime;
+import ua.adeptius.asterisk.senders.ErrorsMailSender;
 
 
 import javax.annotation.Nonnull;
@@ -276,6 +277,11 @@ public class AmoDAO {
     @Nullable
     public static JsonAmoDeal getContactsLatestActiveDial(AmoAccount amoAccount, @Nonnull JsonAmoContact contact) throws Exception {
         List<JsonAmoDeal> allDeals = getDealById(amoAccount, contact.getLinked_leads_id());
+
+        if (allDeals == null) {
+            return null;
+        }
+
         List<JsonAmoDeal> activeDials = new ArrayList<>();
         for (JsonAmoDeal deal : allDeals) {
             if (deal.isOpen()) {
@@ -312,6 +318,10 @@ public class AmoDAO {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
         LOGGER.debug("{}: Запрос сделки в amo {} по id: {}", login, amoLogin, id);
+        if (id.size() == 0) {
+            LOGGER.debug("{}: у контакта сделок нет", login);
+            return null;
+        }
 
         String url = "api/v2/json/leads/list?id[]=" + id.get(0);
         for (int i = 1; i < id.size(); i++) {
@@ -344,6 +354,100 @@ public class AmoDAO {
 //                + ",\"element_type\":\"2\",\"note_type\":4 ,\"text\":\"" + coment + "\"" + stringedTime + "}]}}}";
 //        getJResponse(false, amoAccount, "api/v2/json/notes/set", request, null);
 //    }
+
+
+    public static String doChangeMailForWidOnly(AmoAccount amoAccount, String dogovor, String email) throws Exception {
+        String url = "api/v2/json/leads/list?query=" + dogovor;
+
+        LOGGER.info("WID-MAIL: запрос на добавление email {} в договор {}", email, dogovor);
+
+        JSONObject jResponse = getJResponse(true, amoAccount, url, null);
+
+        String foundedLeadID = null;
+
+        if (jResponse.toString().equals("{\"no content\":\"true\"}")) {
+            LOGGER.info("WID-MAIL: ни одной сделки с договором {} не найдено", dogovor);
+            return "К сожалению, договор " + dogovor + " не найден.";
+        }
+
+        JSONArray leads = jResponse.getJSONArray("leads");
+        for (int i = 0; i < leads.length(); i++) {
+            JSONObject jLead = leads.getJSONObject(i);
+            JSONArray jCustomFields = jLead.getJSONArray("custom_fields");
+            for (int j = 0; j < jCustomFields.length(); j++) {
+                JSONObject jField = jCustomFields.getJSONObject(j);
+                if (jField.get("name").equals("Номер договора")) {
+                    String value = jField.getJSONArray("values").getJSONObject(0).getString("value");
+                    if (value.equals(dogovor)) {
+                        foundedLeadID = jLead.getString("id");
+                        LOGGER.info("WID-MAIL: найдена сделка {}, id {}", jLead.getString("name"), foundedLeadID);
+                    }
+                }
+            }
+        }
+
+        if (foundedLeadID == null) {
+            LOGGER.info("WID-MAIL: ни в одной сделке не указан договор {}", dogovor);
+            return "К сожалению, договор " + dogovor + " не найден.";
+        }
+
+
+        String connectedContactID = null;
+
+        url = "api/v2/json/leads/list?id=" + foundedLeadID;
+        jResponse = getJResponse(true, amoAccount, url, null);
+
+        JSONArray leads1 = jResponse.getJSONArray("leads");
+        JSONObject jsonObject = leads1.getJSONObject(0);
+        Object main_contact_id = jsonObject.get("main_contact_id");
+
+        if (main_contact_id instanceof Boolean) {
+            // в ответе false если не найден контакт по сделке
+        } else {
+            String id = "" + (int) main_contact_id;
+            connectedContactID = id;
+            LOGGER.info("WID-MAIL: в сделке найден ID прикреплённого контакта {}", connectedContactID);
+        }
+
+        if (connectedContactID == null) {
+            LOGGER.info("WID-MAIL: в сделке не найден закреплённый контакт");
+            return "К сожалению, договор " + dogovor + " не найден.";
+        }
+        // connectedContacts содержит главные контакты по сделкам из списка leadsIdThatHasDogovor
+
+        String values = "[{" +
+                "\"value\":\"" + email + "\"," +
+                "\"enum\":\"" + 1104359 + "\"" +
+                "}]";
+
+        String customFields = "[{" +
+                "\"code\":\"EMAIL\"," +
+                "\"values\":" + values + "," +
+                "\"name\":\"Email\"," +
+                "\"id\":\"" + 495305 + "\"}]";
+
+        String contact = "{" +
+                "\"id\":\"" + connectedContactID + "\"," +
+                "\"last_modified\":\"" + (System.currentTimeMillis() / 1000) + "\"," +
+                "\"custom_fields\": " + customFields +
+                "}";
+
+        String request = "{\"request\":{\"contacts\":{\"update\":[" + contact + "]}}}";
+
+        jResponse = getJResponse(false, amoAccount, "api/v2/json/contacts/set", request, null);
+
+        String responseAsString = jResponse.toString();
+        if (responseAsString.contains("error")){
+            LOGGER.error("WID-MAIL: ошибка при изменении контакта {} по договору {}. Ответ от сервера {}",
+                    connectedContactID, foundedLeadID, responseAsString);
+            ErrorsMailSender.send("WID-MAIL: ошибка при изменении контакта " + connectedContactID +
+                    " по договору " + foundedLeadID + ". Ответ от сервера " + responseAsString);
+        }
+
+        LOGGER.info("WID-MAIL: email успешно установлен");
+        return "Спасибо!";
+    }
+
 
     private static JSONObject getJResponse(boolean isGET, @Nonnull AmoAccount amoAccount, @Nonnull String relativeUrl,
                                            @Nullable String body, String... fields) throws Exception {
@@ -381,7 +485,7 @@ public class AmoDAO {
 
 
         String responseBody = stringHttpResponse.getBody();
-        responseBody = StringEscapeUtils.unescapeJava(responseBody);
+//        responseBody = StringEscapeUtils.unescapeJava(responseBody);
 
         LOGGER.trace("{}: Код {} получен ответ: {}", login, status, responseBody);
 

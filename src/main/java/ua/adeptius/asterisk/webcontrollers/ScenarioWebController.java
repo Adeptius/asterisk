@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.exceptions.JsonParseException;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.json.*;
 import ua.adeptius.asterisk.model.*;
 import ua.adeptius.asterisk.model.telephony.*;
@@ -100,18 +101,23 @@ public class ScenarioWebController {
             return new Message(Error, "Authorization invalid");
         }
 
+        LOGGER.info("{}: запрос удаления сценария с id {}", user.getLogin(), id);
+
         if (id == null) {
+            LOGGER.debug("{}: id пуст", user.getLogin());
             return new Message(Error, "Id is null");
         }
 
         Scenario scenario = user.getScenarioById(id);
         if (scenario == null) {
+            LOGGER.debug("{}: сценарий по id {} не найден", user.getLogin(), id);
             return new Message(Error, "No such scenario");
         }
 
         user.removeScenario(scenario);
         try {
             HibernateController.update(user);
+            LOGGER.debug("{}: сценарий удалён", user.getLogin());
             return new Message(Success, "Scenario deleted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + ": ошибка удаления сценария c id " + id, e);
@@ -127,6 +133,7 @@ public class ScenarioWebController {
             return new Message(Error, "Authorization invalid");
         }
 
+        LOGGER.info("{}: запрос добавления сценария {}",user.getLogin(), jsonScenario);
         // создаём обьект Scenario из json запроса
         Scenario inScenario = new Scenario();
         String jName = jsonScenario.getName();
@@ -138,29 +145,18 @@ public class ScenarioWebController {
         List<JsonRule> jRules = jsonScenario.getRules();
         List<Rule> rules = new ArrayList<>();
 
-//        HashMap<Rule, List<ChainElement>> rulesAndChains = new HashMap<>();
-
-
         int defaultRulesCount = 0;
 
         for (JsonRule jRule : jRules) {
             try {
                 Rule rule = new Rule(jRule);
                 rule.setUser(user); // это для того что бы не вылетел нулл позже при сохранении цепочки
-//                HashMap<Integer, JsonChainElement> jchain = jRule.getChain();
-//                HashMap<Integer, ChainElement> chain = new HashMap<>();
-//                for (Map.Entry<Integer, ChainElement> entry : chain.entrySet()) {
-//                    chain.put(entry.getKey(), new ChainElement(entry.getValue()));
-//                }
-//
-//                rule.setChainByDirectFieldOnlyForWebControllerDontUseRegulary(chain);
                 rules.add(rule); // в конструкторе создаётся rule c цепочкой из json обьекта
             } catch (JsonParseException e) {
+                LOGGER.debug("{}: ошибка парсинга правила {}",user.getLogin(), jRule);
                 return new Message(Error, "Parsing error. " + e.getMessage());
             }
         }
-
-
 
         // создаём мапу айдишников мелодий и обьектов мелодий для удобной и быстрой валидации
         HashMap<Integer, UserAudio> userMelodyIdAndMelody = new HashMap<>();
@@ -250,7 +246,7 @@ public class ScenarioWebController {
                         String gsmNumber = toList.get(j);
                         try {
                             toList.set(j, MyStringUtils.cleanAndValidateUkrainianPhoneNumber(gsmNumber));
-                        } catch (IllegalArgumentException e) {
+                        } catch (UkrainianNumberParseException e) {
                             return new Message(Error, name + ": Number '" + gsmNumber + "' is not Ukrainian");
                         }
                     }
@@ -311,6 +307,7 @@ public class ScenarioWebController {
 
         // как только сохраняется сценарий - проверить на каких номерах он активирован и поменять имя в телефонах, если оно изменилось.
         HibernateController.update(user);
+        LOGGER.debug("{}: сценарий установлен",user.getLogin());
         return new Message(Success, "Scenario setted");
     }
 
@@ -335,6 +332,8 @@ public class ScenarioWebController {
             return new Message(Error, "Authorization invalid");
         }
 
+        LOGGER.info("{}: запрос привязок сценариев на номера {}", user.getLogin(), newBindings);
+
         // проверим все ли присланные id сценариев существуют
         for (Integer id : newBindings.values()) {
             if (user.getScenarioById(id) == null) {
@@ -348,14 +347,15 @@ public class ScenarioWebController {
         }
 
         Scheduler.reloadDialPlanForThisUserAtNextScheduler(user);
+        Scheduler.rewriteRulesFilesForThisUserAtNextScheduler(user);
 
         try {
             HibernateController.update(user);
+            LOGGER.debug("{}: привязка сценариев к номерам выполнена", user.getLogin());
             return new Message(Success, "Bindings setted");
         } catch (Exception e) {
             LOGGER.error(user.getLogin() + " ошибка сохранения привязок сценариев к телефонам: " + newBindings, e);
             return new Message(Error, "Internal error");
         }
-
     }
 }

@@ -50,7 +50,7 @@ public class HelloMonitor implements ManagerEventListener {
 //        return managerConnection.sendAction(callToOutside, 10000);
 //    }
 
-    String chanelToShow = null;
+//    String chanelToShow = null;
 
 
     public void onManagerEvent(ManagerEvent event) {
@@ -58,10 +58,10 @@ public class HelloMonitor implements ManagerEventListener {
         if (event instanceof NewChannelEvent) {
             NewChannelEvent newChannelEvent = (NewChannelEvent) event;
 
-            if (chanelToShow == null) {
-                chanelToShow = newChannelEvent.getChannel();
-            }
-            if (!chanelToShow.equals(newChannelEvent.getChannel())) return;
+//            if (chanelToShow == null) {
+//                chanelToShow = newChannelEvent.getChannel();
+//            }
+//            if (!chanelToShow.equals(newChannelEvent.getChannel())) return;
 
             System.out.println(makePrettyLog(event));
 
@@ -69,15 +69,15 @@ public class HelloMonitor implements ManagerEventListener {
         }
 
 
-        if (chanelToShow == null) {
-            return;
-        }
+//        if (chanelToShow == null) {
+//            return;
+//        }
 
 
         if (event instanceof HangupEvent) {
             HangupEvent hangupEvent = (HangupEvent) event;
 
-            if (!chanelToShow.equals(hangupEvent.getChannel())) return;
+//            if (!chanelToShow.equals(hangupEvent.getChannel())) return;
 
 
             System.out.println(makePrettyLog(event));
@@ -88,7 +88,7 @@ public class HelloMonitor implements ManagerEventListener {
 
         if (event instanceof NewExtenEvent) {
             NewExtenEvent newExtenEvent = (NewExtenEvent) event;
-            if (!chanelToShow.equals(newExtenEvent.getChannel())) return;
+//            if (!chanelToShow.equals(newExtenEvent.getChannel())) return;
 //            if (
 //                    newExtenEvent.getExtension().equals("recordcheck")
 //                            || newExtenEvent.getContext().equals("sub-record-check")
@@ -114,61 +114,61 @@ public class HelloMonitor implements ManagerEventListener {
 
         if (event instanceof VarSetEvent) {
             VarSetEvent varSetEvent = (VarSetEvent) event;
-            if (!chanelToShow.equals(varSetEvent.getChannel())) return;
+//            if (!chanelToShow.equals(varSetEvent.getChannel())) return;
             List<String> variablesToSkip = new ArrayList<>();
-            variablesToSkip.add("MACRO_DEPTH");
-            variablesToSkip.add("NOW");
-            variablesToSkip.add("__DAY");
-            variablesToSkip.add("__MONTH");
-            variablesToSkip.add("__YEAR");
-            variablesToSkip.add("__TIMESTR");
-            variablesToSkip.add("__MON_FMT");
-            variablesToSkip.add("__REC_POLICY_MODE");
-            variablesToSkip.add("__CALLFILENAME");
-            variablesToSkip.add("MIXMONITOR_FILENAME");
-            variablesToSkip.add("LOCAL_MIXMON_ID");
-            variablesToSkip.add("__MIXMON_ID");
-            variablesToSkip.add("__RECORD_ID");
-            variablesToSkip.add("__REC_STATUS");
-            variablesToSkip.add("LOCAL(ARG1)");
-            variablesToSkip.add("LOCAL(ARG2)");
-            variablesToSkip.add("LOCAL(ARG3)");
-            variablesToSkip.add("LOCAL(ARGC)");
-            variablesToSkip.add("SIPDOMAIN");
-            variablesToSkip.add("AJ_AGISTATUS");
-            variablesToSkip.add("AGISTATUS");
-            variablesToSkip.add("BRIDGEPVTCALLID");
-            variablesToSkip.add("BRIDGEPEER");
-            variablesToSkip.add("FROMEXTEN");
-            variablesToSkip.add("NoOp");
-            variablesToSkip.add("SIPCALLID");
-            variablesToSkip.add("num");
-            variablesToSkip.add("");
-            variablesToSkip.add("__FROM_DID");
-            variablesToSkip.add("MACRO_EXTEN");
-            variablesToSkip.add("MACRO_CONTEXT");
-            variablesToSkip.add("MACRO_PRIORITY");
-            variablesToSkip.add("ARG1");
-            variablesToSkip.add("ARG2");
-            variablesToSkip.add("TOUCH_MONITOR");
-            variablesToSkip.add("AMPUSER");
-            variablesToSkip.add("MOHCLASS");
-            variablesToSkip.add("ARG4");
-            variablesToSkip.add("DIAL_TRUNK");
-            variablesToSkip.add("OUTBOUND_GROUP");
-            variablesToSkip.add("DB_RESULT");
-            variablesToSkip.add("TRUNKOUTCID"); // внешний шлюз
-            variablesToSkip.add("REALCALLERIDNUM");
-            variablesToSkip.add("TRUNKCIDOVERRIDE");
-            variablesToSkip.add("OUTNUM");
-            variablesToSkip.add("DIAL_NUMBER");
-            variablesToSkip.add("custom");
-            variablesToSkip.add("MACRO_IN_HANGUP");
-            variablesToSkip.add("SIPURI");
-            variablesToSkip.add("DIALSTATUS"); // содержит CHANUNAVAIL ANSWER
-            variablesToSkip.add("DID");
-            variablesToSkip.add("DIALEDPEERNAME");
-            variablesToSkip.add("DIALEDPEERNUMBER");// показывает номер того кто ответил в этот момент, но эта инфа есть в HangupEvent - connectedlinename
+//            variablesToSkip.add("MACRO_DEPTH");
+//            variablesToSkip.add("NOW");
+//            variablesToSkip.add("__DAY");
+//            variablesToSkip.add("__MONTH");
+//            variablesToSkip.add("__YEAR");
+//            variablesToSkip.add("__TIMESTR");
+//            variablesToSkip.add("__MON_FMT");
+//            variablesToSkip.add("__REC_POLICY_MODE");
+//            variablesToSkip.add("__CALLFILENAME");
+//            variablesToSkip.add("MIXMONITOR_FILENAME");
+//            variablesToSkip.add("LOCAL_MIXMON_ID");
+//            variablesToSkip.add("__MIXMON_ID");
+//            variablesToSkip.add("__RECORD_ID");
+//            variablesToSkip.add("__REC_STATUS");
+//            variablesToSkip.add("LOCAL(ARG1)");
+//            variablesToSkip.add("LOCAL(ARG2)");
+//            variablesToSkip.add("LOCAL(ARG3)");
+//            variablesToSkip.add("LOCAL(ARGC)");
+//            variablesToSkip.add("SIPDOMAIN");
+//            variablesToSkip.add("AJ_AGISTATUS");
+//            variablesToSkip.add("AGISTATUS");
+//            variablesToSkip.add("BRIDGEPVTCALLID");
+//            variablesToSkip.add("BRIDGEPEER");
+//            variablesToSkip.add("FROMEXTEN");
+//            variablesToSkip.add("NoOp");
+//            variablesToSkip.add("SIPCALLID");
+//            variablesToSkip.add("num");
+//            variablesToSkip.add("");
+//            variablesToSkip.add("__FROM_DID");
+//            variablesToSkip.add("MACRO_EXTEN");
+//            variablesToSkip.add("MACRO_CONTEXT");
+//            variablesToSkip.add("MACRO_PRIORITY");
+//            variablesToSkip.add("ARG1");
+//            variablesToSkip.add("ARG2");
+//            variablesToSkip.add("TOUCH_MONITOR");
+//            variablesToSkip.add("AMPUSER");
+//            variablesToSkip.add("MOHCLASS");
+//            variablesToSkip.add("ARG4");
+//            variablesToSkip.add("DIAL_TRUNK");
+//            variablesToSkip.add("OUTBOUND_GROUP");
+//            variablesToSkip.add("DB_RESULT");
+//            variablesToSkip.add("TRUNKOUTCID"); // внешний шлюз
+//            variablesToSkip.add("REALCALLERIDNUM");
+//            variablesToSkip.add("TRUNKCIDOVERRIDE");
+//            variablesToSkip.add("OUTNUM");
+//            variablesToSkip.add("DIAL_NUMBER");
+//            variablesToSkip.add("custom");
+//            variablesToSkip.add("MACRO_IN_HANGUP");
+//            variablesToSkip.add("SIPURI");
+//            variablesToSkip.add("DIALSTATUS"); // содержит CHANUNAVAIL ANSWER
+//            variablesToSkip.add("DID");
+//            variablesToSkip.add("DIALEDPEERNAME");
+//            variablesToSkip.add("DIALEDPEERNUMBER");// показывает номер того кто ответил в этот момент, но эта инфа есть в HangupEvent - connectedlinename
 
             String variable = varSetEvent.getVariable();
             String value = varSetEvent.getValue();

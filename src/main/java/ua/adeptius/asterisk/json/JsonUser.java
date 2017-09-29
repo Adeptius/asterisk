@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.adeptius.asterisk.model.User;
 
+import javax.persistence.Column;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(getterVisibility = NONE, isGetterVisibility = NONE)
@@ -17,7 +19,14 @@ public class JsonUser {
     @JsonProperty
     private String trackingId;
     @JsonProperty
-    private boolean amoConnected;
+    private String userPhoneNumber;
+    @JsonProperty
+    private String firstName;
+    @JsonProperty
+    private String lastName;
+    @JsonProperty
+    private String middleName;
+
 
     private String password; // нужен только для моего гуи при создании акка
 
@@ -26,10 +35,12 @@ public class JsonUser {
 
     public JsonUser(User user) {
         login = user.getLogin();
-//        password = user.getPassword();
         email = user.getEmail();
         trackingId = user.getTrackingId();
-        amoConnected = user.getAmoAccount() != null;
+        userPhoneNumber = user.getUserPhoneNumber();
+        firstName = user.getFirstName();
+        lastName = user.getLastName();
+        middleName = user.getMiddleName();
     }
 
     public String getLogin() {
@@ -64,17 +75,49 @@ public class JsonUser {
         this.trackingId = trackingId;
     }
 
-    public boolean isAmoConnected() {
-        return amoConnected;
+    public String getUserPhoneNumber() {
+        return userPhoneNumber;
+    }
+
+    public void setUserPhoneNumber(String userPhoneNumber) {
+        this.userPhoneNumber = userPhoneNumber;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getMiddleName() {
+        return middleName;
+    }
+
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
     }
 
     @Override
     public String toString() {
         return "JsonUser{" +
                 "login='" + login + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", trackingId='" + trackingId + '\'' +
+                ", userPhoneNumber='" + userPhoneNumber + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", middleName='" + middleName + '\'' +
+                ", password='" + password + '\'' +
                 '}';
     }
 }

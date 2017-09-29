@@ -74,7 +74,7 @@ public class Rule {
 
         greeting = jsonRule.getGreeting();
         message = jsonRule.getMessage();
-        amoResponsibleId = jsonRule.getAmoResponsibleId();
+//        amoResponsibleId = jsonRule.getAmoResponsibleId();
         chain = new HashMap<>();
 
 
@@ -151,9 +151,9 @@ public class Rule {
     @Column(name = "melody")
     private String melody;
 
-    @JsonProperty
-    @Column(name = "amo_responsible_id")
-    private String amoResponsibleId;
+//    @JsonProperty
+//    @Column(name = "amo_responsible_id")
+//    private String amoResponsibleId;
 
     @JsonProperty
     @Column(name = "greeting")
@@ -446,13 +446,13 @@ public class Rule {
         login = user.getLogin();
     }
 
-    public String getAmoResponsibleId() {
-        return amoResponsibleId;
-    }
+//    public String getAmoResponsibleId() {
+//        return amoResponsibleId;
+//    }
 
-    public void setAmoResponsibleId(String amoResponsibleId) {
-        this.amoResponsibleId = amoResponsibleId;
-    }
+//    public void setAmoResponsibleId(String amoResponsibleId) {
+//        this.amoResponsibleId = amoResponsibleId;
+//    }
 
     @Override
     public String toString() {
@@ -464,29 +464,28 @@ public class Rule {
                 ", startHour=" + startHour +
                 ", endHour=" + endHour +
                 ", days='" + days + '\'' +
-                ", amoResponsibleId='" + amoResponsibleId + '\'' +
+//                ", amoResponsibleId='" + amoResponsibleId + '\'' +
                 ", user=" + user.getLogin() +
                 '}';
     }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        Rule rule = (Rule) o;
-//
-//        if (id != rule.id) return false;
-//        if (login != null ? !login.equals(rule.login) : rule.login != null) return false;
-//        if (name != null ? !name.equals(rule.name) : rule.name != null) return false;
-//        return scenario != null ? scenario.equals(rule.scenario) : rule.scenario == null;
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        int result = login != null ? login.hashCode() : 0;
-//        result = 31 * result + (name != null ? name.hashCode() : 0);
-//        result = 31 * result + (scenario != null ? scenario.hashCode() : 0);
-//        return result;
-//    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Rule rule = (Rule) o;
+
+        if (login != null ? !login.equals(rule.login) : rule.login != null) return false;
+        if (name != null ? !name.equals(rule.name) : rule.name != null) return false;
+        return scenario != null ? scenario.equals(rule.scenario) : rule.scenario == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = login != null ? login.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (scenario != null ? scenario.hashCode() : 0);
+        return result;
+    }
 }

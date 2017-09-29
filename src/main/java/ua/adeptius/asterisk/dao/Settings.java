@@ -69,7 +69,7 @@ public class Settings implements SettingsMBean {
     private boolean profilingEnabled;
     private boolean itsLinux;
     private boolean remoteServerIsUp;
-    private boolean useLocalDb;
+    private boolean useLocalDb = false;
     private boolean showProfilingResultNow;
     private int secondsToUpdatePhoneOnWebPage = 5;
     private int secondsToRemoveOldPhones = 7;

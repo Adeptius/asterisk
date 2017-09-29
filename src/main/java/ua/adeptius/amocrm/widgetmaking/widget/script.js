@@ -6,8 +6,8 @@ define(['jquery'], function ($) {
         var userId = AMOCRM.constant("user").id;
         var local = 'adeptius.pp.ua';
         // var local = 'cstat.nextel.com.ua';
-        var wsUrl = 'wss://' + local + ':8443/tracking/ws/' + domain + '/' + userId;
-        // var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
+        // var wsUrl = 'wss://' + local + ':8443/tracking/ws/' + domain + '/' + userId;
+        var wsUrl = 'wss://cstat.nextel.com.ua:8443/tracking/ws/' + domain + '/' + userId;
         var ws;
 
 

@@ -6,7 +6,16 @@ public class JsonAmoForController {
     private String domain;
     private String amoLogin;
     private String apiKey;
+    private String[] responsibleUserSchedule;
     private boolean cling;
+
+    public String[] getResponsibleUserSchedule() {
+        return responsibleUserSchedule;
+    }
+
+    public void setResponsibleUserSchedule(String[] responsibleUserSchedule) {
+        this.responsibleUserSchedule = responsibleUserSchedule;
+    }
 
     public boolean isCling() {
         return cling;

@@ -35,7 +35,6 @@ public class HibernateDao {
     /**
      * User
      */
-
     public List<User> getAllUsers() throws Exception {
         Session session = sessionFactory.openSession();
         List<User> list = session.createQuery("select e from User e").list();
@@ -53,6 +52,19 @@ public class HibernateDao {
         session.getTransaction().commit();
         session.close();
     }
+
+
+    public void saveOrUpdateUser(User user) {
+        LOGGER.info("Сохранение или обновление пользователя {}", user.getLogin());
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.saveOrUpdate(user);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
 
     public void update(User user) {
         LOGGER.info("{}: Обновление пользователя...", user.getLogin());
@@ -623,5 +635,17 @@ public class HibernateDao {
         List<Rule> rules = session.createQuery("FROM Rule ").list();
         session.close();
         return rules;
+    }
+
+    public void removeTestUserIfExist() throws Exception {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        User user = getUserByLogin("hibernate");
+        if (user != null) {
+            session.delete(user);
+        }
+        session.getTransaction().commit();
+        session.close();
     }
 }

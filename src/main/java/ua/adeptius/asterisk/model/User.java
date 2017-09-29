@@ -1,18 +1,5 @@
 package ua.adeptius.asterisk.model;
 
-//import com.fasterxml.jackson.annotation.JsonAutoDetect;
-//import com.fasterxml.jackson.annotation.JsonProperty;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
-//
-//import javax.annotation.Nonnull;
-//import javax.persistence.*;
-//import javax.persistence.CascadeType;
-//import javax.persistence.Entity;
-//import javax.persistence.Table;
-//import java.io.Serializable;
-//import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -70,13 +57,28 @@ public class User implements Serializable {
     @Column(name = "tracking_id")
     private String trackingId;
 
+    @JsonProperty
+    @Column(name = "user_phone_number")
+    private String userPhoneNumber;
+
+    @JsonProperty
+    @Column(name = "first_name")
+    private String firstName;
+
+    @JsonProperty
+    @Column(name = "last_name")
+    private String lastName;
+
+    @JsonProperty
+    @Column(name = "middle_name")
+    private String middleName;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "nextelLogin", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<AmoAccount> amoAccountSet;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "nextelLogin", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<RoistatAccount> roistatAccountSet;
 
-    //    @JoinColumn(name = "busy", referencedColumnName = "login")
     @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "busy", fetch = FetchType.EAGER)
     private Set<OuterPhone> outerPhones;
@@ -87,18 +89,15 @@ public class User implements Serializable {
 
     @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
-//    @JoinColumn(name = "login", referencedColumnName = "login")
     private Set<Site> sites;
 
     @JsonProperty
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<AmoOperatorLocation> amoOperatorLocations;
 
-    //    @JoinColumn(name = "login", referencedColumnName = "login")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<Rule> rules;
 
-    //    @JoinColumn(name = "login", referencedColumnName = "login")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<Scenario> scenarios;
 
@@ -108,6 +107,7 @@ public class User implements Serializable {
     //    @JoinColumn(name = "login", referencedColumnName = "login")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<UserAudio> userAudio;
+
 
     /**
      * AmoCRM
@@ -214,7 +214,7 @@ public class User implements Serializable {
         }
         outerPhonesCache = null;
         // изменено количество внешних номеров. Обновляем Кэши
-        Scheduler.reloadOuterOnNextScheduler();
+//        Scheduler.reloadOuterOnNextScheduler();
     }
 
 
@@ -225,7 +225,7 @@ public class User implements Serializable {
         }
         outerPhonesCache = null;
         // изменено количество внешних номеров. Обновляем Кэши
-        Scheduler.reloadOuterOnNextScheduler();
+        Scheduler.rewriteRulesFilesForThisUserAtNextScheduler(this);
     }
 
 
@@ -257,6 +257,20 @@ public class User implements Serializable {
     public void removeInnerPhones(Collection<InnerPhone> innerPhonesToRemove) {
         this.innerPhones.removeAll(innerPhonesToRemove);
         innerPhonesCache = null;
+        // так как у пользователя удалён сип номер - он мог остаться в каких-то правилах.
+        // потом этот номер, в принципе может попасть другому пользователю.
+
+//        innerPhonesToRemove.stream().map(InnerPhone::getNumber).forEach(number -> {
+//            chainElements.forEach(chainElement -> chainElement.getToList().remove(number));
+//        });
+
+        //удалять как бы надо, но есть вероятность оставить при этом пустую цепочку, что везде всё потом поламает.
+//        for (InnerPhone innerPhone : innerPhonesToRemove) {
+//            String number = innerPhone.getNumber();
+//            for (ChainElement chainElement : chainElements) {
+//                chainElement.removeFromToList(number);
+//            }
+//        }
     }
 
 
@@ -316,10 +330,11 @@ public class User implements Serializable {
         Scheduler.reloadDialPlanForThisUserAtNextScheduler(this);
     }
 
-    /*
+    /**
     * Этот метод нужен при изменении сценария. Он оставляет айдишник сценария в телефоне,
-    * что бы после создания нового сценария (взамен удалённому) он по-прежнему ссылался на него
-    */
+    * что бы после создания нового сценария (взамен удалённому) он по-прежнему ссылался на него.
+     * Если надо полностью удалить сценарий - используется метод removeScenario()
+    **/
     public void removeScenarioButLeaveIdInPhone(Scenario scenario) {
         List<Rule> rulesInScenario = scenario.getRules(); // прежде чем удалить сценарий - сначала надо удалить все его правила
 
@@ -365,15 +380,12 @@ public class User implements Serializable {
         rules.add(rule);
     }
 
+    public void setRules(Set<Rule> rules) {
+        this.rules = rules;
+    }
+
     private void removeRule(Rule rule) {
-//        System.out.println("попытка удаления правила " + rule);
-//        System.out.println("rules.contains(rule) " + rules.contains(rule));
-//        for (Rule rule1 : rules) {
-//            System.out.println("правило " + rule1 + " и правило " + rule + " equals = " + rule1.equals(rule));
-//        }
-//        boolean remove =
         rules.remove(rule);
-//        System.out.println("rules.remove(rule) вернул " + remove);
     }
 
     /**
@@ -405,6 +417,21 @@ public class User implements Serializable {
 
     public void removeUserAudio(UserAudio audio) {
         userAudio.remove(audio);
+    }
+
+
+
+//    public boolean isThatAllUsersSipNumbers(@Nonnull List<String> numbers) {
+//        for (String number : numbers) {
+//            if (!isThatUserSipNumber(number)) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+
+    public boolean isThatUserSipNumber(@Nonnull String number) {
+        return getInnerPhoneByNumber(number) != null;
     }
 
 
@@ -440,13 +467,45 @@ public class User implements Serializable {
         this.trackingId = trackingId;
     }
 
+    public String getUserPhoneNumber() {
+        return userPhoneNumber;
+    }
+
+    public void setUserPhoneNumber(String userPhoneNumber) {
+        this.userPhoneNumber = userPhoneNumber;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getMiddleName() {
+        return middleName;
+    }
+
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "login='" + login + '\'' +
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
-                ", trackingId='" + trackingId + '\'' +
+                ", trackingId='" + (trackingId==null? "null": trackingId) + '\'' +
                 ", amoAccount=" + getAmoAccount() +
                 ", roistatAccount=" + getRoistatAccount() +
                 ", outerPhones=" + outerPhones +
@@ -461,16 +520,20 @@ public class User implements Serializable {
                 '}';
     }
 
-    public boolean isThatAllUsersSipNumbers(@Nonnull List<String> numbers) {
-        for (String number : numbers) {
-            if (!isThatUserSipNumber(number)) {
-                return false;
-            }
-        }
-        return true;
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        return login != null ? login.equals(user.login) : user.login == null;
     }
 
-    public boolean isThatUserSipNumber(@Nonnull String number) {
-        return getInnerPhoneByNumber(number) != null;
+    @Override
+    public int hashCode() {
+        return login != null ? login.hashCode() : 0;
     }
 }
