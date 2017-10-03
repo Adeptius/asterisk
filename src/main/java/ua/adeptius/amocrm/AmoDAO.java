@@ -200,16 +200,19 @@ public class AmoDAO {
      * можно привязать к контакту. Чуствителен ко времени по этому для дальнейших запросов мы берём его
      * и отталкиваемся уже от него, с каждым запросом добавляя одну секунду.
      */
-    public static IdPairTime addNewDealAndGetBackIdAndTime(AmoAccount amoAccount, String tags, int leadId, String responsibleWorker) throws Exception {
+    public static IdPairTime addNewDealAndGetBackIdAndTime(AmoAccount amoAccount, String tags, String responsibleWorker) throws Exception {
         String amoLogin = amoAccount.getAmoLogin();
         String login = amoAccount.getUser().getLogin();
+        int pipelineId = amoAccount.getPipelineId();
+        int stageId = amoAccount.getStageId();
         LOGGER.debug("{}: Запрос добавления новой сделки в аккаунт {}", login, amoLogin);
 
         String lead = "{"
                 + "\"name\": \"Новая сделка\","
                 + "\"tags\": \"" + tags + "\","
                 + "\"responsible_user_id\": \"" + responsibleWorker + "\""
-                + (leadId > 0 ? ",\"status_id\":" + leadId + "" : "") // добавляем этап сделки, если указан конкретный
+                + (stageId > 0 ? ",\"status_id\":" + stageId : "") // добавляем этап сделки, если указан конкретный
+                + (pipelineId > 0 ? ",\"pipeline_id\":" + pipelineId : "") // добавляем этап сделки, если указан конкретный
                 + "}";
 
         String request = "{\"request\": {\"leads\": {\"add\": [" + lead + "]}}}";
@@ -485,7 +488,8 @@ public class AmoDAO {
 
 
         String responseBody = stringHttpResponse.getBody();
-//        responseBody = StringEscapeUtils.unescapeJava(responseBody);
+//        responseBody = responseBody.replace("\\u0022","\\\\\"");
+        responseBody = StringEscapeUtils.unescapeJava(responseBody);
 
         LOGGER.trace("{}: Код {} получен ответ: {}", login, status, responseBody);
 

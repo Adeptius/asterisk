@@ -45,18 +45,28 @@ public class HelloManager {
 //        List<String> list = response.getResult();
 //        list.forEach(System.err::println);
 
-        OriginateAction action = new OriginateAction();
-        action.setChannel("SIP/Intertelekom_main/0934027182");
-        action.setExten("2001036");
-        action.setCallerId("0934027182");
-        action.setContext("from-internal");
-        action.setPriority(1);
-        action.setApplication("AGI");
-        action.setData("agi://78.159.55.63/in_c2c_processor.agi");
+//        OriginateAction action = new OriginateAction();
+//        action.setChannel("SIP/Intertelekom_main/0934027182");
+//        action.setExten("2001036");
+//        action.setCallerId("0934027182");
+//        action.setContext("from-internal");
+//        action.setPriority(1);
+//        action.setApplication("AGI");
+//        action.setData("agi://78.159.55.63/in_c2c_processor.agi");
+
+
+        OriginateAction originateAction = new OriginateAction();
+        originateAction.setChannel("SIP/Intertelekom_main/0934027182");
+        originateAction.setExten("0934027182");
+        originateAction.setCallerId("0934027182");
+        originateAction.setContext("c2c_agi");
+        originateAction.setPriority(1);
+//        action.setApplication("AGI");
+//        action.setData("agi://78.159.55.63/in_c2c_processor.agi");
 
 
 //        OriginateAction action = AsteriskActionsGenerator.callToOutside("2001036", "0934027182", "Vova");
-        ManagerResponse originateResponse = managerConnection.sendAction(action, 20000);
+        ManagerResponse originateResponse = managerConnection.sendAction(originateAction, 20000);
         System.err.println(originateResponse);
         managerConnection.logoff();
     }

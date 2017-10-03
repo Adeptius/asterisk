@@ -4,8 +4,9 @@ package ua.adeptius.asterisk.json;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.telephony.PhoneGroup;
 
-import javax.persistence.Column;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -17,8 +18,6 @@ public class JsonUser {
     @JsonProperty
     private String email;
     @JsonProperty
-    private String trackingId;
-    @JsonProperty
     private String userPhoneNumber;
     @JsonProperty
     private String firstName;
@@ -26,6 +25,8 @@ public class JsonUser {
     private String lastName;
     @JsonProperty
     private String middleName;
+    @JsonProperty
+    private Set<PhoneGroup> phoneGroups;
 
 
     private String password; // нужен только для моего гуи при создании акка
@@ -36,11 +37,20 @@ public class JsonUser {
     public JsonUser(User user) {
         login = user.getLogin();
         email = user.getEmail();
-        trackingId = user.getTrackingId();
         userPhoneNumber = user.getUserPhoneNumber();
         firstName = user.getFirstName();
         lastName = user.getLastName();
         middleName = user.getMiddleName();
+        phoneGroups = user.getPhoneGroups();
+    }
+
+
+    public Set<PhoneGroup> getPhoneGroups() {
+        return phoneGroups;
+    }
+
+    public void setPhoneGroups(Set<PhoneGroup> phoneGroups) {
+        this.phoneGroups = phoneGroups;
     }
 
     public String getLogin() {
@@ -65,14 +75,6 @@ public class JsonUser {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getTrackingId() {
-        return trackingId;
-    }
-
-    public void setTrackingId(String trackingId) {
-        this.trackingId = trackingId;
     }
 
     public String getUserPhoneNumber() {
@@ -112,7 +114,6 @@ public class JsonUser {
         return "JsonUser{" +
                 "login='" + login + '\'' +
                 ", email='" + email + '\'' +
-                ", trackingId='" + trackingId + '\'' +
                 ", userPhoneNumber='" + userPhoneNumber + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +

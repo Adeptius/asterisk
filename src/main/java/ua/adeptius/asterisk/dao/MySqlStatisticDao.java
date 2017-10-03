@@ -39,6 +39,8 @@ public class MySqlStatisticDao {
         statisticDataSource.setMinPoolSize(1);
         statisticDataSource.setMaxPoolSize(5);
         statisticDataSource.setAcquireIncrement(0);
+
+        statisticDataSource.setTestConnectionOnCheckout(true);
     }
 
     protected static Connection getStatisticConnection() throws Exception {
@@ -77,6 +79,24 @@ public class MySqlStatisticDao {
     }
 
 
+    public static boolean isThatNumberCalledFirstTime(String login, String number) throws Exception {
+        try (Connection connection = getStatisticConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet set = statement.executeQuery("SELECT COUNT(*) FROM "+login+" where called_from = '"+number+"'");
+            set.next();
+            return set.getInt("COUNT(*)") == 0;
+        }
+    }
+
+
+    public static void setComment(String login, String coment, int id) throws Exception {
+        try (Connection connection = getStatisticConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate("UPDATE "+login+" SET `comment`='"+coment+"' WHERE `id`='"+id+"'");
+        }
+    }
+
+
     public static List<Call> getStatisticOfRange(String sql) throws Exception {
         try (Connection connection = getStatisticConnection();
              Statement statement = connection.createStatement()) {
@@ -107,62 +127,6 @@ public class MySqlStatisticDao {
             return statisticList;
         }
     }
-
-
-//    public static List<Call> getStatisticOfRangeOutputStream(String user, String startDate, String endDate, String direction,
-//                                                             int limit, int offset, OutputStream stream) throws Exception {
-//        LOGGER.trace("{}: запрос статистики с {} по {} направление {}", user,startDate, endDate, direction);
-//        String directionQuery = "direction = '" + direction + "' AND ";
-//        if (direction.equals("BOTH")){
-//            directionQuery = "";
-//        }
-//
-//        String sql = "SELECT * FROM " + user +
-//                " WHERE " +
-//                directionQuery +
-//                "calledDate BETWEEN STR_TO_DATE('" + startDate +
-//                "', '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE('" + endDate +
-//                "', '%Y-%m-%d %H:%i:%s')  LIMIT "+limit+" OFFSET "+offset;
-//        try (Connection connection = getStatisticConnection();
-//             Statement statement = connection.createStatement()) {
-//            ResultSet rs = statement.executeQuery(sql);
-//            List<Call> statisticList = new ArrayList<>();
-////            while (set.next()) {
-////                Call call = new Call();
-////                call.setCalledDate(set.getString("calledDate"));
-////                call.setDirection(Call.Direction.valueOf(set.getString("direction")));
-////                call.setCalledFrom(set.getString("calledFrom"));
-////                call.setCalledTo(Arrays.asList(set.getString("calledTo")));
-////                call.setCallState(Call.CallState.valueOf(set.getString("callState")));
-////                call.setSecondsFullTime(set.getInt("secondsFullTime"));
-////                call.setSecondsTalk(set.getInt("secondsTalk"));
-////                call.setAsteriskId(set.getString("call_id"));
-////                call.setGoogleId(set.getString("google_id"));
-////                call.setUtm(set.getString("utm"));
-////                statisticList.add(call);
-////            }
-//
-//            JsonWriter writer = new JsonWriter(new OutputStreamWriter(stream, "UTF-8"));
-//            writer.beginArray();
-//            ResultSetMetaData rsmd = rs.getMetaData();
-//            while(rs.next()) {
-//                writer.beginObject();
-//                // loop rs.getResultSetMetadata columns
-//                for(int idx=1; idx<=rsmd.getColumnCount(); idx++) {
-//                    writer.name(rsmd.getColumnLabel(idx)); // write key:value pairs
-//                    writer.value(rs.getString(idx));
-//                }
-//                writer.endObject();
-//            }
-//            writer.endArray();
-//            writer.close();
-//            stream.flush();
-//            return statisticList;
-//        } catch (Exception e) {
-//            LOGGER.error(user+": ошибка получения истории с бд с "+startDate+" по "+endDate+" направление "+direction, e);
-//        }
-//        throw new Exception("Ошибка при загрузке статистики с БД");
-//    }
 
     public static void deleteTables(List<String> tablesToDelete) {
         for (String s : tablesToDelete) {
@@ -229,7 +193,14 @@ public class MySqlStatisticDao {
         String utmContent = call.getUtmContent();
         String outerNumber = call.getOuterNumber();
         String comment = call.getComment();
-        boolean newLead = call.isNewLead();
+
+        boolean newLead = false;
+        try {
+            newLead = isThatNumberCalledFirstTime(login, calledFrom);
+        } catch (Exception e) {
+            LOGGER.error("Ошибка получения булеана первый ли это звонок от абонента", e);
+            return;
+        }
 
         LOGGER.trace("{}: cохранение звонка в БД. {} -> {}", login, calledFrom, calledTo);
         StringBuilder sb = new StringBuilder(28);

@@ -13,6 +13,7 @@ import javax.persistence.*;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -27,11 +28,10 @@ public class User implements Serializable {
     public User() {
     }
 
-    public User(String login, String password, String email, String trackingId) {
+    public User(String login, String password, String email) {
         this.login = login;
         this.password = password;
         this.email = email;
-        this.trackingId = trackingId;
         outerPhones = new HashSet<>();
         innerPhones = new HashSet<>();
         chainElements = new HashSet<>();
@@ -39,6 +39,7 @@ public class User implements Serializable {
         rules = new HashSet<>();
         sites = new HashSet<>();
         userAudio = new HashSet<>();
+        phoneGroups = new HashSet<>();
     }
 
     @Id
@@ -52,10 +53,6 @@ public class User implements Serializable {
     @JsonProperty
     @Column(name = "email")
     private String email;
-
-    @JsonProperty
-    @Column(name = "tracking_id")
-    private String trackingId;
 
     @JsonProperty
     @Column(name = "user_phone_number")
@@ -108,6 +105,8 @@ public class User implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<UserAudio> userAudio;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "login", fetch = FetchType.EAGER, orphanRemoval = true)
+    private Set<PhoneGroup> phoneGroups;
 
     /**
      * AmoCRM
@@ -249,6 +248,10 @@ public class User implements Serializable {
         return Collections.unmodifiableSet(innerPhones);
     }
 
+    public Stream<InnerPhone> getInnerPhonesStream() {
+        return innerPhones.stream();
+    }
+
     public void addInnerPhones(Collection<InnerPhone> innerPhones) {
         this.innerPhones.addAll(innerPhones);
         innerPhonesCache = null;
@@ -272,6 +275,36 @@ public class User implements Serializable {
 //            }
 //        }
     }
+
+
+
+    /**
+     * Phone Group
+     */
+
+    public Set<PhoneGroup> getPhoneGroups() {
+        return Collections.unmodifiableSet(phoneGroups);
+    }
+
+    public PhoneGroup getPhoneGroupByName(String name) {
+        return phoneGroups.stream().filter(pg -> pg.getName().equals(name)).findFirst().orElse(null);
+    }
+
+//    public void setPhoneGroups(Set<PhoneGroup> phoneGroups) {
+//        this.phoneGroups = phoneGroups;
+//    }
+
+    public void addPhoneGroup(PhoneGroup phoneGroup){
+        phoneGroup.setUser(this);
+        phoneGroups.add(phoneGroup);
+//        phoneGroups.remove(phoneGroup);
+    }
+
+    public void removePhoneGroup(PhoneGroup phoneGroup){
+        phoneGroups.remove(phoneGroup);
+    }
+
+
 
 
     /**
@@ -459,14 +492,6 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    public String getTrackingId() {
-        return trackingId;
-    }
-
-    public void setTrackingId(String trackingId) {
-        this.trackingId = trackingId;
-    }
-
     public String getUserPhoneNumber() {
         return userPhoneNumber;
     }
@@ -505,7 +530,6 @@ public class User implements Serializable {
                 "login='" + login + '\'' +
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
-                ", trackingId='" + (trackingId==null? "null": trackingId) + '\'' +
                 ", amoAccount=" + getAmoAccount() +
                 ", roistatAccount=" + getRoistatAccount() +
                 ", outerPhones=" + outerPhones +

@@ -125,11 +125,11 @@ public class ChainElement {
         this.rule = rule;
     }
 
-    public void removeFromToList(@Nonnull String number) {
-        List<String> toList = getToList();
-        toList.remove(number);
-        setToList(toList);
-    }
+//    public void removeFromToList(@Nonnull String number) {
+//        List<String> toList = getToList();
+//        toList.remove(number);
+//        setToList(toList);
+//    }
 
     public void setToList(@Nonnull List<String> numbers) {
         clearToList();
@@ -162,16 +162,16 @@ public class ChainElement {
     }
 
 
-    private String removeZero(String source) {
-        try {
-            if (source.length() == 10 && source.startsWith("0")) {
-                source = source.substring(1);
-            }
-        } catch (Exception e) {
-            System.out.println("Ошибка добавления нолика. Пришло " + source);
-        }
-        return source;
-    }
+//    private String removeZero(String source) {
+//        try {
+//            if (source.length() == 10 && source.startsWith("0")) {
+//                source = source.substring(1);
+//            }
+//        } catch (Exception e) {
+//            System.out.println("Ошибка добавления нолика. Пришло " + source);
+//        }
+//        return source;
+//    }
 
     public int getId() {
         return id;

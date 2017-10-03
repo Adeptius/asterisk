@@ -97,6 +97,12 @@ public class Call {
         this.callPhase = callPhase;
     }
 
+
+    public void setLastOperationTime(int lastOperationTime) {
+        this.lastOperationTime = lastOperationTime;
+//        timeDifference = lastOperationTime - ((int) new Date().getTime() / 1000);
+    }
+
     public int getCalculatedModifiedTime() { // нужно для амо который требует last_modified (добавление комента или тегов). Метод вычисляет для него значение
         int currentTime = (int) (System.currentTimeMillis() /1000); // нужен в основном, если операции изменения очень частые
         if (currentTime <= lastOperationTime) { // если текущее время совпадает с предыдущим
@@ -120,11 +126,6 @@ public class Call {
 
     public void setSecondsFullTime(int secondsFullTime) {
         this.secondsFullTime = secondsFullTime;
-    }
-
-    public void setLastOperationTime(int lastOperationTime) {
-        this.lastOperationTime = lastOperationTime;
-//        timeDifference = lastOperationTime - ((int) new Date().getTime() / 1000);
     }
 
     public int getAmoDealId() {

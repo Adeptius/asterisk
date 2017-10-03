@@ -109,7 +109,7 @@ public class RegistrationWebControllerTest {
                 testUtil.createMap("key", registerQuery.getHash()), null);
         message = new Message(jsonStringFromUrl);
         assertEquals(Message.Status.Success, message.getStatus());
-        String hashOfUser = UserContainer.getHashOfUser(new User(TEST_USERNAME, TEST_PASSWORD, TEST_EMAIL, ""));
+        String hashOfUser = UserContainer.getHashOfUser(new User(TEST_USERNAME, TEST_PASSWORD, TEST_EMAIL));
         assertEquals(hashOfUser, message.getMessage());
         System.out.println("register successful! Token: " + message.getMessage());
     }

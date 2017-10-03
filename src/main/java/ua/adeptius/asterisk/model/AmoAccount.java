@@ -60,12 +60,17 @@ public class AmoAccount implements Serializable {
     @Column(name = "responsible_string")
     private String responsibleUserScheduleString;
 
-    @Column(name = "lead_id")
-    private int leadId;//todo хрень
-
     @JsonProperty
     @Column(name = "cling")
     private Boolean cling;
+
+    @JsonProperty
+    @Column(name = "pipeline_id")
+    private Integer pipelineId;
+
+    @JsonProperty
+    @Column(name = "stage_id")
+    private Integer stageId;
 
     @ManyToOne
     @JoinColumn(name = "nextel_login", insertable = false, updatable = false)
@@ -118,9 +123,6 @@ public class AmoAccount implements Serializable {
         return operatorLocation.getInnerNumberAndAmoUserId().get(phone);
     }
 
-    public int getLeadId() {
-        return leadId;
-    }
 
     @Nullable
     public User getUser() {
@@ -183,6 +185,54 @@ public class AmoAccount implements Serializable {
         this.phoneEnumId = phoneEnumId;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getNextelLogin() {
+        return nextelLogin;
+    }
+
+    public void setNextelLogin(String nextelLogin) {
+        this.nextelLogin = nextelLogin;
+    }
+
+    public String getResponsibleUserScheduleString() {
+        return responsibleUserScheduleString;
+    }
+
+    public void setResponsibleUserScheduleString(String responsibleUserScheduleString) {
+        this.responsibleUserScheduleString = responsibleUserScheduleString;
+    }
+
+    public Boolean getCling() {
+        return cling;
+    }
+
+    public void setCling(Boolean cling) {
+        this.cling = cling;
+    }
+
+    public int getPipelineId() {
+        return pipelineId;
+    }
+
+    public void setPipelineId(int pipelineId) {
+        this.pipelineId = pipelineId;
+    }
+
+    public int getStageId() {
+        return stageId;
+    }
+
+    public void setStageId(int stageId) {
+        this.stageId = stageId;
+    }
+
     public boolean isCling() {
         if (cling == null){
             return false;
@@ -204,7 +254,11 @@ public class AmoAccount implements Serializable {
                 ", domain='" + domain + '\'' +
                 ", phoneId='" + phoneId + '\'' +
                 ", phoneEnumId='" + phoneEnumId + '\'' +
-                ", leadId=" + leadId +
+                ", apiUserId='" + apiUserId + '\'' +
+                ", responsibleUserScheduleString='" + responsibleUserScheduleString + '\'' +
+                ", cling=" + cling +
+                ", pipelineId=" + pipelineId +
+                ", stageId=" + stageId +
                 ", user=" + user.getLogin() +
                 '}';
     }

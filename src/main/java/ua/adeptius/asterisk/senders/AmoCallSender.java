@@ -123,8 +123,6 @@ public class AmoCallSender extends Thread {
             }
         }
 
-        int startedLeadId = amoAccount.getLeadId(); // айдишник этапа сделки
-
         //        Все данные готовы. Теперь отправляем инфу.
 
 
@@ -149,7 +147,7 @@ public class AmoCallSender extends Thread {
             String answeredWorkerId = amoAccount.getWorkersId(calledTo);
 
             try {
-                createOrFindDeal(amoAccount, startedLeadId, user, call, answeredWorkerId);
+                createOrFindDeal(amoAccount, user, call, answeredWorkerId);
             } catch (Exception e) {
                 LOGGER.error(login + ": Не удалось создать сделку и контакт", e);
             }
@@ -172,7 +170,7 @@ public class AmoCallSender extends Thread {
                         responsibleWorker = apiUserId;
                         LOGGER.debug("{}: Ответственный оператор не указан. Им будет владелец API {}.", login, responsibleWorker);
                     }
-                    createOrFindDeal(amoAccount, startedLeadId, user, call, responsibleWorker);
+                    createOrFindDeal(amoAccount, user, call, responsibleWorker);
                 }
                 AmoDAO.addCallToNotes(amoAccount, call);
             }catch (Exception e){
@@ -182,7 +180,7 @@ public class AmoCallSender extends Thread {
     }
 
 
-    private void createOrFindDeal(AmoAccount amoAccount, int startedLeadId, User user, Call call, String answeredWorkerId) throws Exception {
+    private void createOrFindDeal(AmoAccount amoAccount, User user, Call call, String answeredWorkerId) throws Exception {
         String contactNumber = call.getCalledFrom();
         String contactName = "Контакт " + contactNumber;
         String login = user.getLogin();
@@ -193,7 +191,7 @@ public class AmoCallSender extends Thread {
         if (jsonAmoContact == null) { //если такого контакта еще нет - создаём и контакт и сделку.
             LOGGER.debug("{}: Контакт AMO по телефону {} не найден. Создаём новый контакт и сделку.", login, contactNumber);
 
-            IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", startedLeadId, answeredWorkerId);
+            IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", answeredWorkerId);
             int dealId = idPairTime.getId();
             call.setAmoDealId(dealId); // ПРИВЯЗКА
             call.setLastOperationTime(idPairTime.getTime());
@@ -215,7 +213,7 @@ public class AmoCallSender extends Thread {
                 call.setLastOperationTime(latestActiveDial.getServerResponseTime());
 
             } else { // если у контакта нет активной сделки - то создаём новую и в контакте её добавляем.
-                IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", startedLeadId, answeredWorkerId);
+                IdPairTime idPairTime = AmoDAO.addNewDealAndGetBackIdAndTime(amoAccount, "Nextel", answeredWorkerId);
                 call.setAmoDealId(idPairTime.getId());
                 call.setLastOperationTime(idPairTime.getTime());
                 jsonAmoContact.addLinked_leads_id("" + idPairTime.getId());

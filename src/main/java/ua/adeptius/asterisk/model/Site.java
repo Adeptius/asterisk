@@ -54,6 +54,10 @@ public class Site {
     @Column(name = "black_ips")
     private String blackIps = "";
 
+    @JsonProperty
+    @Column(name = "google_tracking_id")
+    private String googleTrackingId;
+
     @ManyToOne
     @JoinColumn(name = "login", insertable = false, updatable = false)
     private User user;
@@ -219,6 +223,14 @@ public class Site {
         return user;
     }
 
+    public String getGoogleTrackingId() {
+        return googleTrackingId;
+    }
+
+    public void setGoogleTrackingId(String googleTrackingId) {
+        this.googleTrackingId = googleTrackingId;
+    }
+
     public void setUser(User user) {
         this.user = user;
         if (user != null) {
@@ -235,7 +247,8 @@ public class Site {
                 ", name='" + name + '\'' +
                 ", standardNumber='" + standardNumber + '\'' +
                 ", timeToBlock=" + timeToBlock +
-                ", blackIps length='" + blackIps.length() + '\'' +
+                ", googleTrackingId='" + googleTrackingId + '\'' +
+                ", blackIps length='" + (blackIps == null? "0" : blackIps.length()) + '\'' +
                 ", user=" + user.getLogin() +
                 '}';
     }

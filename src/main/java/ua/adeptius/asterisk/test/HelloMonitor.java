@@ -40,19 +40,6 @@ public class HelloMonitor implements ManagerEventListener {
         }
     }
 
-//    public ManagerResponse sendAction(ManagerAction action, long timeout) throws IOException, TimeoutException {
-//        return managerConnection.sendAction(action, timeout);
-//    }
-//
-//
-//    public ManagerResponse sendCallToOutsideAction(String from, String to) throws IOException, TimeoutException {
-//        OriginateAction callToOutside = AsteriskActionsGenerator.callToOutside(from, to);
-//        return managerConnection.sendAction(callToOutside, 10000);
-//    }
-
-//    String chanelToShow = null;
-
-
     public void onManagerEvent(ManagerEvent event) {
 
         if (event instanceof NewChannelEvent) {

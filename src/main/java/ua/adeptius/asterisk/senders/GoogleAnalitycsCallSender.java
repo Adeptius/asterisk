@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.adeptius.asterisk.Main;
 import ua.adeptius.asterisk.dao.Settings;
+import ua.adeptius.asterisk.model.Site;
+import ua.adeptius.asterisk.model.User;
 import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import ua.adeptius.asterisk.model.telephony.Call;
 
@@ -57,17 +59,18 @@ public class GoogleAnalitycsCallSender extends Thread {
     }
 
     private void sendReport(Call call) {
-        String login = call.getUser().getLogin();
+        User user = call.getUser();
+        String login = user.getLogin();
         if (call.getDirection() != IN){ // если исходящий звонок - отбой
             LOGGER.trace("{}: Звонок исходящий. Отмена отправки", login);
             return;
         }
 
-        String userGoogleAnalitycsId = call.getUser().getTrackingId();// если не указан трекинг айди - отбой
-        if (StringUtils.isBlank(userGoogleAnalitycsId)){
-            LOGGER.trace("{}: Не указан google analytics id у юзера. Отмена отправки", login);
-            return;
-        }
+//        String userGoogleAnalitycsId = call.getUser().getTrackingId();// если не указан трекинг айди - отбой
+//        if (StringUtils.isBlank(userGoogleAnalitycsId)){
+//            LOGGER.trace("{}: Не указан google analytics id у юзера. Отмена отправки", login);
+//            return;
+//        }
 
         String clientGoogleId = call.getGoogleId();
         if (clientGoogleId == null) {
@@ -87,13 +90,21 @@ public class GoogleAnalitycsCallSender extends Thread {
             return;
         }
 
+        Site siteByName = user.getSiteByName(siteName);
+        if (siteByName == null) {
+            LOGGER.error("{}: Не найден сайт по имени в телефоне {}. Call: {}", login, outerPhone, call);
+            return;
+        }
+
+        String userGoogleAnalitycsId = siteByName.getGoogleTrackingId();
+
         HashMap<String, Object> map = new HashMap<>(); // формируем запрос
         map.put("v", "1");
         map.put("t", "event"); // Hit Type.
         map.put("tid", userGoogleAnalitycsId); // Tracking ID
         map.put("cid", clientGoogleId); // Client ID.
         map.put("ec", "calltracking"); // Категория
-        map.put("ea", siteName+": new call");// Событие
+        map.put("ea", "new call");// Событие
 
         try {
             String response = Unirest.post("http://www.google-analytics.com/collect").fields(map).asString().getBody();

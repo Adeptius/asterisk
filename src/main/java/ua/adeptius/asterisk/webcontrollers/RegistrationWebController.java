@@ -110,7 +110,7 @@ public class RegistrationWebController {
            return new Message(Error, "Key wrong or expired");
        }
        try {
-           User newUser = new User(registerQuery.getLogin(), registerQuery.getPassword(), registerQuery.getEmail(), null);
+           User newUser = new User(registerQuery.getLogin(), registerQuery.getPassword(), registerQuery.getEmail());
            newUser.setUserPhoneNumber(registerQuery.getUserPhoneNumber());
            HibernateController.saveUser(newUser);
            UserContainer.putUser(newUser);

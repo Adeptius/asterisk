@@ -218,7 +218,7 @@ public class Scheduler{
                 monitor.run();
                 LOGGER.info("Монитор астериска запущен");
             } catch (Exception e) {
-                LOGGER.error("Ошибка запуска мониторинга телефонии: ", e);
+                LOGGER.error("Ошибка запуска мониторинга телефонии: {}", e.getMessage());
                 monitor = null;
             }
         }

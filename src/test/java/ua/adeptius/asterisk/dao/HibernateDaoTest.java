@@ -54,7 +54,6 @@ public class HibernateDaoTest {
         user.setLogin(TEST_USERNAME);
         user.setEmail("hibernate@mail.com");
         user.setPassword(TEST_PASSWORD);
-        user.setTrackingId("hibernateId");
         HibernateController.saveUser(user);
     }
 
@@ -161,13 +160,11 @@ public class HibernateDaoTest {
     public void testUsersProperties() throws Exception {
         User user = HibernateController.getUserByLogin(TEST_USERNAME);
         user.setPassword("newPass");
-        user.setTrackingId("newTrackId");
         user.setEmail("newMail");
         HibernateController.update(user);
 
         user = HibernateController.getUserByLogin(TEST_USERNAME);
         assertEquals("Пароль пользователя не сохраняется", "newPass", user.getPassword());
-        assertEquals("Tracking id пользователя не сохраняется", "newTrackId", user.getTrackingId());
         assertEquals("Email пользователя не сохраняется", "newMail", user.getEmail());
     }
 

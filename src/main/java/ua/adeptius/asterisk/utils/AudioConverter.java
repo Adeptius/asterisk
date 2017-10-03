@@ -32,7 +32,7 @@ public class AudioConverter {
                 s = s.substring(0, s.indexOf("kB"));
                 return Integer.parseInt(s);
             }
-            System.out.println(s);
+//            System.out.println(s); Вывод на экран
         }
         return -1;
     }

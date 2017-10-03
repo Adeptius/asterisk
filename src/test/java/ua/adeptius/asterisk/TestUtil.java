@@ -139,7 +139,7 @@ public class TestUtil {
     }
 
     public void createTestUser() throws Exception{
-        User user = new User(TEST_USERNAME, TEST_PASSWORD, TEST_EMAIL, "");
+        User user = new User(TEST_USERNAME, TEST_PASSWORD, TEST_EMAIL);
         HibernateController.saveOrUpdateUser(user);
         UserContainer.putUser(user);
     }

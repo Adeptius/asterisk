@@ -8,12 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import sun.misc.resources.Messages_sv;
 import ua.adeptius.amocrm.AmoDAO;
 import ua.adeptius.amocrm.exceptions.*;
 import ua.adeptius.amocrm.model.json.JsonAmoAccount;
 import ua.adeptius.amocrm.model.json.JsonPipeline;
 import ua.adeptius.asterisk.controllers.HibernateController;
 import ua.adeptius.asterisk.controllers.UserContainer;
+import ua.adeptius.asterisk.exceptions.UkrainianNumberParseException;
 import ua.adeptius.asterisk.json.JsonAmoForController;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.*;
@@ -33,7 +35,6 @@ public class AmoWebController {
 
     private static boolean safeMode = true;
     private static Logger LOGGER = LoggerFactory.getLogger(AmoWebController.class.getSimpleName());
-    private static ObjectMapper mapper = new ObjectMapper();
 
 
     @PostMapping("/get")
@@ -48,7 +49,33 @@ public class AmoWebController {
             return new Message(Error, "User have not connected amo account");
         }
 
-        return amoAccount;
+        try{
+            JsonAmoForController jsonAmoForController = new JsonAmoForController(amoAccount);
+            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
+
+            // список пользователей
+            HashMap<String, String> usersIdAndName = jsonAmoAccount.getUsersIdAndName();
+            jsonAmoForController.setUsersIdAndName(usersIdAndName);
+
+            // расположение операторов
+            HashMap<String, String> workerIdAndPhones;
+            AmoOperatorLocation operatorLocation = user.getOperatorLocation();
+            if (operatorLocation != null) {
+                workerIdAndPhones = operatorLocation.getAmoUserIdAndInnerNumber();
+            } else {
+                workerIdAndPhones = new HashMap<>();
+            }
+            jsonAmoForController.setOperatorLocation(workerIdAndPhones);
+
+            // Воронки
+            List<JsonPipeline> pipelines = jsonAmoAccount.getPipelines();
+            jsonAmoForController.setPipelines(pipelines);
+
+            return jsonAmoForController;
+        }catch (Exception e){
+            LOGGER.error(user.getLogin() + ": ошибка выдачи AmoAccount", e);
+            return new Message(Error, "Internal error");
+        }
     }
 
     @PostMapping("/set")
@@ -58,28 +85,72 @@ public class AmoWebController {
             return new Message(Error, "Authorization invalid");
         }
 
+        // Проверка домена, логина, ключа
         String domain = jsonAmoAccount.getDomain();
         String amoLogin = jsonAmoAccount.getAmoLogin();
         String apiKey = jsonAmoAccount.getApiKey();
-        boolean cling = jsonAmoAccount.isCling();
-        String[] responsibleUserSchedule = jsonAmoAccount.getResponsibleUserSchedule();
-
         if (StringUtils.isAnyBlank(domain, amoLogin, apiKey)) {
             return new Message(Error, "Some params are blank!");
         }
 
-        AmoAccount amoAccount = user.getAmoAccount();
+        // Проверка расположения операторов
+        HashMap<String, String> newOperatorLocation = jsonAmoAccount.getOperatorLocation();
+        if (newOperatorLocation == null) {
+            newOperatorLocation = new HashMap<>();
+        }
 
+        //Создаю контрольный Set что бы понять не введены ли дубли номеров телефонов.
+        Set<String> nameCheck = new HashSet<>();
+
+        for (Map.Entry<String, String> entry : newOperatorLocation.entrySet()) {
+//            String workerId = entry.getKey();
+            String phone = entry.getValue();
+
+            if (user.getInnerPhoneByNumber(phone) == null) {
+                try {
+                    phone = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(phone);
+                } catch (UkrainianNumberParseException e) {
+                    return new Message(Error, "Phone " + phone + " is not user's SIP or Ukrainian GSM");
+                }
+            }
+
+            if (!nameCheck.add(phone)) {
+                return new Message(Error, "Found duplicates of number " + phone);
+            }
+        }
+
+        //Эти данные проверять не нужно
+        boolean cling = jsonAmoAccount.isCling();
+        int pipelineId = jsonAmoAccount.getPipelineId();
+        int stageId = jsonAmoAccount.getStageId();
+        String[] responsibleUserSchedule = jsonAmoAccount.getResponsibleUserSchedule();
+
+
+        // Проверка завершена. Далее просто всё сохраняем
+
+        AmoOperatorLocation location = new AmoOperatorLocation();
+        location.setName("location");
+        location.setAmoUserIdAndInnerNumber(newOperatorLocation);
+        user.setAmoOperatorLocations(location);
+
+        // Если амо не был подключен - создаём.
+        AmoAccount amoAccount = user.getAmoAccount();
         if (amoAccount == null) {
             amoAccount = new AmoAccount();
         }
 
+        // сбрасываем данные
+        amoAccount.setPhoneId(null);
+        amoAccount.setPhoneEnumId(null);
+        amoAccount.setApiUserId(null);
+
+        // назначаем новые
         amoAccount.setDomain(domain);
         amoAccount.setAmoLogin(amoLogin);
         amoAccount.setApiKey(apiKey);
-        amoAccount.setPhoneId(null);
-        amoAccount.setPhoneEnumId(null);
         amoAccount.setCling(cling);
+        amoAccount.setPipelineId(pipelineId);
+        amoAccount.setStageId(stageId);
         amoAccount.setResponsibleUserSchedule(responsibleUserSchedule);
         user.setAmoAccount(amoAccount);
 
@@ -155,134 +226,6 @@ public class AmoWebController {
             }
         }
     }
-
-
-    @PostMapping("/getUsers")
-    public Object getUsers(HttpServletRequest request) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Error, "Authorization invalid");
-        }
-
-        AmoAccount amoAccount = user.getAmoAccount();
-        if (amoAccount == null) {
-            return new Message(Error, "User have not connected Amo account");
-        }
-
-        try {
-            // Загружаем из Amo список работников пользователя
-            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-            return jsonAmoAccount.getUsersIdAndName();
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": Ошибка при отправке списка сотрудников", e);
-            return new Message(Error, "Internal error");
-        }
-    }
-
-    @PostMapping("/getBindings")
-    public Object getBindings(HttpServletRequest request) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Error, "Authorization invalid");
-        }
-
-        AmoAccount amoAccount = user.getAmoAccount();
-        if (amoAccount == null) {
-            return new Message(Error, "User have not connected Amo account");
-        }
-
-        HashMap<String, String> workerIdAndPhones; // получаем текуший список
-        AmoOperatorLocation operatorLocation = user.getOperatorLocation();
-        if (operatorLocation != null) {
-            workerIdAndPhones = operatorLocation.getAmoUserIdAndInnerNumber();
-        } else {
-            workerIdAndPhones = new HashMap<>();
-        }
-        return workerIdAndPhones;
-    }
-
-    @PostMapping("/setBindings")
-    public Message setBindings(HttpServletRequest request, @RequestBody HashMap<String, String> newBindings) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Error, "Authorization invalid");
-        }
-
-        AmoAccount amoAccount = user.getAmoAccount();
-        if (amoAccount == null) {
-            return new Message(Error, "User have not connected Amo account");
-        }
-
-        LOGGER.debug("{}: запрос сохранения привязок {}", user.getLogin(), newBindings);
-
-        try {
-            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-            HashMap<String, String> usersIdAndName = jsonAmoAccount.getUsersIdAndName();
-
-//            Формируем окончательную мапу userID <-> phone number
-            HashMap<String, String> newHashAmoBindings = new HashMap<>();
-
-            //Создаю контрольный Set что бы понять не введены ли дубли номеров телефонов.
-            Set<String> nameCheck = new HashSet<>();
-
-            for (Map.Entry<String, String> entry : newBindings.entrySet()) {
-                String workerId = entry.getKey();
-                String phone = entry.getValue();
-
-                if (usersIdAndName.get(workerId) == null) {
-                    return new Message(Error, "User '" + workerId + "' not found in amo account.");
-                }
-
-                if (user.getInnerPhoneByNumber(phone) == null) {
-                    try {
-                        phone = MyStringUtils.cleanAndValidateUkrainianPhoneNumber(phone);
-                    } catch (IllegalArgumentException e) {
-                        return new Message(Error, "Phone " + phone + " is not user's SIP or Ukrainian GSM");
-                    }
-                }
-
-                if (nameCheck.add(phone)) {
-                    newHashAmoBindings.put(workerId, phone);
-                } else {
-                    return new Message(Error, "Found duplicates of number " + phone);
-                }
-            }
-
-            AmoOperatorLocation location = new AmoOperatorLocation();
-            location.setLogin(user.getLogin());
-            location.setName("location");
-            location.setAmoUserIdAndInnerNumber(newHashAmoBindings);
-            user.setAmoOperatorLocations(location);
-
-            HibernateController.update(user);
-            return new Message(Message.Status.Success, "Bindings saved");
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": Ошибка при создании списка привязок " + newBindings, e);
-            return new Message(Error, "Internal error");
-        }
-    }
-
-    @PostMapping("/getPipelines")
-    public Object getPipelines(HttpServletRequest request) {
-        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
-        if (user == null) {
-            return new Message(Error, "Authorization invalid");
-        }
-
-        AmoAccount amoAccount = user.getAmoAccount();
-        if (amoAccount == null) {
-            return new Message(Error, "User have not connected Amo account");
-        }
-
-        try {
-            JsonAmoAccount jsonAmoAccount = AmoDAO.getAmoAccount(amoAccount);
-            return jsonAmoAccount.getPipelines();
-        } catch (Exception e) {
-            LOGGER.error(user.getLogin() + ": Ошибка при отправке инфы об амо акке", e);
-            return new Message(Error, "Internal error");
-        }
-    }
-
 
     @PostMapping(value = "/widDovovorAndEmail", produces = "text/html; charset=UTF-8")
     public Object widDovovorAndEmail(String dogovor, String email) {

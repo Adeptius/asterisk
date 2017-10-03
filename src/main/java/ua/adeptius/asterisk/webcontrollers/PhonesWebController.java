@@ -1,5 +1,6 @@
 package ua.adeptius.asterisk.webcontrollers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -9,11 +10,13 @@ import ua.adeptius.asterisk.controllers.UserContainer;
 import ua.adeptius.asterisk.dao.SipConfigDao;
 import ua.adeptius.asterisk.json.JsonInnerAndOuterPhones;
 import ua.adeptius.asterisk.json.JsonPhoneCount;
+import ua.adeptius.asterisk.json.JsonPhoneGroup;
 import ua.adeptius.asterisk.json.Message;
 import ua.adeptius.asterisk.model.telephony.InnerPhone;
 import ua.adeptius.asterisk.model.telephony.OuterPhone;
 import ua.adeptius.asterisk.model.Site;
 import ua.adeptius.asterisk.model.User;
+import ua.adeptius.asterisk.model.telephony.PhoneGroup;
 import ua.adeptius.asterisk.monitor.Scheduler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -175,6 +178,107 @@ public class PhonesWebController {
                 } catch (Exception e) {
                     LOGGER.error(user.getLogin() + ": ошибка синхронизации после изменения количества номеров", e);
                 }
+        }
+    }
+
+    @PostMapping("/setGroup")
+    public Object getBlackList(HttpServletRequest request, @RequestBody JsonPhoneGroup jsonPhoneGroup) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid");
+        }
+
+        String name = jsonPhoneGroup.getName();
+        if (StringUtils.isBlank(name)){
+            return new Message(Error, "Name is empty");
+        }
+
+        List<String> phones = jsonPhoneGroup.getPhones();
+        if (phones == null || phones.size() == 0) {
+            return new Message(Error, "Phones is empty");
+        }
+
+        phones = phones.stream().distinct().collect(Collectors.toList());
+
+        List<String> listOfCurrentNumbers = user.getInnerPhones().stream().map(InnerPhone::getNumber).collect(Collectors.toList());
+
+        // Проверяем сначала что все присланные номера есть у пользователя.
+        for (String phone : phones) {
+            if (!listOfCurrentNumbers.contains(phone)){
+                return new Message(Error, "Wrong number " + phone);
+            }
+        }
+
+        // Все номера правильные. Теперь проверяем не указаны ли эти номера в других группах
+        Set<PhoneGroup> phoneGroups = user.getPhoneGroups();
+        for (PhoneGroup phoneGroup : phoneGroups) {
+            if (phoneGroup.getName().equals(name)){
+                continue; // это та же группа. Интересуют только другие Пропускаем.
+            }
+            List<String> numbersFromOtherGroup = phoneGroup.getPhones();
+            for (String numberFromOtherGroup : numbersFromOtherGroup) {
+                if (phones.contains(numberFromOtherGroup)){
+                    return new Message(Error, "Number already in group: " + numberFromOtherGroup);
+                }
+            }
+        }
+
+
+        PhoneGroup phoneGroup = user.getPhoneGroups().stream()
+                .filter(pg -> pg.getName().equals(name))
+                .findFirst().orElse(null);
+
+        if (phoneGroup == null){
+            phoneGroup = new PhoneGroup();
+            phoneGroup.setName(name);
+        }
+
+//        PhoneGroup phoneGroup = new PhoneGroup();
+        phoneGroup.setPhones(phones);
+        user.addPhoneGroup(phoneGroup);
+        try {
+            HibernateController.update(user);
+            return new Message(Success, "Setted");
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": ошибка установки группы " + jsonPhoneGroup, e);
+            return new Message(Error, "Internal error");
+        }
+    }
+
+    @PostMapping("/getGroup")
+    public Object getGroup(HttpServletRequest request) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid");
+        }
+
+        return user.getPhoneGroups();
+    }
+
+
+    @PostMapping("/removeGroup")
+    public Object removeGroup(HttpServletRequest request, String name) {
+        User user = UserContainer.getUserByHash(request.getHeader("Authorization"));
+        if (user == null) {
+            return new Message(Error, "Authorization invalid");
+        }
+
+        if (StringUtils.isBlank(name)){
+            return new Message(Error, "Name is empty");
+        }
+
+        PhoneGroup phoneGroupByName = user.getPhoneGroupByName(name);
+        if (phoneGroupByName == null) {
+            return new Message(Error, "Group not found");
+        }
+
+        user.removePhoneGroup(phoneGroupByName);
+        try {
+            HibernateController.update(user);
+            return new Message(Success, "Removed");
+        } catch (Exception e) {
+            LOGGER.error(user.getLogin() + ": ошибка удаления группы " + name, e);
+            return new Message(Error, "Internal error");
         }
     }
 }

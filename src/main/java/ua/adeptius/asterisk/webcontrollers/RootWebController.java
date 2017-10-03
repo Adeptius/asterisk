@@ -27,15 +27,32 @@ public class RootWebController {
         usersCache.clear();
     }
 
-    @GetMapping(value = "/getnumber/{user}/{site}/{googleid}/{ip}/{pagerequest}", produces = "text/html; charset=UTF-8")
-    @ResponseBody
-    public String plaintext(@PathVariable String user,
-                            @PathVariable String site,
-                            @PathVariable String googleid,
-                            @PathVariable String ip,
-                            @PathVariable String pagerequest) {
+//    @GetMapping(value = "/getnumber/{user}/{site}/{googleid}/{ip}/{pagerequest}", produces = "text/html; charset=UTF-8")
+//    @ResponseBody
+//    public String plaintext(@PathVariable String user,
+//                            @PathVariable String site,
+//                            @PathVariable String googleid,
+//                            @PathVariable String ip,
+//                            @PathVariable String pagerequest) {
+//
+//        User userObject = UserContainer.getUserByName(user);
+//        if (userObject == null) {
+//            return "BAD_REQUEST";
+//        }
+//
+//        Site siteObject = userObject.getSiteByName(site);
+//        if (site == null) {
+//            return "BAD_REQUEST";
+//        }
+//
+//        return TrackingController.getFreeNumberFromSite(userObject, siteObject, googleid, ip, pagerequest);
+//    }
 
-        User userObject = UserContainer.getUserByName(user);
+    @PostMapping(value = "/getNumber", produces = "text/html; charset=UTF-8")
+    @ResponseBody
+    public String getNumber(String user, String site, String googleId, String ip, String pageRequest) {
+
+         User userObject = UserContainer.getUserByName(user);
         if (userObject == null) {
             return "BAD_REQUEST";
         }
@@ -45,7 +62,7 @@ public class RootWebController {
             return "BAD_REQUEST";
         }
 
-        return TrackingController.getFreeNumberFromSite(userObject, siteObject, googleid, ip, pagerequest);
+        return TrackingController.getFreeNumberFromSite(userObject, siteObject, googleId, ip, pageRequest);
     }
 
     @PostMapping(value = "/getToken", produces = "application/json; charset=UTF-8")

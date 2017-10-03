@@ -66,17 +66,15 @@ public class UserWebControllerTest {
 
         User userFromContainer = UserContainer.getUserByName(TEST_USERNAME);
         assertEquals("someMail@gmail.com", userFromContainer.getEmail());
-        assertEquals("someId", userFromContainer.getTrackingId());
 
         User userFromDb = HibernateController.getUserByLogin(TEST_USERNAME);
         assertEquals("someMail@gmail.com", userFromDb.getEmail());
-        assertEquals("someId", userFromDb.getTrackingId());
     }
 
     @Test
     public void getUser() throws Exception {
         testUtil.deleteTestUserIfExist();
-        User user = new User(TEST_USERNAME, TEST_PASSWORD, TEST_EMAIL, "trackid");
+        User user = new User(TEST_USERNAME, TEST_PASSWORD, TEST_EMAIL);
         HibernateController.saveUser(user);
         UserContainer.putUser(user);
         String jsonStringFromUrl = testUtil.getJsonStringFromUrl("/user/get", true, false,
@@ -84,7 +82,6 @@ public class UserWebControllerTest {
         JsonUser jsonUser = new ObjectMapper().readValue(jsonStringFromUrl, JsonUser.class);
         assertEquals(TEST_USERNAME, jsonUser.getLogin());
         assertEquals(TEST_EMAIL, jsonUser.getEmail());
-        assertEquals("trackid", jsonUser.getTrackingId());
         assertEquals(HibernateController.getUserByLogin(TEST_USERNAME).getPassword(), TEST_PASSWORD);
     }
 

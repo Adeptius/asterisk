@@ -77,7 +77,7 @@ public class UserWebController {
 
         try {
             RootWebController.clearCache();
-            User newUser = new User(login, jsonUser.getPassword(), email, jsonUser.getTrackingId());
+            User newUser = new User(login, jsonUser.getPassword(), email);
             HibernateController.saveUser(newUser);
             UserContainer.putUser(newUser);
             return new Message(Message.Status.Success, "User created");
@@ -147,7 +147,6 @@ public class UserWebController {
         }
 
         user.setEmail(email);
-        user.setTrackingId(setUser.getTrackingId());
         user.setFirstName(setUser.getFirstName());
         user.setLastName(setUser.getLastName());
         user.setMiddleName(setUser.getMiddleName());

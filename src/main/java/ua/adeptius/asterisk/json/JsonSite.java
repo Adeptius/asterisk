@@ -7,6 +7,7 @@ public class JsonSite {
 
     private String name;
     private String standardNumber;
+    private String googleTrackingId;
     private Integer timeToBlock;
     private ArrayList<String> blackList;
     private ArrayList<String> connectedPhones;
@@ -49,6 +50,14 @@ public class JsonSite {
 
     public void setTimeToBlock(Integer timeToBlock) {
         this.timeToBlock = timeToBlock;
+    }
+
+    public String getGoogleTrackingId() {
+        return googleTrackingId;
+    }
+
+    public void setGoogleTrackingId(String googleTrackingId) {
+        this.googleTrackingId = googleTrackingId;
     }
 
     @Override

@@ -37,6 +37,7 @@ public class SiteWebController {
 
         String siteName = jsonSite.getName();
         String newStandardNumber = jsonSite.getStandardNumber();
+        String googleTrackingId = jsonSite.getGoogleTrackingId();
         Integer newtimeToBlock = jsonSite.getTimeToBlock();
         ArrayList<String> blackList = jsonSite.getBlackList();
 
@@ -58,6 +59,10 @@ public class SiteWebController {
 
         if (newtimeToBlock == null || newtimeToBlock == 0) {
             newtimeToBlock = 120;
+        }
+
+        if (googleTrackingId != null && googleTrackingId.length()>16){
+            return new Message(Message.Status.Error, "Google tracking id is long");
         }
 
         // Проверяем свободны ли номера, которые будем привязывать.
@@ -96,6 +101,7 @@ public class SiteWebController {
 
         site.setStandardNumber(convertPhone(newStandardNumber));
         site.setTimeToBlock(newtimeToBlock);
+        site.setGoogleTrackingId(googleTrackingId);
 
         if (blackList != null) {
             site.setBlackLinkedList(blackList);
